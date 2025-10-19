@@ -1,0 +1,119 @@
+ @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap");
+
+.table-container {
+  font-family: "Outfit", sans-serif;
+  background-color: #ffffff;
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: none;
+  width: 100%;
+}
+
+.table-title {
+  color: #121212;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0 0 12px 0;
+  padding-left: 10px;
+  border-left: 5px solid #d4af37;
+}
+
+.table-wrapper {
+  overflow-x: auto; /* Horizontal scroll for small screens */
+  width: 100%;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+  scrollbar-width: none; /* Firefox */
+}
+
+.table-wrapper::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+.custom-table {
+  width: 100%;
+  min-width: 600px; /* Ensure table does not shrink too small */
+  border-collapse: collapse;
+  background-color: #fff;
+  font-size: 13px;
+  border-spacing:0;
+}
+
+.custom-table thead {
+  background-color: #f9f9f9;
+}
+
+.custom-table th {
+  text-align: left;
+  padding: 6px 10px; /* Compact row height */
+  color: #444;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid #ddd;
+  border-top: none;
+  background-color: #f0f8ff;
+  white-space: nowrap;
+}
+
+.custom-table td {
+  padding: 6px 10px; /* Compact row height */
+  color: #333;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+}
+
+.custom-table tr:hover {
+  background-color: #f5f5f5;
+  transition: background 0.2s ease;
+}
+
+.table-no-data {
+  color: #999;
+  text-align: center;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .custom-table th,
+  .custom-table td {
+    padding: 4px 8px; /* Even more compact on mobile */
+    // font-size: 0.85rem;
+  }
+  .table-wrapper {
+    min-width: 100%;
+  }
+}
+@media(max-width:1600px){
+  .dashboard-container{
+    margin-left:220px;
+    width:auto;
+  }
+}
+ @media(max-width:1200px){
+  .dashboard-container{
+    margin-left:200px;
+    width:auto;
+  }
+ }
+ 
+@media(max-width:992px){
+  .dashboard-container{
+   margin-left : 160px;
+  width : auto;
+   }
+  @media(max-width:768px){
+    .dashboard-container{
+      margin-left:30px;
+      width:auto;
+    }
+  }
+  @media(max-width:568){
+  .dashboard-container{
+    margin-left:30px;
+    width:auto;
+  }
+}
+
+  
+}

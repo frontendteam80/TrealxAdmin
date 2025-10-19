@@ -1,0 +1,92 @@
+ // layout.scss
+@import './variables.scss';
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+
+
+  // Light theme default colors
+  
+  color: $text-dark;
+
+  &.dark-theme {
+    background-color: map-get($dark-theme-colors, bg-color);
+    color: map-get($dark-theme-colors, text-color);
+  }
+}
+
+.dashboard-container {
+  height: 100vh;
+  background-color: inherit;
+  color: inherit;
+}
+
+.main-content {
+  //flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background-color: inherit;
+  color: inherit;
+  width: auto; // leaves space for sidebar
+
+// @media(max-width:992px){
+//     margin-left:160px;
+//     width:auto;
+//   }
+//   @media(max-width:767px){
+//     margin-left:160px;
+//     width:auto;
+//   }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.tables-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+/* Sidebar uses variables and inherits colors for theme switching */
+.sidebar {
+  background-color: map-get($dark-theme-colors, sidebar-bg, $bg-color);
+  color: map-get($dark-theme-colors, sidebar-color, $text-dark);
+}
+
+/* Table styles with fallback variables */
+.updates-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th, td {
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  th {
+    background-color: map-get($dark-theme-colors, table-th-bg, #eef5fc);
+    text-align: left;
+  }
+}
+
+/* Helper classes for text alignment */
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: center;
+}

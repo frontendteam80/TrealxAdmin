@@ -1,0 +1,21 @@
+ // variables.scss
+
+// Base colors
+$bg-color: #F5EEDC;
+$primary: #344767;
+$accent: #5e72e4;
+$success: #2dce89;
+$warning: #f5365c;
+$info: #11cdef;
+$light: #f8f9fa;
+$dark: #212529;
+$text-dark: #000000;
+$card-bg: white;
+$gradient: linear-gradient(90deg, #5e72e4, #825ee4);
+
+// Dark theme colors map
+$dark-theme-colors: (
+  bg-color: #12181e,
+  text-color: #eef2fb,
+  card-bg: #2a2f3a
+);

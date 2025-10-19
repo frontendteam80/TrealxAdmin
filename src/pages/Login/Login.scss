@@ -1,0 +1,123 @@
+// Variables
+$login-bg: "../../assets/login.jpg";
+$primary-color: #121212;
+$error-color: #e74c3c;
+$card-bg: rgba(255, 255, 255, 0.95);
+
+.login-container {
+  font-family: 'Outfit', sans-serif;  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-image: url(#{$login-bg});
+  background-color: #f9f9f9;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+}
+
+.login-box {
+  position: relative;
+  z-index: 1;
+  background: $card-bg; // translucent card
+  padding: 1.5rem;
+  border-radius: 16px;
+  padding-top: 0px;
+  width: 100%;
+  max-width: 370px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  animation: fadeInUp 0.6s ease;
+
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $primary-color;
+    margin-bottom: 15px;
+    text-align: center;
+    letter-spacing: 1px;
+     margin-top: 18px;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: $primary-color;
+    text-align: center;
+    letter-spacing: 0.9px;
+    margin-top: 10px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+
+    input {
+      padding: 0.75rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      background: #fff;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+        box-shadow: 0 0 6px rgba(42, 82, 152, 0.4);
+      }
+    }
+
+    .error-message {
+      color: $error-color;
+      font-size: 0.85rem;
+      text-align: left;
+      margin-top: -0.5rem;
+      margin-left: 2px;
+    }
+
+    .login-btn {
+      padding: 0.9rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      background: $primary-color;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+
+      &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+/* 🔹 Smooth animation */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

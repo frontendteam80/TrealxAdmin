@@ -1,0 +1,55 @@
+ .stats-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  width: 210px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative; /* required for overlap positioning */
+  overflow: visible; /* allow icon to overflow */
+}
+
+/* ✅ Icon positioned above card */
+.icon-wrapper {
+  position: absolute;
+  top: -15px;   /* adjust overlap */
+  left: 16px;   /* keep aligned to text */
+}
+
+.icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ Text section below icon */
+.text-box {
+  margin-top: 2.2rem; /* space so text does not overlap icon */
+  padding-left: 0.25rem;
+}
+
+.text-box .label {
+  font-weight: 0.65rem;
+  color: #0f0f10;
+  margin: 0;
+}
+
+.text-box .value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #344767;
+  margin: 0.2rem 0;
+}
+
+.text-box .change {
+  font-size: 0.75rem;
+  color: #2dce89;
+}

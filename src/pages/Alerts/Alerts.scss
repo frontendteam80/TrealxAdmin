@@ -1,0 +1,266 @@
+$primary-color: #121212; 
+$highlight-color: #b8860b; 
+$background-light: #fff; 
+$font-family: "Outfit", sans-serif;
+
+// ---- Alerts Container ----
+.alerts-container {
+  position: relative;
+  background: $background-light;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  // margin-left: 190px; // desktop sidebar width
+  font-family: $font-family;
+  // padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  // max-width: calc(100vw - 190px);
+
+  // ---- Header ----
+  .alerts-header {
+    font-size: 25px;
+    font-weight: bold;
+    color: $primary-color;
+    flex-shrink: 0;
+  }
+
+  // ---- User Name ----
+  .user-name {
+    position: absolute;
+    top: 20px;
+    right: 40px;
+    font-size: 18px;
+    font-weight: bold;
+    color: blue;
+  }
+
+  .new-badge {
+    margin-left: 6px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    background-color: $highlight-color;
+    border-radius: 4px;
+    animation: pulse-new 1.2s infinite;
+  }
+
+  // ---- Top Section ----
+  .alerts-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .alerts-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .create-alert-btn {
+      padding: 10px 18px;
+      border-radius: 6px;
+      border: none;
+      background-color: $primary-color;
+      color: #fff;
+      font-weight: 600;
+      margin-top: 20px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      transition: 0.2s;
+
+      &:hover {
+        background-color: darken($primary-color, 5%);
+      }
+    }
+  }
+
+  // ---- Buttons ----
+  .alerts-btn {
+    padding: 10px 18px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    font-weight: 600;
+    color: $primary-color;
+    margin-top: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+    &.active {
+      border: 2px solid #12121261;
+    }
+  }
+
+  // ---- Table Section ----
+  .table-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .alerts-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 12px;
+    color: $primary-color;
+    table-layout: fixed;
+    overflow: hidden;
+
+    th,
+    td {
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 400;
+      background-color: #fff;
+      border-bottom: 1px solid rgb(247, 245, 245);
+      text-overflow: ellipsis;
+      overflow: hidden;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    th {
+      font-size: 14px;
+      font-weight: 700;
+      border-bottom: 1px solid rgb(217, 217, 217);
+      background-color: #f0f8ff;
+    }
+
+    tr:hover td {
+      background-color: #f9f9f9;
+    }
+  }
+
+  // ---- Pagination ----
+  .pagination {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+
+    button {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      background-color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+
+      &.active {
+        background-color: $primary-color;
+        color: #fff;
+        border-color: $primary-color;
+      }
+
+      &:hover {
+        background-color: lighten($primary-color, 40%);
+      }
+    }
+  }
+
+  // ---- Column Widths ----
+  .buyer-alerts-table {
+    th:nth-child(1), td:nth-child(1) { width: 4%; }
+    th:nth-child(2), td:nth-child(2) { width: 25%; }
+    th:nth-child(3), td:nth-child(3) { width: 11%; }
+    th:nth-child(4), td:nth-child(4) { width: 8%; }
+    th:nth-child(5), td:nth-child(5) { width: 8%; }
+    th:nth-child(6), td:nth-child(6) { width: 10%; }
+    th:nth-child(7), td:nth-child(7) { width: 13%; }
+    th:nth-child(8), td:nth-child(8) { width: 23%; }
+  }
+
+  .seller-alerts-table {
+    th:nth-child(1), td:nth-child(1) { width: 4%; }
+    th:nth-child(2), td:nth-child(2) { width: 25%; }
+    th:nth-child(3), td:nth-child(3) { width: 13%; }
+    th:nth-child(4), td:nth-child(4) { width: 13%; }
+    th:nth-child(5), td:nth-child(5) { width: 13%; }
+    th:nth-child(6), td:nth-child(6) { width: 15%; }
+    th:nth-child(7), td:nth-child(7) { width: 24%; }
+  }
+
+  .matches-table {
+    th:nth-child(1), td:nth-child(1) { width: 10%; }
+    th:nth-child(2), td:nth-child(2) { width: 10%; }
+    th:nth-child(3), td:nth-child(3) { width: 15%; }
+    th:nth-child(4), td:nth-child(4) { width: 20%; }
+    th:nth-child(5), td:nth-child(5) { width: 15%; }
+    th:nth-child(6), td:nth-child(6) { width: 20%; }
+  }
+}
+
+// ---- Responsive Adjustments ----
+
+// Desktop / Large Tablet
+//  @media (max-width: 1200px) {
+//    .alerts-container { margin-left: 180px  }
+//  }
+
+// // Tablet
+// @media (max-width: 992px) {
+//   .alerts-container {
+//     margin-left: 160px; // keep sidebar visible
+//     max-width: calc(100vw - 160px);
+//     padding: 15px;
+//     overflow: visible;
+
+//     .alerts-header { font-size: 20px; }
+//     .alerts-top { flex-direction: row; align-items: center; gap: 8px; }
+//     .alerts-buttons { flex-wrap: wrap; gap: 6px; }
+//     .create-alert-btn { width: auto; }
+//     .user-name { position: absolute; top: 20px; right: 20px; }
+//   }
+// // }
+
+// // // Small Tablet / Mobile
+//  @media (max-width: 768px) {
+//   .alerts-container {
+//     margin-left: 14px;
+// //    max-width: calc(100vw - 140px);
+// //     padding: 12px;
+// }}
+
+//     .alerts-header { font-size: 18px; }
+//     .alerts-table { font-size: 11px; th, td { padding: 6px 8px; } }
+//     .pagination button { padding: 4px 6px; font-size: 12px; }
+//   }
+//   .create-alert-form { max-width: 90%; padding: 18px; }
+// }
+
+// // Mobile
+// @media (max-width: 576px) {
+//   .alerts-container {
+//     margin-left: 120px;
+//     max-width: calc(100vw - 120px);
+//     padding: 8px;
+
+//     .alerts-header { font-size: 16px; }
+//     .alerts-btn, .create-alert-btn { width: 100%; }
+//     .pagination { flex-wrap: wrap; gap: 4px; }
+//   }
+//   .create-alert-form { margin: 15px auto; max-width: 100%; padding: 12px; }
+// }
+
+// ---- Pulse Animation ----
+@keyframes pulse-new {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+// ---- Global Fix ----
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
