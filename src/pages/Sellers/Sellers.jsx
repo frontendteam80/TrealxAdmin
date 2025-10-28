@@ -1,7 +1,7 @@
  import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
-import Table from "../../components/Table.jsx";
+import Table from "../../Utils/Table.jsx";
  
 function LocationCell({ value }) {
   const [showAll, setShowAll] = useState(false);

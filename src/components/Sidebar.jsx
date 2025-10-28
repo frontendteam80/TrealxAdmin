@@ -25,14 +25,14 @@ export default function Sidebar() {
         {/* <span className="sidebar-name">TREALX</span> */}
         <nav>
           <NavLink to="/" end><MdDashboard /><span className="nav-label">Dashboard</span></NavLink>
-          <NavLink to="/updates"><MdTableChart /> <span className="nav-label">Updates</span></NavLink>
+         {/* <NavLink to="/updates"><MdTableChart /> <span className="nav-label">Updates</span></NavLink> */}
           <NavLink to="/buyers"><MdPerson /> <span className="nav-label">Buyers</span></NavLink>
           <NavLink to="/sellers"><MdPerson /> <span className="nav-label">Sellers</span></NavLink>
           <NavLink to="/alerts"><MdNotifications /> <span className="nav-label">Alerts</span></NavLink>
           <NavLink to="/Socialactivity"><MdGroup/> <span className="nav-label">Social Actvity</span></NavLink>
-          <NavLink to="/Orderimages"><MdPhoto/> <span className="nav-label">OrderImages</span></NavLink>
-          <NavLink to="/Agentdetails"><MdBadge/><span className="nav-label">CRM Data</span></NavLink>
-          <NavLink to="/ProjectsDetails"><MdBadge/><span className="nav-label">Project Management</span></NavLink>
+          {/* <NavLink to="/Orderimages"><MdPhoto/> <span className="nav-label">OrderImages</span></NavLink> */}
+           
+          <NavLink to="/ProjectsDetails"><MdBadge/><span className="nav-label">Listing</span></NavLink>
         </nav>
       </aside>
     </>

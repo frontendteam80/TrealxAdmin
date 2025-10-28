@@ -1,8 +1,8 @@
- // src/pages/Orderimages/Orderimages.jsx
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
-import Table from "../../components/Table.jsx";
+import Table from "../../Utils/Table.jsx";
+import { useNavigate } from "react-router-dom";
 import {
   DndContext,
   closestCenter,
@@ -30,6 +30,7 @@ function SortableImage({ img, id, index, total }) {
     cursor: "grab",
   };
 
+  const orderNumber = img.DisplayOrderID != null ? img.DisplayOrderID : index + 1;
   const isSingle = total === 1;
 
   return (
@@ -44,7 +45,7 @@ function SortableImage({ img, id, index, total }) {
         borderRadius: 12,
         padding: 10,
         boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-        width: isSingle ? "300px" : "100%",
+        width: isSingle ? "300px" : "180px",
         ...style,
       }}
       {...attributes}
@@ -52,7 +53,7 @@ function SortableImage({ img, id, index, total }) {
     >
       <img
         src={img.ImageUrl}
-        alt={`Project image ${img.DisplayOrderID}`}
+        alt={`Project image ${orderNumber}`}
         style={{
           width: "100%",
           height: isSingle ? 220 : 180,
@@ -68,7 +69,7 @@ function SortableImage({ img, id, index, total }) {
           fontWeight: 600,
         }}
       >
-        OrderID: {img.DisplayOrderID}
+        OrderID: {orderNumber}
       </span>
     </div>
   );
@@ -80,11 +81,15 @@ export default function OrderImages() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { fetchData, postData } = useApi();
-
   const [showModal, setShowModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [editableImages, setEditableImages] = useState([]);
   const [modified, setModified] = useState(false);
+
+  const [pageIndex, setPageIndex] = useState(0);
+  const rowsPerPage = 15;
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function load() {
@@ -110,13 +115,64 @@ export default function OrderImages() {
         setError(err.message || "Error loading images");
       } finally {
         setLoading(false);
+        setPageIndex(0);
       }
     }
     load();
   }, [fetchData]);
 
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    if (active.id !== over.id) {
+      const oldIndex = editableImages.findIndex(
+        (img, idx) => (img.DisplayOrderID != null ? img.DisplayOrderID : idx + 1).toString() === active.id
+      );
+      const newIndex = editableImages.findIndex(
+        (img, idx) => (img.DisplayOrderID != null ? img.DisplayOrderID : idx + 1).toString() === over.id
+      );
+
+      const newArr = arrayMove(editableImages, oldIndex, newIndex).map((img, idx) => ({
+        ...img,
+        DisplayOrderID: idx + 1,
+      }));
+
+      setEditableImages(newArr);
+      setModified(true);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      if (!editableImages.length) return;
+
+      await postData("OrderImage/UpdateOrder", editableImages);
+
+      setSelectedProject((prev) => ({ ...prev, images: editableImages }));
+      setProjects((prev) =>
+        prev.map((p) => (p.ProjectID === selectedProject.ProjectID ? { ...p, images: editableImages } : p))
+      );
+
+      setShowModal(false);
+      setModified(false);
+      alert("✅ Image order saved successfully!");
+    } catch (err) {
+      console.error("Error saving order:", err);
+      alert("❌ Failed to save order. Please check server/API.");
+    }
+  };
+
+  const handleClose = () => {
+    setShowModal(false);
+    setModified(false);
+    setEditableImages(selectedProject ? selectedProject.images : []);
+  };
+
   const columns = [
-    { label: "S.No", key: "serial", render: (_, __, index) => index + 1 },
+    { label: "S.No", key: "serial", render: (_, __, index) => index + 1 + pageIndex * rowsPerPage },
     { label: "Project ID", key: "ProjectID" },
     { label: "Project Name", key: "ProjectName" },
     { label: "Locality", key: "Locality" },
@@ -136,15 +192,15 @@ export default function OrderImages() {
             background: "#121212",
             cursor: "pointer",
             color: "#fff",
-            padding: "7px 14px",
+            padding: "3px 8px",
             borderRadius: "6px",
             fontWeight: 600,
-            fontSize: "1em",
+            fontSize: "0.95em",
             border: "none",
           }}
           onClick={() => {
             const sortedImgs = [...row.images].sort(
-              (a, b) => a.DisplayOrderID - b.DisplayOrderID
+              (a, b) => (a.DisplayOrderID || 0) - (b.DisplayOrderID || 0)
             );
             setSelectedProject(row);
             setEditableImages(sortedImgs);
@@ -158,60 +214,68 @@ export default function OrderImages() {
     },
   ];
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  const paginatedProjects = projects.slice(pageIndex * rowsPerPage, (pageIndex + 1) * rowsPerPage);
 
-  function handleDragEnd(event) {
-    const { active, over } = event;
-    if (!over) return;
+  const navButtonStyle = {
+    padding: "5px 10px",
+    margin: "0 5px",
+    borderRadius: 6,
+    border: "1px solid #ccc",
+    backgroundColor: "#fff",
+    color: "#725fe9",
+    fontWeight: "bold",
+    cursor: "pointer",
+  };
 
-    if (active.id !== over.id) {
-      const oldIndex = editableImages.findIndex(
-        (img) => img.DisplayOrderID.toString() === active.id.toString()
-      );
-      const newIndex = editableImages.findIndex(
-        (img) => img.DisplayOrderID.toString() === over.id.toString()
-      );
+  const pageButtonStyle = {
+    padding: "6px 12px",
+    margin: "0 4px",
+    borderRadius: 6,
+    outline: "none",
+    cursor: "pointer",
+  };
 
-      const newArr = arrayMove(editableImages, oldIndex, newIndex).map(
-        (img, idx) => ({
-          ...img,
-          DisplayOrderID: idx + 1,
-        })
-      );
+  function renderPagination() {
+    const totalPages = Math.ceil(projects.length / rowsPerPage);
+    const buttons = [];
+    buttons.push(0);
+    let left = Math.max(1, pageIndex - 2);
+    let right = Math.min(totalPages - 2, pageIndex + 2);
 
-      setEditableImages(newArr);
-      setModified(true);
-    }
+    if (left > 1) buttons.push("left-ellipsis");
+    for (let i = left; i <= right; i++) buttons.push(i);
+    if (right < totalPages - 2) buttons.push("right-ellipsis");
+    if (totalPages > 1) buttons.push(totalPages - 1);
+
+    return (
+      <div style={{ textAlign: "center", marginTop: 20 }}>
+        <button onClick={() => setPageIndex(0)} disabled={pageIndex === 0} style={navButtonStyle}>««</button>
+        <button onClick={() => setPageIndex(Math.max(pageIndex - 1, 0))} disabled={pageIndex === 0} style={navButtonStyle}>‹</button>
+
+        {buttons.map((b, idx) => {
+          if (typeof b === "string") return <span key={b + idx} style={{ padding: "0 6px" }}>...</span>;
+          return (
+            <button
+              key={b}
+              onClick={() => setPageIndex(b)}
+              style={{
+                ...pageButtonStyle,
+                backgroundColor: b === pageIndex ? "#725fe9" : "#fff",
+                color: b === pageIndex ? "#fff" : "#222",
+                border: b === pageIndex ? "2px solid #725fe9" : "1px solid #ccc",
+                fontWeight: b === pageIndex ? 700 : 400,
+              }}
+            >
+              {b + 1}
+            </button>
+          );
+        })}
+
+        <button onClick={() => setPageIndex(Math.min(pageIndex + 1, totalPages - 1))} disabled={pageIndex === totalPages - 1} style={navButtonStyle}>›</button>
+        <button onClick={() => setPageIndex(totalPages - 1)} disabled={pageIndex === totalPages - 1} style={navButtonStyle}>»»</button>
+      </div>
+    );
   }
-
-  const handleSave = async () => {
-    try {
-      if (!editableImages.length) return;
-
-      await postData("OrderImage/UpdateOrder", editableImages);
-
-      setSelectedProject((prev) => ({ ...prev, images: editableImages }));
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.ProjectID === selectedProject.ProjectID
-            ? { ...p, images: editableImages }
-            : p
-        )
-      );
-      setShowModal(false);
-      setModified(false);
-      alert("✅ Image order saved successfully!");
-    } catch (err) {
-      console.error("Error saving order:", err);
-      alert("❌ Failed to save order. Please check server/API.");
-    }
-  };
-
-  const handleClose = () => {
-    setShowModal(false);
-    setModified(false);
-    setEditableImages(selectedProject ? selectedProject.images : []);
-  };
 
   if (error) return <div>Error: {error}</div>;
 
@@ -219,47 +283,43 @@ export default function OrderImages() {
     <>
       <div className="dashboard-container" style={{ display: "flex" }}>
         <Sidebar />
-        <div
-        className="buyers-content"
-        style={{
-          flex: 1,
-          position: "relative",
-          minHeight: "100vh",
-          // maxWidth: "calc(100vw - 260px)",
-          overflowX: "auto",
-          padding: 24,
-        }}
-      >
-        {/* Header Section */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 20,
-          }}
-        >
-          <h2 style={{ margin: 0 }}>Project Image Display Order</h2>
-          <div
+        <div className="buyers-content" style={{ flex: 1, position: "relative", minHeight: "100vh", padding: 24 }}>
+          {/* Back button */}
+          <button
+            onClick={() => navigate("/dashboard")}
             style={{
+              marginBottom: 12,
+              padding: "6px 14px",
+              backgroundColor: "#5259d4",
+              border: "none",
+              borderRadius: 6,
+              color: "#fff",
               fontWeight: "bold",
-              fontSize: "1.1rem",
-              color: "#d4af37",
+              cursor: "pointer",
             }}
           >
-            Kiran Reddy Pallaki
-          </div>
-        </div>
+            ← Back
+          </button>
+
+          <h2 style={{ marginBottom: 16 }}>Project Image Display Order</h2>
 
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <Table columns={columns} data={projects} rowsPerPage={15} />
+            <>
+              <Table
+                columns={columns}
+                data={paginatedProjects}
+                rowsPerPage={rowsPerPage}
+                rowHeight={25}
+              />
+              {renderPagination()}
+            </>
           )}
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal for image reorder */}
       {showModal && selectedProject && (
         <div
           className="modal-backdrop"
@@ -282,60 +342,39 @@ export default function OrderImages() {
               padding: 32,
               borderRadius: 14,
               width:
-                editableImages.length === 1
-                  ? "320px"
+                editableImages.length <= 3
+                  ? Math.max(editableImages.length * 180, 300) + "px"
                   : "95%",
-              maxWidth: editableImages.length === 1 ? "350px" : "1500px",
+              maxWidth: "1500px",
               maxHeight: "90vh",
-              overflowY: "auto",
+              overflowY: editableImages.length > 6 ? "auto" : "hidden",
               boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 12,
-              }}
-            >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <h3 style={{ fontWeight: 600, fontSize: "1.15rem" }}>
                 {selectedProject.ProjectName} Images
               </h3>
               <button
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  fontSize: "1.5rem",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  lineHeight: 1,
-                }}
+                style={{ background: "transparent", border: "none", fontSize: "1.5rem", cursor: "pointer", fontWeight: "bold", lineHeight: 1 }}
                 onClick={handleClose}
               >
                 &times;
               </button>
             </div>
 
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext
-                items={editableImages.map((img) =>
-                  img.DisplayOrderID.toString()
-                )}
+                items={editableImages.map((img, idx) => (img.DisplayOrderID != null ? img.DisplayOrderID : idx + 1).toString())}
                 strategy={rectSortingStrategy}
               >
                 <div
-                  className="image-grid"
                   style={{
                     display: "grid",
                     gridTemplateColumns:
                       editableImages.length === 1
                         ? "1fr"
-                        : "repeat(6, 1fr)",
+                        : `repeat(auto-fit, minmax(180px, 1fr))`,
                     gap: 18,
                     justifyItems: "center",
                     marginTop: 6,
@@ -343,9 +382,9 @@ export default function OrderImages() {
                 >
                   {editableImages.map((imgObj, index) => (
                     <SortableImage
-                      key={imgObj.DisplayOrderID}
+                      key={imgObj.DisplayOrderID != null ? imgObj.DisplayOrderID : index + 1}
                       img={imgObj}
-                      id={imgObj.DisplayOrderID.toString()}
+                      id={(imgObj.DisplayOrderID != null ? imgObj.DisplayOrderID : index + 1).toString()}
                       index={index}
                       total={editableImages.length}
                     />

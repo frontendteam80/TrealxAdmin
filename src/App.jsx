@@ -4,21 +4,26 @@ import { ThemeProvider } from "./theme/ThemeContext.jsx";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 import Login from "./pages/Login/Login.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
+import Dashboard from "./pages/Dashboard/Dashboard.jsx";
 import Alerts from "./pages/Alerts/Alerts.jsx";
 import Buyers from "./pages/Buyers/Buyers.jsx";
 import Updates from "./pages/Updates/Updates.jsx";
 import Sellers from "./pages/Sellers/Sellers.jsx";
 import SocialActivity from "./pages/SocialActivity/SocialActivity.jsx";
-import PriceHistory from "./pages/PriceHistory.jsx";
+import PriceHistory from "./pages/Updates/PriceHistory.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import MainLayout from "./components/MainLayout.jsx";
 import CreateAlert from "./pages/Alerts/CreateAlert.jsx";
 import Orderimages from "./pages/Orderimages/Orderimages.jsx";
 import AgentDetailsTable from "./pages/SocialActivity/AgentDetailsTable.jsx";
-import AgentDetails from "./pages/AgentDetails/Agentdetails.jsx";
+import CRMDATA from "./pages/CRMDATA/CRMData.jsx";
 import ProjectDetailsTabComponent from "./pages/SocialActivity/ProjectDetailsTabsComponent.jsx";
 import ProjectDetails from "./pages/ProjectManagement/ProjectsDetails.jsx";
+ import TotalListings from "./pages/TotalListings/TotalListings.jsx";
+import ActiveListings from "./pages/ActiveListing/ActiveListings.jsx";
+import Approval from "./pages/Approval/Approval.jsx";
+import NewListings from "./pages/NewListing/NewListing.jsx";
+import ProjectManagement from "./pages/ProjectManagement/ProjectsDetails.jsx";
 
 
 function App() {
@@ -46,9 +51,14 @@ function App() {
         <Route path="/AgentDetailsTable" element={<ProtectedRoute><AgentDetailsTable/></ProtectedRoute>} />
         <Route path="/ProjectDetailsTabComponent" element={<ProtectedRoute><ProjectDetailsTabComponent/></ProtectedRoute>} />
         <Route path="/orderimages" element={<ProtectedRoute><Orderimages/></ProtectedRoute>} />
-        <Route path="/AgentDetails" element={<ProtectedRoute><AgentDetails/></ProtectedRoute>} />
+        <Route path="/CRMData" element={<ProtectedRoute><CRMDATA/></ProtectedRoute>} />
         <Route path="/ProjectsDetails" element={<ProtectedRoute><ProjectDetails/></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={bearerToken ? "/" : "/login"} replace />} />
+        <Route path="/activelistings" element={<ProtectedRoute><ActiveListings/></ProtectedRoute>} />
+        <Route path="/totallistings" element={<ProtectedRoute><TotalListings/></ProtectedRoute>} />
+        <Route path="/approval" element={<ProtectedRoute><Approval/></ProtectedRoute>} />
+        <Route path="/newlistings" element={<ProtectedRoute><NewListings/></ProtectedRoute>} />
+        <Route path="/projectmanagement" element={<ProtectedRoute><ProjectManagement/></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );

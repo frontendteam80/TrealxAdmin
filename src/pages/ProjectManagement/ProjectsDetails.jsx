@@ -1,384 +1,444 @@
-import React from "react";
+//  import React, { useEffect, useState } from "react";
+// import Sidebar from "../../components/Sidebar.jsx";
+// import { useApi } from "../../API/Api.js";
+// import Table from "../../Utils/Table.jsx";
+// import SearchBar from "../../Utils/SearchBar.jsx";
+ 
+// export default function AgentDetails() {
+//   const [agentDetails, setAgentDetails] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const { fetchData } = useApi();
+ 
+//   // Search state
+//   const [searchTerm, setSearchTerm] = useState("");
+ 
+//   // Filter state
+//   const [filters, setFilters] = useState({
+//     name: "",
+//     location: "",
+//     associatedPartner: "",
+//     propertyType: ""
+//   });
+ 
+//   useEffect(() => {
+//     async function load() {
+//       try {
+//         const data = await fetchData("CRMData");
+//         const mappedData = (data || []).map((item, index) => ({
+//           S_No: index + 1,
+//           Name: item.Name,
+//           MobileNumber: item.MobileNumber,
+//           EMail: item.EMail,
+//           Builder_CP_Agent: item.Builder_CP_Agent,
+//           Locality: item.Locality,
+//           PropertyTypes: item.PropertyTypes,
+//           RefferedBy: item.RefferedBy,
+//         }));
+//         setAgentDetails(mappedData);
+//         console.log("Agent Details:", mappedData);
+//       } catch (err) {
+//         setError(err.message || "Error loading AgentDetails");
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+//     load();
+//   }, [fetchData]);
+ 
+//   // Table columns
+//   const columns = [
+//     { key: "S_No", label: "S.No" },
+//     { key: "Name", label: "Name" },
+//     { key: "MobileNumber", label: "Mobile Number" },
+//     { key: "EMail", label: "Email" },
+//     { key: "Builder_CP_Agent", label: "Associated Partner" },
+//     { key: "Locality", label: "Locality" },
+//     { key: "PropertyTypes", label: "Property Types" },
+//     { key: "RefferedBy", label: "Referred By" },
+//   ];
+ 
+//   // Filtered data: search + selected filters
+//   const filteredData = agentDetails.filter(item => {
+//     if (
+//       !searchTerm &&
+//       // !filters.name &&
+//       !filters.location &&
+//       !filters.associatedPartner &&
+//       !filters.propertyType
+//     ) return true;
+ 
+//     const lowerSearch = searchTerm.toLowerCase();
+ 
+//     return (
+//       // (!filters.name || item.Name === filters.name) &&
+//       (!filters.location || item.Locality === filters.location) &&
+//       (!filters.associatedPartner || item.Builder_CP_Agent === filters.associatedPartner) &&
+//       (!filters.propertyType || item.PropertyTypes === filters.propertyType) &&
+//       (
+//         !searchTerm ||
+//         item.Name?.toLowerCase().includes(lowerSearch) ||
+//         item.Locality?.toLowerCase().includes(lowerSearch) ||
+//         item.Builder_CP_Agent?.toLowerCase().includes(lowerSearch) ||
+//         (item.S_No && item.S_No.toString().includes(lowerSearch))
+//       )
+//     );
+//   });
+ 
+//   if (error) return <div>Error: {error}</div>;
+ 
+//   return (
+//     <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff" }}>
+//       <Sidebar />
+//       <div
+//         className="buyers-content"
+//         style={{
+//           flex: 1,
+//           position: "relative",
+//           minHeight: "100vh",
+//           overflowX: "auto",
+//           padding: 24,
+//         }}
+//       >
+//         {/* Header Section */}
+//         <div
+//           style={{
+//             display: "flex",
+//             alignItems: "center",
+//             justifyContent: "space-between",
+//             marginBottom: 20,
+//           }}
+//         >
+//           <h2 style={{ margin: 0 }}>CRM Data</h2>
+//           <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#d4af37" }}>
+//             Kiran Reddy Pallaki
+//           </div>
+//         </div>
+ 
+//         {/* Search + Filter Controls */}
+//         <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+//           <SearchBar
+//             value={searchTerm}
+//             onChange={setSearchTerm}
+//             onSubmit={() => console.log("Search triggered for:", searchTerm)}
+//           />
+ 
+//           {/* <select
+//             onChange={e => setFilters(f => ({ ...f, name: e.target.value }))}
+//             value={filters.name}
+//           >
+//             <option value="">Agent Name</option>
+//             {[...new Set(agentDetails.map(a => a.Name))].map(name => (
+//               <option key={name} value={name}>{name}</option>
+//             ))}
+//           </select> */}
+ 
+//           <select
+//             onChange={e => setFilters(f => ({ ...f, location: e.target.value }))}
+//             value={filters.location}
+//           >
+//             <option value="">Location</option>
+//             {[...new Set(agentDetails.map(a => a.Locality))].map(loc => (
+//               <option key={loc} value={loc}>{loc}</option>
+//             ))}
+//           </select>
+ 
+//           <select
+//             onChange={e => setFilters(f => ({ ...f, associatedPartner: e.target.value }))}
+//             value={filters.associatedPartner}
+//           >
+//             <option value="">Associated Partner</option>
+//             {[...new Set(agentDetails.map(a => a.Builder_CP_Agent))].map(partner => (
+//               <option key={partner} value={partner}>{partner}</option>
+//             ))}
+//           </select>
+ 
+//           <select
+//             onChange={e => setFilters(f => ({ ...f, propertyType: e.target.value }))}
+//             value={filters.propertyType}
+//           >
+//             <option value="">Property Type</option>
+//             {[...new Set(agentDetails.map(a => a.PropertyTypes))].map(type => (
+//               <option key={type} value={type}>{type}</option>
+//             ))}
+//           </select>
+ 
+//           {/* Display Selected Filter Pills */}
+//           <div style={{ display: "flex", gap: 8, marginLeft: 8, flexWrap: "wrap" }}>
+//             {Object.entries(filters).map(([key, value]) =>
+//               value ? (
+//                 <span
+//                   key={key}
+//                   style={{
+//                     background: "#d4af37",
+//                     color: "#fff",
+//                     borderRadius: 12,
+//                     padding: "2px 8px",
+//                     fontSize: "0.85rem",
+//                     display: "flex",
+//                     alignItems: "center",
+//                     gap: 4,
+//                     cursor: "default",
+//                     height:"32"
+//                   }}
+//                 >
+//                   {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
+//                   <button
+//                     onClick={() => setFilters(f => ({ ...f, [key]: "" }))}
+//                     style={{
+//                       background: "transparent",
+//                       border: "none",
+//                       color: "#fff",
+//                       cursor: "pointer",
+//                       fontWeight: "bold",
+//                       fontSize: "1rem",
+//                       lineHeight: 1,
+//                     }}
+//                     aria-label={`Remove ${key} filter`}
+//                   >
+//                     &times;
+//                   </button>
+//                 </span>
+//               ) : null
+//             )}
+//           </div>
+//         </div>
+ 
+//         {/* Table or Loading */}
+//         {loading ? (
+//           <p>Loading...</p>
+//         ) : (
+//           <Table columns={columns} data={filteredData} rowsPerPage={15} />
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+ 
+import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
-import Table from "../../components/Table.jsx";
-
-export const projectData = [
-  {
-    CompanyName: "Ramky Estates & Farms Ltd",
-    ProjectID: 139,
-    ProjectName: "Ramky One Marvel",
-    GeoLocation: "17.522111110935793, 78.4205508689747",
-    Locality: "Kukatpally",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Ramky Estates & Farms Ltd",
-    ProjectID: 140,
-    ProjectName: "Ramky Selenium",
-    GeoLocation: "17.421693000544438, 78.3329759040999",
-    Locality: "Financial District",
-    PropertyType: "Commercial",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Sumadhura Infracon Pvt. Ltd",
-    ProjectID: 141,
-    ProjectName: "Sumadhura Palais Royale",
-    GeoLocation: "17.407053887265154, 78.35436791360531",
-    Locality: "Financial District",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Sumadhura Infracon Pvt. Ltd",
-    ProjectID: 142,
-    ProjectName: "Sumadhura Gardens By The Brook",
-    GeoLocation: "17.286651326813884, 78.41477722664318",
-    Locality: "Shamshabad",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02400001836"
-  },
-  {
-    CompanyName: "Sumadhura Infracon Pvt. Ltd",
-    ProjectID: 143,
-    ProjectName: "Sumadhura The Olympus",
-    GeoLocation: "17.427719629208303, 78.35073715190004",
-    Locality: "Nanakramguda",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02400003072"
-  },
-  {
-    CompanyName: "Sumadhura Infracon Pvt. Ltd",
-    ProjectID: 144,
-    ProjectName: "Sumadhura Horizon",
-    GeoLocation: "17.484720000000002, 78.386019609831",
-    Locality: "Kondapur",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02400001051"
-  },
-  {
-    CompanyName: "Sumadhura Infracon Pvt. Ltd",
-    ProjectID: 145,
-    ProjectName: "Sumadhura Pragati Chambers",
-    GeoLocation: "17.44077507351854, 78.4904260894576",
-    Locality: "Sec-bad",
-    PropertyType: "Commercial",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Auro Realty",
-    ProjectID: 146,
-    ProjectName: "Auro The Regent",
-    GeoLocation: "17.4815895878227, 78.3307146448015",
-    Locality: "Kondapur",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02500003557"
-  },
-  {
-    CompanyName: "Auro Realty",
-    ProjectID: 147,
-    ProjectName: "Auro Kohinoor",
-    GeoLocation: "17.474045896811, 78.3868485219681",
-    Locality: "Hitech City",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02400005068"
-  },
-  {
-    CompanyName: "Auro Realty",
-    ProjectID: 148,
-    ProjectName: "Auro The Pearl",
-    GeoLocation: "17.474054807621134, 78.3868482503019",
-    Locality: "Hitech City",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02400005068"
-  },
-  {
-    CompanyName: "Auro Realty",
-    ProjectID: 149,
-    ProjectName: "Auro Sansa County",
-    GeoLocation: "17.596258393262543, 78.2704783563047",
-    Locality: "Patancheru",
-    PropertyType: "Villas",
-    ProjectStatus: "Under Construction",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Auro Realty",
-    ProjectID: 150,
-    ProjectName: "Auro Auraland",
-    GeoLocation: "17.59376742604641, 78.2776663517578",
-    Locality: "Patancheru",
-    PropertyType: "Villas",
-    ProjectStatus: "Under Construction",
-    RERA: "P01100007349"
-  },
-  {
-    CompanyName: "Auro Realty",
-    ProjectID: 151,
-    ProjectName: "Auro Orbit",
-    GeoLocation: "17.4349142566145, 78.37667976526369",
-    Locality: "Hitech City",
-    PropertyType: "Commercial",
-    ProjectStatus: "Ready to Move",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Auro Realty",
-    ProjectID: 152,
-    ProjectName: "Auro Galaxy",
-    GeoLocation: "17.4366994433247, 78.37607234191928",
-    Locality: "Hitech City",
-    PropertyType: "Commercial",
-    ProjectStatus: "Ready to Move",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 153,
-    ProjectName: "DSR Altitude",
-    GeoLocation: "17.438515469558222, 78.27471238414144",
-    Locality: "Tellapur",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P01100009092"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 154,
-    ProjectName: "DSR The Twins",
-    GeoLocation: "17.404449651082703, 78.35247719595422",
-    Locality: "Puppalaguda",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02400005887"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 155,
-    ProjectName: "DSR Sky Marq",
-    GeoLocation: "17.44683294097213, 78.3978135942659",
-    Locality: "Puppalaguda",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02400004592"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 156,
-    ProjectName: "DSR W",
-    GeoLocation: "17.46149110284266, 78.33428600418635",
-    Locality: "Kondapur",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02400002277"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 157,
-    ProjectName: "DSR Fortune Sonthalia Skyvillas",
-    GeoLocation: "17.386065272855773, 33.311125484068035",
-    Locality: "Kokapet",
-    PropertyType: "Villas",
-    ProjectStatus: "Under Construction",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 158,
-    ProjectName: "DSR Som Boulevard",
-    GeoLocation: "17.45007198045039, 78.1592906711866",
-    Locality: "Mokila Kondakankota",
-    PropertyType: "Villas",
-    ProjectStatus: "Under Construction",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 159,
-    ProjectName: "DSR GVK Skycity",
-    GeoLocation: "17.46211834060098, 78.339561608988",
-    Locality: "Somajiguda",
-    PropertyType: "Apartments",
-    ProjectStatus: "Under Construction",
-    RERA: "P02500000356"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 160,
-    ProjectName: "DSR Reganti",
-    GeoLocation: "17.44333819170037, 78.38311545436277",
-    Locality: "Madhapur",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 161,
-    ProjectName: "DSR The First",
-    GeoLocation: "17.42690085646856, 78.37468456526356",
-    Locality: "Gachibowli",
-    PropertyType: "Apartments",
-    ProjectStatus: "Ready to Move",
-    RERA: "P02400000469"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 162,
-    ProjectName: "DSR The Classe",
-    GeoLocation: "17.3860256812315, 78.3347846978086",
-    Locality: "Kokapet",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 163,
-    ProjectName: "DSR The Classe Commercial",
-    GeoLocation: "17.3860256812315, 78.3347846978086",
-    Locality: "Kokapet",
-    PropertyType: "Commercial",
-    ProjectStatus: "Completed",
-    RERA: "P02400001671"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 164,
-    ProjectName: "DSR Tech Square",
-    GeoLocation: "17.42787823831226, 78.37479138164844",
-    Locality: "Gachibowli",
-    PropertyType: "Commercial",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "DSR Builders & Developers",
-    ProjectID: 165,
-    ProjectName: "DSR One",
-    GeoLocation: "17.42204378701998, 78.42830132846374",
-    Locality: "Banjara Hills",
-    PropertyType: "Commercial",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Niharika Projects",
-    ProjectID: 166,
-    ProjectName: "Niharika Skyline",
-    GeoLocation: "17.41875305979693, 78.3743895373668",
-    Locality: "Khajaguda",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "P02400001359"
-  },
-  {
-    CompanyName: "Niharika Projects",
-    ProjectID: 167,
-    ProjectName: "Niharika Lakefront",
-    GeoLocation: "17.48574906579391, 78.36531375238338",
-    Locality: "Manikonda",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Niharika Projects",
-    ProjectID: 168,
-    ProjectName: "Niharika Landmark",
-    GeoLocation: "17.42710816376776, 78.34139320659316",
-    Locality: "Lingampally",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "P02400001732"
-  },
-  {
-    CompanyName: "Niharika Projects",
-    ProjectID: 169,
-    ProjectName: "Niharika Interlake",
-    GeoLocation: "17.41943215291296, 78.37502681048696",
-    Locality: "Khajaguda",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Niharika Projects",
-    ProjectID: 170,
-    ProjectName: "Niharika Jubilee One",
-    GeoLocation: "17.43240603898651, 78.36881283333333",
-    Locality: "Jubilee Hills",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Niharika Projects",
-    ProjectID: 171,
-    ProjectName: "Niharika Signature",
-    GeoLocation: "17.43794938855307, 78.37038946170087",
-    Locality: "Gachibowli",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Niharika Projects",
-    ProjectID: 172,
-    ProjectName: "Niharika Exotica",
-    GeoLocation: "17.42690085646856, 78.3746846978086",
-    Locality: "Hitech City",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  },
-  {
-    CompanyName: "Niharika Projects",
-    ProjectID: 173,
-    ProjectName: "Niharika Hill Ridge",
-    GeoLocation: "17.42507585972412, 78.4048793060092",
-    Locality: "Nandagiri Hills",
-    PropertyType: "Apartments",
-    ProjectStatus: "Completed",
-    RERA: "NULL"
-  }
-];
-const projectColumns = [
-    {label:"S.No",
-      key:"serialNo",
-      render: (_, __, index) => index + 1,
-    },
-  { key: "CompanyName", label: "Company Name" },
-  { key: "ProjectID", label: "Project ID" },
-  { key: "ProjectName", label: "Project Name" },
-  { key: "GeoLocation", label: "Geo Location" },
-  { key: "Locality", label: "Locality" },
-  { key: "PropertyType", label: "Property Type" },
-  { key: "ProjectStatus", label: "Project Status" },
-  { key: "RERA", label: "RERA Number" }
-];
-function ProjectsDetails() {
+import { useApi } from "../../API/Api.js";
+import Table from "../../Utils/Table.jsx";
+import SearchBar from "../../Utils/SearchBar.jsx"; // import the reusable SearchBar
+ 
+ 
+const TABS = {
+  COMPANY: "company",
+  PROJECTS: "projects",
+  PROPERTIES: "properties"
+};
+ 
+ 
+function SimpleModal({ open, onClose, children }) {
+  if (!open) return null;
+ 
   return (
-    <div className="dashboard-container">
-        <Sidebar/>
-        <div
+    <div
+      style={{
+        position: "fixed",
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          backgroundColor: "#fff",
+          padding: 24,
+          borderRadius: 8,
+          minWidth: 320,
+          maxWidth: 600,
+          maxHeight: "80vh",
+          overflowY: "auto",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.3)"
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+ 
+function ProjectDetailsModal({ open, onClose, project, TableComponent }) {
+  if (!project) return null;
+ 
+  const modalColumns = [
+    { label: "Type", key: "PropertyType" },
+    { label: "Status", key: "PropertyStatus" },
+    { label: "Bedrooms", key: "Bedrooms" },
+    { label: "Facing", key: "Facing" }
+  ];
+ 
+  return (
+    <SimpleModal open={open} onClose={onClose}>
+      <h2 style={{ marginTop: 0, marginBottom: 12, color: "#d4af37" }}>
+        {project.ProjectName || project.projectname}
+      </h2>
+      <div><strong>Description:</strong> {project.Description || project.description || "Not specified"}</div>
+      <div><strong>Price Range:</strong> {project.AmountWithUnit || project.amountwithunit || "N/A"}</div>
+      <div style={{ marginTop: 18 }}>
+        <TableComponent columns={modalColumns} data={[project]} rowsPerPage={1} />
+      </div>
+    </SimpleModal>
+  );
+}
+ 
+ 
+export default function ProjectsDetails() {
+  const [activeTab, setActiveTab] = useState(TABS.COMPANY);
+ 
+  // Separate states for raw datasets
+  const [companyData, setCompanyData] = useState([]);
+  const [projectsData, setProjectsData] = useState([]);
+  const [propertiesData, setPropertiesData] = useState([]);
+ 
+  // Filtered data states
+  const [filteredCompanies, setFilteredCompanies] = useState([]);
+  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [filteredProperties, setFilteredProperties] = useState([]);
+ 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+ 
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+ 
+  const [searchQuery, setSearchQuery] = useState("");
+  const { fetchData } = useApi();
+ 
+  const companyColumns = [
+    { label: "S.No", key: "serialNo", render: (_, __, idx) => idx + 1 },
+    { label: "Company Name", key: "CompanyName" },
+    { label: "No.of Projects", key: "Projects" },
+    { label: "OperatingCities", key: "OperatingCities" },
+    {
+      label: "Operating Since", key: "OperatingSince",
+      render: (val) => {
+        if (!val) return "N/A";
+        const year = val.toString().split("-")[0];
+        return year || "N/A";
+      }
+    },
+    { label: "ReadyToMove", key: "ReadyToMove" },
+    { label: "UnderConstruction", key: "UnderConstruction" },
+  ];
+ 
+  const projectColumns = [
+    { label: "S.No", key: "serialNo", render: (_, __, idx) => idx + 1 },
+    { label: "Project Name", key: "ProjectName" },
+    { label: "ProjectID", key: "ProjectID" },
+    { label: "CustomProjectTypes", key: "CustomProjectTypes" },
+    { label: "Status", key: "ProjectStatus" },
+    { label: "Locality", key: "Locality" },
+  ];
+ 
+  const propertyColumns = [
+    { label: "S.No", key: "serialNo", render: (_, __, idx) => idx + 1 },
+    { label: "ProjectName", key: "projectname" },
+    { label: "Property ID", key: "PropertyID" },
+    { label: "Property Name", key: "PropertyName" },
+    { label: "Price", key: "AmountWithUnit" },
+    { label: "Type", key: "PropertyType" },
+    { label: "Status", key: "propertystatus" },
+    { label: "Bedrooms", key: "Bedrooms" },
+    { label: "Facing", key: "Facing" }
+  ];
+ 
+  // Fetch all data once on mount
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+ 
+    Promise.all([
+      fetchData("Company_Data"),
+      fetchData("Projectdata"),
+      fetchData("property_Data_Info")
+    ])
+      .then(([companyRes, projectRes, propertyRes]) => {
+        const cData = companyRes || [];
+        const pData = projectRes || [];
+        const prData = propertyRes || [];
+ 
+        setCompanyData(cData);
+        setProjectsData(pData);
+        setPropertiesData(prData);
+ 
+        setFilteredCompanies(cData);
+        setFilteredProjects(pData);
+        setFilteredProperties(prData);
+      })
+      .catch(err => {
+        setError(err.message || "Error loading data");
+        setCompanyData([]);
+        setProjectsData([]);
+        setPropertiesData([]);
+        setFilteredCompanies([]);
+        setFilteredProjects([]);
+        setFilteredProperties([]);
+      })
+      .finally(() => setLoading(false));
+  }, [fetchData]);
+ 
+  // Filter all datasets on search query change
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredCompanies(companyData);
+      setFilteredProjects(projectsData);
+      setFilteredProperties(propertiesData);
+      return;
+    }
+    const lowerQuery = searchQuery.toLowerCase();
+ 
+    const filterCompanies = companyData.filter(item =>
+      (item.CompanyName && item.CompanyName.toLowerCase().includes(lowerQuery)) ||
+      (item.CompanyID && item.CompanyID.toString().toLowerCase().includes(lowerQuery)) ||
+      (item.ReraNumber && item.ReraNumber.toLowerCase().includes(lowerQuery))
+    );
+ 
+    const filterProjects = projectsData.filter(item =>
+      (item.ProjectName && item.ProjectName.toLowerCase().includes(lowerQuery)) ||
+      (item.ProjectID && item.ProjectID.toString().toLowerCase().includes(lowerQuery)) ||
+      (item.ReraNumber && item.ReraNumber.toLowerCase().includes(lowerQuery))
+    );
+ 
+    const filterProperties = propertiesData.filter(item =>
+      (item.PropertyName && item.PropertyName.toLowerCase().includes(lowerQuery)) ||
+      (item.PropertyID && item.PropertyID.toString().toLowerCase().includes(lowerQuery)) ||
+      (item.ReraNumber && item.ReraNumber.toLowerCase().includes(lowerQuery))
+    );
+ 
+    setFilteredCompanies(filterCompanies);
+    setFilteredProjects(filterProjects);
+    setFilteredProperties(filterProperties);
+  }, [searchQuery, companyData, projectsData, propertiesData]);
+ 
+  // Decide which filtered data and columns to show based on active tab
+  let currentData, currentColumns;
+  if (activeTab === TABS.COMPANY) {
+    currentData = filteredCompanies;
+    currentColumns = companyColumns;
+  } else if (activeTab === TABS.PROJECTS) {
+    currentData = filteredProjects;
+    currentColumns = projectColumns;
+  } else {
+    currentData = filteredProperties;
+    currentColumns = propertyColumns;
+  }
+ 
+  return (
+    <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff" }}>
+      <Sidebar />
+      <div
         className="buyers-content"
         style={{
           flex: 1,
           position: "relative",
           minHeight: "100vh",
-          // maxWidth: "calc(100vw - 260px)",
           overflowX: "auto",
           padding: 24,
         }}
@@ -391,7 +451,7 @@ function ProjectsDetails() {
             marginBottom: 20,
           }}
         >
-          <h2 style={{ margin: 0 }}>ProjectDetails</h2>
+          <h2 style={{ margin: 0 }}>Listing Data</h2>
           <div
             style={{
               fontWeight: "bold",
@@ -401,18 +461,85 @@ function ProjectsDetails() {
           >
             Kiran Reddy Pallaki
           </div>
+        </div>
+ 
+        {/* Line with tabs on left and search bar on right */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 5 }}>
+            <button
+              onClick={() => setActiveTab(TABS.COMPANY)}
+              style={activeTab === TABS.COMPANY ? styles.activeTab : styles.tab}
+            >
+              Companies
+            </button>
+            <button
+              onClick={() => setActiveTab(TABS.PROJECTS)}
+              style={activeTab === TABS.PROJECTS ? styles.activeTab : styles.tab}
+            >
+              Projects
+            </button>
+            <button
+              onClick={() => setActiveTab(TABS.PROPERTIES)}
+              style={activeTab === TABS.PROPERTIES ? styles.activeTab : styles.tab}
+            >
+              Properties
+            </button>
           </div>
-    <div>
-      <Table
-        
-        columns={projectColumns}
-        data={projectData}
-        rowsPerPage={18}
-      />
-    </div>
-    </div>
+ 
+          <div style={{ maxWidth: 400, width: "100%" }}>
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSubmit={() => { /* optional if you want to handle submit separately */ }}
+            />
+          </div>
+        </div>
+ 
+        {loading && <p>Loading...</p>}
+        {error && <p style={{ color: "red" }}>Error: {error}</p>}
+        {!loading && !error && (
+          <Table
+            columns={currentColumns}
+            data={currentData}
+            rowsPerPage={19}
+          />
+        )}
+ 
+        <ProjectDetailsModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          project={selectedProject}
+          TableComponent={Table}
+        />
+      </div>
     </div>
   );
 }
-
-export default ProjectsDetails;
+ 
+ 
+const styles = {
+  tab: {
+    padding: "8px 15px",
+    cursor: "pointer",
+    border: "1px solid #e0e0e0",
+    outline: "none",
+    fontSize: "15px",
+    fontWeight: "500",
+    color: "#333",
+    transition: "all 0.01s ease",
+    height: "32px",
+  },
+  activeTab: {
+    padding: "8px 15px",
+    cursor: "pointer",
+    color: "#d4af37",
+    border: "2px solid",
+    outline: "none",
+    fontWeight: "bold",
+    fontSize: "15px",
+    transition: "all 0.01s ease",
+    height: "32px",
+  }
+};
+ 
+ 

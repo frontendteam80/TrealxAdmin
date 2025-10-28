@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
-import Table from "../../components/Table.jsx";
+import Table from "../../Utils/Table.jsx";
 import formatAmount from "../../Utils/formatAmount.js";
-
+ 
 function LocationCell({ value }) {
   const [showAll, setShowAll] = useState(false);
-
+ 
   if (!value || typeof value !== "string") return <>null</>;
-
+ 
   const locations = value.split(",");
   const firstLocation = locations[0];
   const remaining = locations.slice(1).join(", ");
-
+ 
   return (
     <span
       style={{
@@ -32,17 +32,17 @@ function LocationCell({ value }) {
     </span>
   );
 }
-
+ 
 export default function Buyers() {
   const [buyers, setBuyers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { fetchData } = useApi();
-
+ 
   useEffect(() => {
     async function load() {
       try {
-        const data = await fetchData("BuyersDetails");
+        const data = await fetchData("Buyer_info");
         setBuyers(data || []);
       } catch (err) {
         setError(err.message || "Error loading buyers");
@@ -52,16 +52,16 @@ export default function Buyers() {
     }
     load();
   }, [fetchData]);
-
+ 
   const columns = [
     {
       label: "S.No",
       key: "serialNo",
       render: (_, __, index) => index + 1,
     },
-    { key: "Buyerid", label: "BuyerID" },
-    { label: "Buyer Name", key: "Buyername" },
-    { label: "Contact Number", key: "ContactNumber" },
+    { key: "BuyerID", label: "BuyerID" },
+    { label: "Buyer Name", key: "BuyerName" },
+    { label: "ContactNumber", key: "ContactNumber" },
     { label: "Email", key: "Email" },
     {
       label: "Preferred Location",
@@ -78,12 +78,12 @@ export default function Buyers() {
         return `${minAmount} - ${maxAmount}`;
       },
     },
-    { label: "Timeline", key: "TimeLine" },
+    { label: "Timeline", key: "Timeline" },
     { label: "Payment Mode", key: "PaymentMode" },
   ];
-
+ 
   if (error) return <div>Error: {error}</div>;
-
+ 
   return (
     <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff" }}>
       <Sidebar />
@@ -117,9 +117,11 @@ export default function Buyers() {
             Kiran Reddy Pallaki
           </div>
         </div>
-
+ 
         {loading ? <p>Loading...</p> : <Table columns={columns} data={buyers} rowsPerPage={15} />}
       </div>
     </div>
   );
 }
+ 
+ 
