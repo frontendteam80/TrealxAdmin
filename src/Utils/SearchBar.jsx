@@ -1,6 +1,37 @@
-// src/components/SearchBar.jsx
+//  // src/components/SearchBar.jsx
+// import React from "react";
+// import { Search } from "lucide-react"; // npm install lucide-react
+
+// const SearchBar = ({ value, onChange, onSubmit }) => (
+//   <form
+//     onSubmit={(e) => {
+//       e.preventDefault();
+//       onSubmit?.(e);
+//     }}
+//     className="relative w-[450px]" // increased width
+//   >
+//     {/* Search Input */}
+//     <input
+//       type="text"
+//       value={value}
+//       onChange={(e) => onChange(e.target.value)}
+//       placeholder="Search by location, Associated Partner, ID..."
+//       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 shadow-sm"
+//       style={{ height: "42px" }}
+//     />
+
+//     {/* Search Icon inside box */}
+//     <Search
+//       size={18}
+//       className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+//     />
+//   </form>
+// );
+
+// export default SearchBar;
+ // src/components/SearchBar.jsx
 import React from "react";
-// import "./SearchBar.css";
+import { Search } from "lucide-react"; // npm install lucide-react
  
 const SearchBar = ({ value, onChange, onSubmit }) => (
   <form
@@ -8,26 +39,24 @@ const SearchBar = ({ value, onChange, onSubmit }) => (
       e.preventDefault();
       onSubmit?.(e);
     }}
-    className="flex items-center gap-2 w-full max-w-md border rounded-lg px-3 py-0 bg-white"
+    className="relative w-[450px]" // increased width
   >
+    {/* Search Input */}
     <input
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder="Search by location,Associatedpartner,id..."
-      className="flex-1 outline-none text-gray-700 px-3"
-      style={{height:32}}
+      placeholder="Search by location, Associated Partner, ID..."
+      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 shadow-sm"
+      style={{ height: "42px" }}
     />
-    <button
-      type="submit"
-      className="bg-blue-600 text-white px-3  rounded hover:bg-blue-700"
-      style={{height:32}}
-    >
-      Search
-    </button>
+ 
+    {/* Search Icon inside box */}
+    <Search
+      size={18}
+      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+    />
   </form>
 );
  
- 
 export default SearchBar;
- 

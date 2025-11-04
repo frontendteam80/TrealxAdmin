@@ -1,119 +1,606 @@
- import React, { useState } from "react";
-import "./Table.scss";
+//  import React from "react";
+// import { Funnel } from "lucide-react";
 
-export default function Table({ title, columns = [], data = [], rowsPerPage = 10 }) {
-  const [currentPage, setCurrentPage] = useState(0);
-  const totalPages = Math.ceil(data.length / rowsPerPage);
-  const pagedData = data.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
-  const headers = columns.length > 0
-    ? columns
-    : (data[0] ? Object.keys(data[0]).map(key => ({ key, label: key })) : []);
+// // ✅ Pagination (with numbered buttons, ellipsis & gold highlight)
+// export function Pagination({ page, setPage, totalPages }) {
+//   const maxVisiblePages = 3;
 
-  const navButtonStyle = {
-    padding: "5px 10px",
-    margin: "0 5px",
-    borderRadius: 6,
-    border: "1px solid #ccc",
-    backgroundColor: "#fff",
-    color: "#725fe9",
-    fontWeight: "bold",
-    cursor: "pointer",
+//   const generatePages = () => {
+//     let pages = [];
+//     if (totalPages <= 5) {
+//       for (let i = 1; i <= totalPages; i++) pages.push(i);
+//     } else {
+//       if (page <= maxVisiblePages) {
+//         pages = [1, 2, 3, "...", totalPages];
+//       } else if (page >= totalPages - 2) {
+//         pages = [1, "...", totalPages - 2, totalPages - 1, totalPages];
+//       } else {
+//         pages = [1, "...", page, "...", totalPages];
+//       }
+//     }
+//     return pages;
+//   };
+
+//   const pages = generatePages();
+
+//   const handleClick = (p) => {
+//     if (p === "..." || p === page) return;
+//     setPage(p);
+//   };
+
+//   return (
+//     <div
+//       style={{
+//         display: "flex",
+//         justifyContent: "center",
+//         alignItems: "center",
+//         gap: "6px",
+//         padding: "18px 0",
+//         fontFamily: "Inter, sans-serif",
+//       }}
+//     >
+//       {/* Prev Button */}
+//       <button
+//         onClick={() => setPage(page - 1)}
+//         disabled={page === 1}
+//         style={{
+//           border: "1px solid #d1d5db",
+//           background: page === 1 ? "#f3f4f6" : "#fff",
+//           color: "#374151",
+//           borderRadius: "6px",
+//           padding: "5px 9px",
+//           cursor: page === 1 ? "not-allowed" : "pointer",
+//           fontWeight: 500,
+//         }}
+//       >
+//         &lt;
+//       </button>
+
+//       {/* Number Buttons */}
+//       {pages.map((p, idx) => (
+//         <button
+//           key={idx}
+//           onClick={() => handleClick(p)}
+//           disabled={p === "..."}
+//           style={{
+//             border: p === page ? "1px solid gold" : "1px solid #d1d5db",
+//             background: "#fff",
+//             color: p === page ? "#000" : "#374151",
+//             borderRadius: "6px",
+//             padding: "5px 10px",
+//             minWidth: "32px",
+//             cursor: p === "..." ? "default" : "pointer",
+//             fontWeight: p === page ? 600 : 400,
+//           }}
+//         >
+//           {p}
+//         </button>
+//       ))}
+
+//       {/* Next Button */}
+//       <button
+//         onClick={() => setPage(page + 1)}
+//         disabled={page === totalPages}
+//         style={{
+//           border: "1px solid #d1d5db",
+//           background: page === totalPages ? "#f3f4f6" : "#fff",
+//           color: "#374151",
+//           borderRadius: "6px",
+//           padding: "5px 9px",
+//           cursor: page === totalPages ? "not-allowed" : "pointer",
+//           fontWeight: 500,
+//         }}
+//       >
+//         &gt;
+//       </button>
+
+//       {/* Page Info */}
+//       <span style={{ fontSize: "0.9rem", color: "#444", marginLeft: 8 }}>
+//         Page <strong>{page}</strong> of {totalPages}
+//       </span>
+//     </div>
+//   );
+// }
+
+// // ✅ Main Table
+// export default function Table({
+//   columns,
+//   paginatedData = [],
+//   openFilter,
+//   toggleFilter,
+//   filters,
+//   handleCheckboxChange,
+//   searchValue,
+//   setSearchValue,
+//   uniqueValues,
+//   clearFilter,
+//   applyFilter,
+//   onRowClick,
+// }) {
+//   return (
+//     <div
+//       style={{
+//         background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+//         borderRadius: 10,
+//         padding: "12px",
+//         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+//       }}
+//     >
+//       <table
+//         style={{
+//           width: "100%",
+//           borderCollapse: "collapse",
+//           textAlign: "center",
+//           fontFamily: "Inter, sans-serif,outfit",
+//           fontSize: "0.85rem",
+//         }}
+//       >
+//         <thead>
+//           <tr style={{ background: "#f3f4f6", height: 36 }}>
+//             {columns.map((col) => (
+//               <th
+//                 key={col.key}
+//                 style={{
+//                   padding: "6px 8px",
+//                   fontWeight: 600,
+//                   fontSize: "0.85rem",
+//                   borderBottom: "1px solid #e5e7eb",
+//                   position: "relative",
+//                   color: "#1e293b",
+//                   textAlign: "center",
+//                   background: "#f8fafc",
+//                 }}
+//               >
+//                 {col.label}
+//                 {col.key !== "serialNo" && col.key !== "more" && (
+//                   <Funnel
+//                     size={4}
+//                     style={{
+//                       marginLeft: 6,
+//                       cursor: "pointer",
+//                       verticalAlign: "middle",
+//                       opacity: 0.3,
+//                     }}
+//                     onClick={() => toggleFilter(col.key)}
+//                   />
+//                 )}
+//                 {openFilter === col.key && (
+//                   <div
+//                     style={{
+//                       position: "absolute",
+//                       top: "110%",
+//                       right: 0,
+//                       background: "#fff",
+//                       border: "1px solid #ddd",
+//                       borderRadius: 6,
+//                       boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+//                       width: 180,
+//                       zIndex: 2500,
+//                       padding: 8,
+//                       textAlign: "left",
+//                     }}
+//                   >
+//                     <input
+//                       type="text"
+//                       placeholder="Search..."
+//                       value={searchValue}
+//                       onChange={(e) => setSearchValue(e.target.value)}
+//                       style={{
+//                         width: "100%",
+//                         padding: "4px 6px",
+//                         marginBottom: 6,
+//                         fontSize: "0.8rem",
+//                         border: "1px solid #ccc",
+//                         borderRadius: 4,
+//                       }}
+//                     />
+//                     <div
+//                       style={{
+//                         maxHeight: 150,
+//                         overflowY: "auto",
+//                         fontSize: "0.8rem",
+//                       }}
+//                     >
+//                       {uniqueValues(col.key)
+//                         .filter((v) =>
+//                           v
+//                             ?.toString()
+//                             .toLowerCase()
+//                             .includes(searchValue.toLowerCase())
+//                         )
+//                         .map((val) => (
+//                           <label key={val} style={{ display: "block" }}>
+//                             <input
+//                               type="checkbox"
+//                               checked={(filters[col.key] || []).includes(val)}
+//                               onChange={() =>
+//                                 handleCheckboxChange(col.key, val)
+//                               }
+//                             />{" "}
+//                             {val}
+//                           </label>
+//                         ))}
+//                     </div>
+//                     <div
+//                       style={{
+//                         display: "flex",
+//                         justifyContent: "space-between",
+//                         marginTop: 6,
+//                       }}
+//                     >
+//                       <button
+//                         onClick={() => clearFilter(col.key)}
+//                         style={{
+//                           background: "#f3f4f6",
+//                           border: "none",
+//                           borderRadius: 4,
+//                           padding: "4px 8px",
+//                           fontSize: "0.75rem",
+//                           cursor: "pointer",
+//                         }}
+//                       >
+//                         Clear
+//                       </button>
+//                       <button
+//                         onClick={applyFilter}
+//                         style={{
+//                           background: "#007bff",
+//                           color: "#fff",
+//                           border: "none",
+//                           borderRadius: 4,
+//                           padding: "4px 8px",
+//                           fontSize: "0.75rem",
+//                           cursor: "pointer",
+//                         }}
+//                       >
+//                         Apply
+//                       </button>
+//                     </div>
+//                   </div>
+//                 )}
+//               </th>
+//             ))}
+//           </tr>
+//         </thead>
+
+//         <tbody>
+//           {(Array.isArray(paginatedData) ? paginatedData : []).map((row, idx) => (
+//             <tr
+//               key={idx}
+//               style={{
+//                 height: 32,
+//                 borderBottom: "1px solid #e5e7eb",
+//                 fontSize: "0.83rem",
+//                 cursor: onRowClick ? "pointer" : "default",
+//                 background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+//                 transition: "background 0.2s ease",
+//               }}
+//               onClick={onRowClick ? () => onRowClick(row) : undefined}
+//               onMouseEnter={(e) =>
+//                 (e.currentTarget.style.background = "#e0f2fe")
+//               }
+//               onMouseLeave={(e) =>
+//                 (e.currentTarget.style.background =
+//                   idx % 2 === 0 ? "#ffffff" : "#f9fafb")
+//               }
+//             >
+//               {columns.map((col) => (
+//                 <td
+//                   key={col.key}
+//                   style={{
+//                     padding: "4px 6px",
+//                     color: "#1f2937",
+//                     verticalAlign: "middle",
+//                   }}
+//                 >
+//                   {col.render ? col.render(row[col.key], row, idx) : row[col.key] || "-"}
+//                 </td>
+//               ))}
+//             </tr>
+//           ))}
+//         </tbody>
+//       </table>
+//     </div>
+//   );
+// }
+
+import React from "react";
+import { Funnel } from "lucide-react";
+
+// ✅ Pagination (without "Page 1 of 553" text)
+export function Pagination({ page, setPage, totalPages }) {
+  const maxVisiblePages = 3;
+
+  const generatePages = () => {
+    let pages = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (page <= maxVisiblePages) {
+        pages = [1, 2, 3, "...", totalPages];
+      } else if (page >= totalPages - 2) {
+        pages = [1, "...", totalPages - 2, totalPages - 1, totalPages];
+      } else {
+        pages = [1, "...", page, "...", totalPages];
+      }
+    }
+    return pages;
   };
 
-  const pageButtonStyle = {
-    padding: "6px 12px",
-    margin: "0 4px",
-    borderRadius: 6,
-    outline: "none",
-    cursor: "pointer",
+  const pages = generatePages();
+
+  const handleClick = (p) => {
+    if (p === "..." || p === page) return;
+    setPage(p);
   };
-
-  function renderPagination() {
-    // Pagination buttons with ellipses logic like ActiveListings
-    const buttons = [];
-    buttons.push(0);
-    let left = Math.max(1, currentPage - 2);
-    let right = Math.min(totalPages - 2, currentPage + 2);
-
-    if (left > 1) buttons.push("left-ellipsis");
-    for (let i = left; i <= right; i++) buttons.push(i);
-    if (right < totalPages - 2) buttons.push("right-ellipsis");
-    if (totalPages > 1) buttons.push(totalPages - 1);
-
-    return (
-      <div style={{ margin: "16px 0", display: "flex", justifyContent: "center", gap: 8 }}>
-        <button onClick={() => setCurrentPage(0)} disabled={currentPage === 0} style={navButtonStyle}>
-          ««
-        </button>
-        <button onClick={() => setCurrentPage(Math.max(currentPage - 1, 0))} disabled={currentPage === 0} style={navButtonStyle}>
-          ‹
-        </button>
-
-        {buttons.map((btn, idx) => {
-          if (typeof btn === "string") {
-            return (
-              <span key={btn + idx} style={{ padding: "0 6px", fontWeight: "bold" }}>...</span>
-            );
-          }
-          return (
-            <button
-              key={btn}
-              onClick={() => setCurrentPage(btn)}
-              style={{
-                ...pageButtonStyle,
-                backgroundColor: btn === currentPage ? "#725fe9" : "#fff",
-                color: btn === currentPage ? "#fff" : "#222",
-                border: btn === currentPage ? "2px solid #725fe9" : "1px solid #ccc",
-                fontWeight: btn === currentPage ? 700 : 400,
-              }}
-            >
-              {btn + 1}
-            </button>
-          );
-        })}
-
-        <button onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages - 1))} disabled={currentPage === totalPages - 1} style={navButtonStyle}>
-          ›
-        </button>
-        <button onClick={() => setCurrentPage(totalPages - 1)} disabled={currentPage === totalPages - 1} style={navButtonStyle}>
-          »»
-        </button>
-      </div>
-    );
-  }
-
-  if (!Array.isArray(data) || data.length === 0) {
-    return <p className="table-no-data">No Data Available</p>;
-  }
 
   return (
-    <div className="table-container">
-      {title && <h3 className="table-title">{title}</h3>}
-      <div className="table-wrapper">
-        <table className="custom-table">
-          <thead>
-            <tr>
-              {headers.map((column, index) => (
-                <th key={index}>{column.label}</th>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "6px",
+        padding: "18px 0",
+        fontFamily: "Inter, sans-serif",
+      }}
+    >
+      {/* Prev Button */}
+      <button
+        onClick={() => setPage(page - 1)}
+        disabled={page === 1}
+        style={{
+          border: "1px solid #d1d5db",
+          background: page === 1 ? "#f3f4f6" : "#fff",
+          color: "#374151",
+          borderRadius: "6px",
+          padding: "5px 9px",
+          cursor: page === 1 ? "not-allowed" : "pointer",
+          fontWeight: 500,
+        }}
+      >
+        &lt;
+      </button>
+
+      {/* Number Buttons */}
+      {pages.map((p, idx) => (
+        <button
+          key={idx}
+          onClick={() => handleClick(p)}
+          disabled={p === "..."}
+          style={{
+            border: p === page ? "1px solid gold" : "1px solid #d1d5db",
+            background: "#fff",
+            color: p === page ? "#000" : "#374151",
+            borderRadius: "6px",
+            padding: "5px 10px",
+            minWidth: "32px",
+            cursor: p === "..." ? "default" : "pointer",
+            fontWeight: p === page ? 600 : 400,
+          }}
+        >
+          {p}
+        </button>
+      ))}
+
+      {/* Next Button */}
+      <button
+        onClick={() => setPage(page + 1)}
+        disabled={page === totalPages}
+        style={{
+          border: "1px solid #d1d5db",
+          background: page === totalPages ? "#f3f4f6" : "#fff",
+          color: "#374151",
+          borderRadius: "6px",
+          padding: "5px 9px",
+          cursor: page === totalPages ? "not-allowed" : "pointer",
+          fontWeight: 500,
+        }}
+      >
+        &gt;
+      </button>
+    </div>
+  );
+}
+
+// ✅ Main Table
+export default function Table({
+  columns,
+  paginatedData = [],
+  openFilter,
+  toggleFilter,
+  filters,
+  handleCheckboxChange,
+  searchValue,
+  setSearchValue,
+  uniqueValues,
+  clearFilter,
+  applyFilter,
+  onRowClick,
+}) {
+  return (
+    <div
+      style={{
+        background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+        borderRadius: 10,
+        padding: "12px",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+      }}
+    >
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          textAlign: "center",
+          fontFamily: "Inter, sans-serif,outfit",
+          fontSize: "0.85rem",
+        }}
+      >
+        <thead>
+          <tr style={{ background: "#f3f4f6", height: 36 }}>
+            {columns.map((col) => (
+              <th
+                key={col.key}
+                style={{
+                  padding: "6px 8px",
+                  fontWeight: 600,
+                  fontSize: "0.85rem",
+                  borderBottom: "1px solid #e5e7eb",
+                  position: "relative",
+                  color: "#1e293b",
+                  textAlign: "center",
+                  background: "#f8fafc",
+                }}
+              >
+                {col.label}
+                {col.key !== "serialNo" && col.key !== "more" && (
+                  <Funnel
+                    size={4}
+                    style={{
+                      marginLeft: 6,
+                      cursor: "pointer",
+                      verticalAlign: "middle",
+                      opacity: 0.3,
+                    }}
+                    onClick={() => toggleFilter(col.key)}
+                  />
+                )}
+                {openFilter === col.key && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "110%",
+                      right: 0,
+                      background: "#fff",
+                      border: "1px solid #ddd",
+                      borderRadius: 6,
+                      boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                      width: 180,
+                      zIndex: 2500,
+                      padding: 8,
+                      textAlign: "left",
+                    }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchValue}
+                      onChange={(e) => setSearchValue(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "4px 6px",
+                        marginBottom: 6,
+                        fontSize: "0.8rem",
+                        border: "1px solid #ccc",
+                        borderRadius: 4,
+                      }}
+                    />
+                    <div
+                      style={{
+                        maxHeight: 150,
+                        overflowY: "auto",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      {uniqueValues(col.key)
+                        .filter((v) =>
+                          v
+                            ?.toString()
+                            .toLowerCase()
+                            .includes(searchValue.toLowerCase())
+                        )
+                        .map((val) => (
+                          <label key={val} style={{ display: "block" }}>
+                            <input
+                              type="checkbox"
+                              checked={(filters[col.key] || []).includes(val)}
+                              onChange={() =>
+                                handleCheckboxChange(col.key, val)
+                              }
+                            />{" "}
+                            {val}
+                          </label>
+                        ))}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginTop: 6,
+                      }}
+                    >
+                      <button
+                        onClick={() => clearFilter(col.key)}
+                        style={{
+                          background: "#f3f4f6",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "4px 8px",
+                          fontSize: "0.75rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Clear
+                      </button>
+                      <button
+                        onClick={applyFilter}
+                        style={{
+                          background: "#007bff",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "4px 8px",
+                          fontSize: "0.75rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </th>
+            ))}
+          </tr>
+        </thead>
+
+        <tbody>
+          {(Array.isArray(paginatedData) ? paginatedData : []).map((row, idx) => (
+            <tr
+              key={idx}
+              style={{
+                height: 32,
+                borderBottom: "1px solid #e5e7eb",
+                fontSize: "0.83rem",
+                cursor: onRowClick ? "pointer" : "default",
+                background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                transition: "background 0.2s ease",
+              }}
+              onClick={onRowClick ? () => onRowClick(row) : undefined}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "#e0f2fe")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background =
+                  idx % 2 === 0 ? "#ffffff" : "#f9fafb")
+              }
+            >
+              {columns.map((col) => (
+                <td
+                  key={col.key}
+                  style={{
+                    padding: "4px 6px",
+                    color: "#1f2937",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  {col.render ? col.render(row[col.key], row, idx) : row[col.key] || "-"}
+                </td>
               ))}
             </tr>
-          </thead>
-          <tbody>
-            {pagedData.map((row, i) => (
-              <tr key={i}>
-                {headers.map((column, j) => (
-                  <td key={j}>
-                    {typeof column.render === "function"
-                      ? column.render(row[column.key], row, i + currentPage * rowsPerPage)
-                      : (row[column.key] ?? "null")}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {totalPages > 1 && renderPagination()}
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

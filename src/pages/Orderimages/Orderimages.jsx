@@ -1,8 +1,8 @@
- import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
-import { useApi } from "../../API/Api.js";
-import Table from "../../Utils/Table.jsx";
 import { useNavigate } from "react-router-dom";
+import { useApi } from "../../API/Api.js";
+import { Funnel } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -77,26 +77,32 @@ function SortableImage({ img, id, index, total }) {
 
 // ---------- Main Component ----------
 export default function OrderImages() {
-  const [projects, setProjects] = useState([]);
+  const { fetchData, postData } = useApi();
+  const navigate = useNavigate();
+
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [filters, setFilters] = useState({});
+  const [openFilter, setOpenFilter] = useState(null);
+  const [searchValue, setSearchValue] = useState("");
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 15;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { fetchData, postData } = useApi();
+  const [selectedRow, setSelectedRow] = useState(null);
+
   const [showModal, setShowModal] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null);
   const [editableImages, setEditableImages] = useState([]);
   const [modified, setModified] = useState(false);
 
-  const [pageIndex, setPageIndex] = useState(0);
-  const rowsPerPage = 15;
-
-  const navigate = useNavigate();
-
+  // ✅ Fetch Order Image Data
   useEffect(() => {
-    async function load() {
+    async function loadData() {
       try {
-        const data = await fetchData("OrderImage");
+        setLoading(true);
+        const result = await fetchData("OrderImage");
         const grouped = {};
-        (data || []).forEach((img) => {
+        (result || []).forEach((img) => {
           if (!grouped[img.ProjectID]) {
             grouped[img.ProjectID] = {
               id: img.ProjectID,
@@ -110,69 +116,34 @@ export default function OrderImages() {
           }
           grouped[img.ProjectID].images.push(img);
         });
-        setProjects(Object.values(grouped));
+        const arr = Object.values(grouped);
+        setData(arr);
+        setFilteredData(arr);
       } catch (err) {
         setError(err.message || "Error loading images");
       } finally {
         setLoading(false);
-        setPageIndex(0);
       }
     }
-    load();
+    loadData();
   }, [fetchData]);
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  // ✅ Filter logic
+  useEffect(() => {
+    let result = [...data];
+    Object.keys(filters).forEach((key) => {
+      const selected = filters[key];
+      if (selected && selected.length > 0 && !selected.includes("All")) {
+        result = result.filter((row) => selected.includes(row[key]));
+      }
+    });
+    setFilteredData(result);
+    setPage(1);
+  }, [filters, data]);
 
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    if (active.id !== over.id) {
-      const oldIndex = editableImages.findIndex(
-        (img, idx) => (img.DisplayOrderID != null ? img.DisplayOrderID : idx + 1).toString() === active.id
-      );
-      const newIndex = editableImages.findIndex(
-        (img, idx) => (img.DisplayOrderID != null ? img.DisplayOrderID : idx + 1).toString() === over.id
-      );
-
-      const newArr = arrayMove(editableImages, oldIndex, newIndex).map((img, idx) => ({
-        ...img,
-        DisplayOrderID: idx + 1,
-      }));
-
-      setEditableImages(newArr);
-      setModified(true);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      if (!editableImages.length) return;
-
-      await postData("OrderImage/UpdateOrder", editableImages);
-
-      setSelectedProject((prev) => ({ ...prev, images: editableImages }));
-      setProjects((prev) =>
-        prev.map((p) => (p.ProjectID === selectedProject.ProjectID ? { ...p, images: editableImages } : p))
-      );
-
-      setShowModal(false);
-      setModified(false);
-      alert("✅ Image order saved successfully!");
-    } catch (err) {
-      console.error("Error saving order:", err);
-      alert("❌ Failed to save order. Please check server/API.");
-    }
-  };
-
-  const handleClose = () => {
-    setShowModal(false);
-    setModified(false);
-    setEditableImages(selectedProject ? selectedProject.images : []);
-  };
-
+  // ✅ Columns
   const columns = [
-    { label: "S.No", key: "serial", render: (_, __, index) => index + 1 + pageIndex * rowsPerPage },
+    { label: "S.No", key: "serialNo", render: (_, __, idx) => idx + 1 },
     { label: "Project ID", key: "ProjectID" },
     { label: "Project Name", key: "ProjectName" },
     { label: "Locality", key: "Locality" },
@@ -181,31 +152,30 @@ export default function OrderImages() {
     {
       label: "Image Count",
       key: "images",
-      render: (images) => (Array.isArray(images) ? images.length : 0),
+      render: (imgs) => (Array.isArray(imgs) ? imgs.length : 0),
     },
     {
       label: "Action",
       key: "action",
       render: (_, row) => (
         <button
-          style={{
-            background: "#121212",
-            cursor: "pointer",
-            color: "#fff",
-            padding: "3px 8px",
-            borderRadius: "6px",
-            fontWeight: 600,
-            fontSize: "0.95em",
-            border: "none",
-          }}
           onClick={() => {
             const sortedImgs = [...row.images].sort(
               (a, b) => (a.DisplayOrderID || 0) - (b.DisplayOrderID || 0)
             );
-            setSelectedProject(row);
+            setSelectedRow(row);
             setEditableImages(sortedImgs);
             setShowModal(true);
             setModified(false);
+          }}
+          style={{
+            background: "#121212",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            padding: "4px 10px",
+            cursor: "pointer",
+            fontSize: "0.8rem",
           }}
         >
           Edit
@@ -214,115 +184,304 @@ export default function OrderImages() {
     },
   ];
 
-  const paginatedProjects = projects.slice(pageIndex * rowsPerPage, (pageIndex + 1) * rowsPerPage);
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return filteredData.slice(start, start + rowsPerPage);
+  }, [filteredData, page]);
 
-  const navButtonStyle = {
-    padding: "5px 10px",
-    margin: "0 5px",
-    borderRadius: 6,
-    border: "1px solid #ccc",
-    backgroundColor: "#fff",
-    color: "#725fe9",
-    fontWeight: "bold",
-    cursor: "pointer",
-  };
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  const pageButtonStyle = {
-    padding: "6px 12px",
-    margin: "0 4px",
-    borderRadius: 6,
-    outline: "none",
-    cursor: "pointer",
-  };
+  const sensors = useSensors(useSensor(PointerSensor));
 
-  function renderPagination() {
-    const totalPages = Math.ceil(projects.length / rowsPerPage);
-    const buttons = [];
-    buttons.push(0);
-    let left = Math.max(1, pageIndex - 2);
-    let right = Math.min(totalPages - 2, pageIndex + 2);
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    if (left > 1) buttons.push("left-ellipsis");
-    for (let i = left; i <= right; i++) buttons.push(i);
-    if (right < totalPages - 2) buttons.push("right-ellipsis");
-    if (totalPages > 1) buttons.push(totalPages - 1);
-
-    return (
-      <div style={{ textAlign: "center", marginTop: 20 }}>
-        <button onClick={() => setPageIndex(0)} disabled={pageIndex === 0} style={navButtonStyle}>««</button>
-        <button onClick={() => setPageIndex(Math.max(pageIndex - 1, 0))} disabled={pageIndex === 0} style={navButtonStyle}>‹</button>
-
-        {buttons.map((b, idx) => {
-          if (typeof b === "string") return <span key={b + idx} style={{ padding: "0 6px" }}>...</span>;
-          return (
-            <button
-              key={b}
-              onClick={() => setPageIndex(b)}
-              style={{
-                ...pageButtonStyle,
-                backgroundColor: b === pageIndex ? "#725fe9" : "#fff",
-                color: b === pageIndex ? "#fff" : "#222",
-                border: b === pageIndex ? "2px solid #725fe9" : "1px solid #ccc",
-                fontWeight: b === pageIndex ? 700 : 400,
-              }}
-            >
-              {b + 1}
-            </button>
-          );
-        })}
-
-        <button onClick={() => setPageIndex(Math.min(pageIndex + 1, totalPages - 1))} disabled={pageIndex === totalPages - 1} style={navButtonStyle}>›</button>
-        <button onClick={() => setPageIndex(totalPages - 1)} disabled={pageIndex === totalPages - 1} style={navButtonStyle}>»»</button>
-      </div>
+    const oldIndex = editableImages.findIndex(
+      (img, idx) => (img.DisplayOrderID || idx + 1).toString() === active.id
     );
-  }
+    const newIndex = editableImages.findIndex(
+      (img, idx) => (img.DisplayOrderID || idx + 1).toString() === over.id
+    );
+
+    const newArr = arrayMove(editableImages, oldIndex, newIndex).map(
+      (img, idx) => ({ ...img, DisplayOrderID: idx + 1 })
+    );
+    setEditableImages(newArr);
+    setModified(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      await postData("OrderImage/UpdateOrder", editableImages);
+      alert("✅ Image order saved successfully!");
+      setShowModal(false);
+      setModified(false);
+    } catch (err) {
+      alert("❌ Failed to save order. Check server/API.");
+    }
+  };
+
+  const Spinner = () => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "80vh",
+      }}
+    >
+      <div
+        style={{
+          width: 45,
+          height: 45,
+          border: "5px solid #ccc",
+          borderTop: "5px solid #252a2fff",
+          borderRadius: "50%",
+          animation: "spin 1s linear infinite",
+        }}
+      />
+      <style>
+        {`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}
+      </style>
+    </div>
+  );
+
+  const toggleFilter = (key) => {
+    setOpenFilter(openFilter === key ? null : key);
+    setSearchValue("");
+  };
+
+  const handleCheckboxChange = (key, value) => {
+    setFilters((prev) => {
+      const current = prev[key] || [];
+      if (value === "All") return { ...prev, [key]: ["All"] };
+      const updated = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current.filter((v) => v !== "All"), value];
+      return { ...prev, [key]: updated };
+    });
+  };
+
+  const uniqueValues = (key) =>
+    Array.from(new Set(data.map((d) => d[key]).filter(Boolean)));
 
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <>
-      <div className="dashboard-container" style={{ display: "flex" }}>
-        <Sidebar />
-        <div className="buyers-content" style={{ flex: 1, position: "relative", minHeight: "100vh", padding: 24 }}>
-          {/* Back button */}
-          <button
-            onClick={() => navigate("/dashboard")}
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
+      <Sidebar />
+
+      <div style={{ flex: 1, padding: 20,marginLeft: "180px" }}>
+        <button
+          onClick={() => navigate("/dashboard")}
+          style={{
+            background: "#fff",
+            border: "#121212",
+            borderRadius: 8,
+            padding: "6px 14px",
+            cursor: "pointer",
+            fontSize: "0.9rem",
+            color: "#121212",
+          }}
+        >
+           Back
+        </button>
+
+        <h2 style={{ marginBottom: 20, color: "#222" }}>
+          Project Image Display Order
+        </h2>
+
+        {loading ? (
+          <Spinner />
+        ) : (
+          <div
             style={{
-              marginBottom: 12,
-              padding: "6px 14px",
-              backgroundColor: "#5259d4",
-              border: "none",
-              borderRadius: 6,
-              color: "#fff",
-              fontWeight: "bold",
-              cursor: "pointer",
+              borderRadius: 8,
+              overflow: "hidden",
+              background: "#fff",
+              padding: "10px 0",
             }}
           >
-            ← Back
-          </button>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                textAlign: "center",
+              }}
+            >
+              <thead>
+                <tr style={{ background: "#f3f4f6", height: 38 }}>
+                  {columns.map((col) => (
+                    <th
+                      key={col.key}
+                      style={{
+                        padding: "6px 8px",
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                        borderBottom: "1px solid #e5e7eb",
+                        position: "relative",
+                      }}
+                    >
+                      {col.label}
+                      {col.key !== "serialNo" && col.key !== "action" && (
+                        <Funnel
+                          size={13}
+                          style={{
+                            marginLeft: 4,
+                            cursor: "pointer",
+                            verticalAlign: "middle",
+                          }}
+                          onClick={() => toggleFilter(col.key)}
+                        />
+                      )}
+                      {openFilter === col.key && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "110%",
+                            right: 0,
+                            background: "#fff",
+                            border: "1px solid #ddd",
+                            borderRadius: 6,
+                            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                            width: 180,
+                            zIndex: 1000,
+                            padding: 8,
+                            textAlign: "left",
+                          }}
+                        >
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchValue}
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            style={{
+                              width: "100%",
+                              padding: "4px 6px",
+                              marginBottom: 6,
+                              fontSize: "0.8rem",
+                              border: "1px solid #ccc",
+                              borderRadius: 4,
+                            }}
+                          />
+                          <div
+                            style={{
+                              maxHeight: 150,
+                              overflowY: "auto",
+                              fontSize: "0.8rem",
+                            }}
+                          >
+                            <label style={{ display: "block" }}>
+                              <input
+                                type="checkbox"
+                                checked={
+                                  (filters[col.key] || []).includes("All") ||
+                                  (filters[col.key] || []).length === 0
+                                }
+                                onChange={() =>
+                                  handleCheckboxChange(col.key, "All")
+                                }
+                              />{" "}
+                              All
+                            </label>
+                            {uniqueValues(col.key)
+                              .filter((v) =>
+                                v
+                                  ?.toString()
+                                  .toLowerCase()
+                                  .includes(searchValue.toLowerCase())
+                              )
+                              .map((val) => (
+                                <label key={val} style={{ display: "block" }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={(filters[col.key] || []).includes(
+                                      val
+                                    )}
+                                    onChange={() =>
+                                      handleCheckboxChange(col.key, val)
+                                    }
+                                  />{" "}
+                                  {val}
+                                </label>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-          <h2 style={{ marginBottom: 16 }}>Project Image Display Order</h2>
+              <tbody>
+                {paginatedData.map((row, idx) => (
+                  <tr
+                    key={idx}
+                    style={{
+                      height: 34,
+                      borderBottom: "1px solid #f0f0f0",
+                      fontSize: "0.83rem",
+                    }}
+                  >
+                    {columns.map((col) => (
+                      <td key={col.key} style={{ padding: "4px 6px" }}>
+                        {col.render
+                          ? col.render(row[col.key], row, idx)
+                          : row[col.key] || "-"}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <>
-              <Table
-                columns={columns}
-                data={paginatedProjects}
-                rowsPerPage={rowsPerPage}
-                rowHeight={25}
-              />
-              {renderPagination()}
-            </>
-          )}
-        </div>
+            {/* Pagination */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "6px",
+                padding: "10px 0",
+              }}
+            >
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+                style={{
+                  background: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                  opacity: page === 1 ? 0.5 : 1,
+                }}
+              >
+                Previous
+              </button>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage(page + 1)}
+                style={{
+                  background: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                  opacity: page === totalPages ? 0.5 : 1,
+                }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Modal for image reorder */}
-      {showModal && selectedProject && (
+      {/* ✅ Image reorder modal */}
+      {showModal && selectedRow && (
         <div
-          className="modal-backdrop"
+          onClick={() => setShowModal(false)}
           style={{
             position: "fixed",
             inset: 0,
@@ -332,18 +491,16 @@ export default function OrderImages() {
             justifyContent: "center",
             alignItems: "center",
           }}
-          onClick={handleClose}
         >
           <div
-            className="modal"
             onClick={(e) => e.stopPropagation()}
             style={{
               background: "#fff",
-              padding: 32,
+              padding: 30,
               borderRadius: 14,
               width:
                 editableImages.length <= 3
-                  ? Math.max(editableImages.length * 180, 300) + "px"
+                  ? Math.max(editableImages.length * 180, 300)
                   : "95%",
               maxWidth: "1500px",
               maxHeight: "90vh",
@@ -351,21 +508,19 @@ export default function OrderImages() {
               boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <h3 style={{ fontWeight: 600, fontSize: "1.15rem" }}>
-                {selectedProject.ProjectName} Images
-              </h3>
-              <button
-                style={{ background: "transparent", border: "none", fontSize: "1.5rem", cursor: "pointer", fontWeight: "bold", lineHeight: 1 }}
-                onClick={handleClose}
-              >
-                &times;
-              </button>
-            </div>
-
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <h3 style={{ marginBottom: 10 }}>{selectedRow.ProjectName}</h3>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
               <SortableContext
-                items={editableImages.map((img, idx) => (img.DisplayOrderID != null ? img.DisplayOrderID : idx + 1).toString())}
+                items={editableImages.map((img, idx) =>
+                  (img.DisplayOrderID != null
+                    ? img.DisplayOrderID
+                    : idx + 1
+                  ).toString()
+                )}
                 strategy={rectSortingStrategy}
               >
                 <div
@@ -377,14 +532,21 @@ export default function OrderImages() {
                         : `repeat(auto-fit, minmax(180px, 1fr))`,
                     gap: 18,
                     justifyItems: "center",
-                    marginTop: 6,
                   }}
                 >
                   {editableImages.map((imgObj, index) => (
                     <SortableImage
-                      key={imgObj.DisplayOrderID != null ? imgObj.DisplayOrderID : index + 1}
+                      key={
+                        imgObj.DisplayOrderID != null
+                          ? imgObj.DisplayOrderID
+                          : index + 1
+                      }
                       img={imgObj}
-                      id={(imgObj.DisplayOrderID != null ? imgObj.DisplayOrderID : index + 1).toString()}
+                      id={(
+                        imgObj.DisplayOrderID != null
+                          ? imgObj.DisplayOrderID
+                          : index + 1
+                      ).toString()}
                       index={index}
                       total={editableImages.length}
                     />
@@ -394,18 +556,17 @@ export default function OrderImages() {
             </DndContext>
 
             {modified && (
-              <div style={{ marginTop: 20, textAlign: "right" }}>
+              <div style={{ textAlign: "right", marginTop: 20 }}>
                 <button
+                  onClick={handleSave}
                   style={{
                     background: "#121212",
                     color: "#fff",
                     padding: "8px 24px",
                     borderRadius: 6,
                     fontWeight: 600,
-                    fontSize: "1.03em",
                     border: "none",
                   }}
-                  onClick={handleSave}
                 >
                   Save
                 </button>
@@ -414,6 +575,6 @@ export default function OrderImages() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

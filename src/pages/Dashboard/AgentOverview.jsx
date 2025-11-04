@@ -1,45 +1,109 @@
-import React, { useEffect, useState } from "react";
-import Table from "./Table.jsx";
+ import React, { useEffect, useState } from "react";
+import Sidebar from "../../components/Sidebar.jsx";
+import { useApi } from "../../API/Api.js";
 
-export default function UserFeedback() {
-  const [data, setData] = useState([]);
+const AgentPanel = () => {
+  const { fetchData } = useApi();
+  const [agentData, setAgentData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchUserFeedback = async () => {
+    async function load() {
       try {
-        const res = await fetch(
-          "https://imsdev.akrais.com:8444/AKRARealityLTAPI/api/data?requestParamType=UserFeedback",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InByYXNhbm5ha3Vra2FkYXB1MTNAZ21haWwuY29tIiwic3ViIjoiYjE5OTgzNjA1ZTg4NDIzY2EzOWJhYWIyYjI2MWJlNzYiLCJyb2xlIjoiQWdlbnQiLCJuYmYiOjE3NTgyNzA1MzQsImV4cCI6MTc1ODM1NjkzNCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo1MTIwIiwiYXVkIjoiaHR0cDovL2xvY2FsaG9zdDo1MTIwIn0.xjTmtXo_sq4orbSvaNryapM3kYXVrpyJqkES1agdXLESmIqvibpoZS1UvlTfbD3E-TX2bnyPaqyj9s4akbmbpQ 
- `,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!res.ok) throw new Error("Failed to fetch User Feedback");
-        const json = await res.json();
-        setData(json);
+        const response = await fetchData("AgentPanel");
+        let agents = [];
+        if (Array.isArray(response)) agents = response;
+        else if (response && Array.isArray(response.data)) agents = response.data;
+        setAgentData(agents.map((item, idx) => ({ ...item, serialNo: idx + 1 })));
       } catch (err) {
-        console.error(err);
+        setError(err.message || "Error loading agent data");
+        setAgentData([]);
+      } finally {
+        setLoading(false);
       }
-    };
+    }
+    load();
+  }, [fetchData]);
 
-    fetchUserFeedback();
-  }, []);
+  const columns = [
+    { key: "serialNo", label: "S.No" },
+    { key: "AgentName", label: "Agent Name" },
+    { key: "TotalListings", label: "Total Listings" },
+    { key: "AvgListingTime", label: "Avg Listing Time" },
+    { key: "ApprovalRate", label: "Approval Rate" },
+    { key: "ActiveListings", label: "Active Listings" },
+    { key: "InActiveListings", label: "Inactive Listings" },
+  ];
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div style={{ color: "red" }}>{error}</div>;
 
   return (
-    <Table
-      title="User Feedback"
-      data={data}
-      columns={[
-        "AgentName",
-        "AverageRatings",
-        "Complaints",
-        "AgentResponseTime",
-      ]}
-    />
+    <div style={{ display: "flex" }}>
+      <Sidebar />
+      <main style={{ flex: 1, padding: 24 }}>
+        <h2>Agent Panel</h2>
+
+        {/* Inline Table (No Pagination) */}
+        <div style={{ overflowX: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              marginTop: "16px",
+              background: "#fff",
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+            }}
+          >
+            <thead style={{ backgroundColor: "#f5f5f5" }}>
+              <tr>
+                {columns.map((col) => (
+                  <th
+                    key={col.key}
+                    style={{
+                      textAlign: "left",
+                      padding: "10px",
+                      borderBottom: "1px solid #ddd",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {col.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {agentData.length > 0 ? (
+                agentData.map((row, idx) => (
+                  <tr
+                    key={idx}
+                    style={{
+                      borderBottom: "1px solid #eee",
+                      backgroundColor: idx % 2 === 0 ? "#fafafa" : "#fff",
+                    }}
+                  >
+                    {columns.map((col) => (
+                      <td key={col.key} style={{ padding: "10px" }}>
+                        {row[col.key] ?? "-"}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={columns.length} style={{ textAlign: "center", padding: "12px" }}>
+                    No data available
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
   );
-}
+};
+
+export default AgentPanel;

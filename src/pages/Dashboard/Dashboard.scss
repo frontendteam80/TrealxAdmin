@@ -100,13 +100,13 @@ body.dark-theme {
         transition: all 0.18s ease;
 
         &:hover {
-          background-color: #fffbe6;
+          background-color: #fff;
           color: #b8860b;
         }
 
         &.active {
           background-color: #fff;
-          color: #b8860b;
+          color: #121212;
           box-shadow: 0 2px 10px rgba(184, 134, 11, 0.11);
         }
       }

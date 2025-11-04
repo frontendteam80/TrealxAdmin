@@ -2,7 +2,6 @@
 import Sidebar from "../../components/Sidebar.jsx";
 import Navbar from "../../components/Navbar.jsx";
 import StatsCard from "../../components/StatsCard.jsx";
-import Table from "../../Utils/Table.jsx";
 import {
   MdHome,
   MdNewReleases,
@@ -44,7 +43,7 @@ export default function Dashboard() {
         const [dashboardSummary, agentOverview, userFeedback] = await Promise.all([
           fetchData("DashboardSummary"),
           fetchData("AgentPanel"),
-          fetchData("UserFeedBack"),
+          fetchData("UserFeedback"),
         ]);
 
         const data = dashboardSummary?.[0] || {};
@@ -56,12 +55,12 @@ export default function Dashboard() {
           totalListings: Number(data.TotalListings || 0).toLocaleString(),
           orderImages: Number(data.CountOfProjectsThatHaveImages || 0).toLocaleString(),
           crmCount: Number(data.CRMCount || 0).toLocaleString(),
-          projectData: Number(data.ProjectData || 0).toLocaleString(), // 🆕
-          propertyData: Number(data.PropertyData || 0).toLocaleString(), // 🆕
+          projectData: Number(data.ProjectData || 0).toLocaleString(),
+          propertyData: Number(data.PropertyData || 0).toLocaleString(),
         });
 
-        setAgentData(agentOverview || []);
-        setFeedbackData(userFeedback || []);
+        setAgentData(Array.isArray(agentOverview) ? agentOverview : []);
+        setFeedbackData(Array.isArray(userFeedback) ? userFeedback : []);
       } catch (err) {
         console.error("Dashboard data fetch failed:", err);
       }
@@ -92,21 +91,88 @@ export default function Dashboard() {
     navigate("/login");
   };
 
-  const handleCardClick = (route) => {
-    navigate(route);
+  const handleCardClick = (route, state = {}) => {
+    navigate(route, { state });
+  };
+
+  const renderTable = (data) => {
+    if (!Array.isArray(data) || data.length === 0) {
+      return <p>No data available.</p>;
+    }
+
+    const headers = Object.keys(data[0] || {});
+    return (
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          marginTop: "10px",
+          fontSize: "13px",
+        }}
+      >
+        <thead>
+          <tr style={{ backgroundColor: "#f4f4f4" }}>
+            {headers.map((key) => (
+              <th
+                key={key}
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "6px 8px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                }}
+              >
+                {key}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i}>
+              {headers.map((key, j) => (
+                <td
+                  key={j}
+                  style={{
+                    border: "1px solid #ddd",
+                    padding: "6px 8px",
+                    textAlign: "left",
+                    fontSize: "13px",
+                  }}
+                >
+                  {row[key] !== null && row[key] !== undefined && row[key] !== ""
+                    ? row[key].toString()
+                    : "-"}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
   };
 
   return (
     <div className="dashboard-container">
       <div className="dashboard">
         <Sidebar />
-        <main>
+        
+        <main
+        style={{
+          flex: 1,
+          padding: "20px 30px",
+          marginLeft: "180px",
+          overflowX: "hidden",
+          transition: "all 0.3s ease",
+        }}
+      >
           <Navbar />
 
-          {/* Theme toggle + logout */}
+          {/* Theme + Logout */}
           <div
             style={{
               position: "fixed",
+              marginLeft: "240px",
               top: 20,
               right: 25,
               zIndex: 9999,
@@ -194,7 +260,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* 📊 Stats Cards Section */}
+          {/* 🟢 Stats Cards */}
           <section className="stats-grid">
             <div onClick={() => handleCardClick("/activelistings")}>
               <StatsCard
@@ -205,7 +271,6 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #5e72e4, #825ee4)"
               />
             </div>
-
             <div onClick={() => handleCardClick("/newlistings")}>
               <StatsCard
                 title="New Listings"
@@ -215,7 +280,6 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #2dce89, #11cdef)"
               />
             </div>
-
             <div onClick={() => handleCardClick("/approval")}>
               <StatsCard
                 title="Waiting For Approval"
@@ -225,7 +289,6 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #f5365c, #fb6340)"
               />
             </div>
-
             <div onClick={() => handleCardClick("/updates")}>
               <StatsCard
                 title="Price Updates"
@@ -235,8 +298,14 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #344767, #6c757d)"
               />
             </div>
-
-            <div onClick={() => handleCardClick("/totallistings")}>
+            <div
+              onClick={() =>
+                handleCardClick("/ProjectsDetails", {
+                  defaultTab: "properties",
+                  fromDashboard: true,
+                })
+              }
+            >
               <StatsCard
                 title="Total Listings"
                 value={stats.totalListings}
@@ -245,7 +314,6 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #6c757d, #adb5bd)"
               />
             </div>
-
             <div onClick={() => handleCardClick("/orderimages")}>
               <StatsCard
                 title="Order Images"
@@ -255,7 +323,6 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #00c6ff, #0072ff)"
               />
             </div>
-
             <div onClick={() => handleCardClick("/crmdata")}>
               <StatsCard
                 title="CRM Data"
@@ -265,58 +332,83 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #ff9a9e, #fad0c4)"
               />
             </div>
-
-            {/* 🆕 New Stats Cards */}
             <div onClick={() => handleCardClick("/Projectmanagement")}>
               <StatsCard
                 title="Project Data"
                 value={stats.projectData || 0}
                 change="+3 this week"
                 icon={MdBusiness}
-                gradient="linear-gradient(90deg, #bf75ffff, #c77effff)"
-              />
-            </div>
-
-            <div onClick={() => handleCardClick("/Projectmanagement")}>
-              <StatsCard
-                title="Property Data"
-                value={stats.propertyData || 0}
-                change="+4 this week"
-                icon={MdHome}
-                gradient="linear-gradient(90deg, #42e695, #3bb2b8)"
+                gradient="linear-gradient(90deg, #bf75ff, #c77eff)"
               />
             </div>
           </section>
 
-          {/* Tabs Section */}
-          <div className="tabs-container">
-            <div
-              className={`tab ${activeTab === "AgentOverview" ? "active" : ""}`}
-              onClick={() => setActiveTab("AgentOverview")}
-            >
-              Agent Overview
-            </div>
-            <div
-              className={`tab ${activeTab === "UserFeedback" ? "active" : ""}`}
-              onClick={() => setActiveTab("UserFeedback")}
-            >
-              User Feedback
-            </div>
+          {/* 🧩 Tabs Section (Updated Inline Design) */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              padding: "0 0 15px 0",
+              background: "transparent",
+              marginBottom: 20,
+              marginTop: 10,
+            }}
+          >
+            {[
+              { id: "AgentOverview", label: "Agent Overview" },
+              { id: "UserFeedback", label: "User Feedback" },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  onMouseEnter={(e) => {
+                    if (!isActive) e.target.style.color = "#000";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) e.target.style.color = "#666";
+                  }}
+                  style={{
+                    backgroundColor: isActive ? "#fff" : "#f0f0f0",
+                    color: isActive ? "#2c3e50" : "#666",
+                    border: "none",
+                    outline: "none",
+                    cursor: "pointer",
+                    padding: "10px 14px",
+                    marginLeft: "1px",
+                    fontSize: "13px",
+                    fontWeight: isActive ? 600 : 500,
+                    borderBottom: isActive
+                      ? "3px solid #2c3e50"
+                      : "3px solid transparent",
+                    transition: "background-color 0.3s ease, color 0.3s ease",
+                    borderTopLeftRadius: 6,
+                    borderTopRightRadius: 6,
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="table-wrapper">
-            {activeTab === "AgentOverview" &&
-              (agentData.length > 0 ? (
-                <Table data={agentData} />
-              ) : (
-                <p className="no-data">No agent data available</p>
-              ))}
-            {activeTab === "UserFeedback" &&
-              (feedbackData.length > 0 ? (
-                <Table data={feedbackData} />
-              ) : (
-                <p className="no-data">No feedback data available</p>
-              ))}
+          {/* 🗂️ Tab Content */}
+          <div className="tab-content">
+            {activeTab === "AgentOverview" && (
+              <div>
+                {/* <h2>Agent Overview</h2> */}
+                {renderTable(agentData)}
+              </div>
+            )}
+
+            {activeTab === "UserFeedback" && (
+              <div>
+                {/* <h2>User Feedback</h2> */}
+                {renderTable(feedbackData)}
+              </div>
+            )}
           </div>
         </main>
       </div>
