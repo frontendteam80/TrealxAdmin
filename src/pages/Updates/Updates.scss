@@ -28,7 +28,6 @@
 }
 
 .table-section {
-  flex: 1;
   width: 100%;
 }
 
@@ -109,25 +108,26 @@
 ============================ */
 .comment-tabs {
   display: flex;
-  gap: 12px;
+  gap: 1px;
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
 .comment-tabs button {
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 0.93rem;
+        padding: 7px 22px;
+        border: 1px solid #e0e0e0;
+        background-color: #f6f6f9;
+        font-weight: 400;
+        color: #444;
+        cursor: pointer;
+        transition: all 0.18s ease;
 }
 
 .comment-tabs .activeTab {
-  background-color: #fff;
-  color: #b8860b;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+   background-color: #fff;
+          color: #b8860b;
+          box-shadow: 0 2px 10px rgba(184, 134, 11, 0.11);
 }
 
 .comment-tabs .inactiveTab {
@@ -136,7 +136,8 @@
 }
 
 .comment-tabs button:hover:not(.activeTab) {
-  background-color: #e6e6e6;
+   background-color: #fffbe6;
+          color: #b8860b;
 }
 
 /* ============================
@@ -380,6 +381,17 @@
 }
 
 .action-button:hover {
-  background-color: #333;
+  background-color:  #b8860b;
 }
+.input-wrapper input:focus {
+  outline: none;
+  border-color: #b8860b;
+  box-shadow: 0 0 5px rgba(184, 134, 11, 0.6);
+}
+
+.input-wrapper button:hover {
+  background-color: #e5d099;
+  border-color: #b8860b;
+}
+
 

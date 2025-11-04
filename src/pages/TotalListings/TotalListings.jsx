@@ -3,81 +3,10 @@ import Sidebar from "../../components/Sidebar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "../../API/Api.js";
 import { Funnel } from "lucide-react";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  rectSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import formatAmount from "../../Utils/formatAmount.js";
 
-// ---------- Sortable Image ----------
-function SortableImage({ img, id, index, total }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.7 : 1,
-    cursor: "grab",
-  };
-
-  const orderNumber = img.DisplayOrderID != null ? img.DisplayOrderID : index + 1;
-  const isSingle = total === 1;
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#fff",
-        borderRadius: 12,
-        padding: 10,
-        boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-        width: isSingle ? "300px" : "180px",
-        ...style,
-      }}
-      {...attributes}
-      {...listeners}
-    >
-      <img
-        src={img.ImageUrl}
-        alt={`Project image ${orderNumber}`}
-        style={{
-          width: "100%",
-          height: isSingle ? 220 : 180,
-          objectFit: "cover",
-          borderRadius: 10,
-        }}
-      />
-      <span
-        style={{
-          marginTop: 8,
-          fontSize: "0.95em",
-          color: "#333",
-          fontWeight: 600,
-        }}
-      >
-        OrderID: {orderNumber}
-      </span>
-    </div>
-  );
-}
-
-// ---------- Main Component ----------
-export default function OrderImages() {
-  const { fetchData, postData } = useApi();
+export default function TotalListings() {
+  const { fetchData } = useApi();
   const navigate = useNavigate();
 
   const [data, setData] = useState([]);
@@ -91,36 +20,17 @@ export default function OrderImages() {
   const [error, setError] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
 
-  const [showModal, setShowModal] = useState(false);
-  const [editableImages, setEditableImages] = useState([]);
-  const [modified, setModified] = useState(false);
-
-  // ✅ Fetch Order Image Data
+  // ✅ Fetch Total Listings Data
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
-        const result = await fetchData("OrderImage");
-        const grouped = {};
-        (result || []).forEach((img) => {
-          if (!grouped[img.ProjectID]) {
-            grouped[img.ProjectID] = {
-              id: img.ProjectID,
-              ProjectID: img.ProjectID,
-              ProjectName: img.ProjectName,
-              Locality: img.Locality,
-              City: img.City,
-              Zipcode: img.Zipcode,
-              images: [],
-            };
-          }
-          grouped[img.ProjectID].images.push(img);
-        });
-        const arr = Object.values(grouped);
+        const response = await fetchData("TotalListingDetails");
+        const arr = Array.isArray(response) ? response : response.data || [];
         setData(arr);
         setFilteredData(arr);
       } catch (err) {
-        setError(err.message || "Error loading images");
+        setError(err.message || "Failed to fetch total listings");
       } finally {
         setLoading(false);
       }
@@ -141,36 +51,30 @@ export default function OrderImages() {
     setPage(1);
   }, [filters, data]);
 
-  // ✅ Columns
+  // ✅ Table Columns
   const columns = [
     { label: "S.No", key: "serialNo", render: (_, __, idx) => idx + 1 },
-    { label: "Project ID", key: "ProjectID" },
-    { label: "Project Name", key: "ProjectName" },
-    { label: "Locality", key: "Locality" },
-    { label: "City", key: "City" },
-    { label: "Zipcode", key: "Zipcode" },
+    { label: "Property ID", key: "PropertyID" },
+    { label: "Property Name", key: "PropertyName" },
+    { label: "Property Type", key: "PropertyType" },
+    { label: "Property Status", key: "PropertyStatus" },
+    { label: "Area", key: "PropertyArea" },
     {
-      label: "Image Count",
-      key: "images",
-      render: (imgs) => (Array.isArray(imgs) ? imgs.length : 0),
+      label: "Amount",
+      key: "Amount",
+      render: (val) => (val ? formatAmount(val) : "-"),
     },
+    { label: "Locality", key: "Locality" },
+    { label: "Bedrooms", key: "Bedrooms" },
     {
-      label: "Action",
-      key: "action",
+      label: "More",
+      key: "more",
       render: (_, row) => (
         <button
-          onClick={() => {
-            const sortedImgs = [...row.images].sort(
-              (a, b) => (a.DisplayOrderID || 0) - (b.DisplayOrderID || 0)
-            );
-            setSelectedRow(row);
-            setEditableImages(sortedImgs);
-            setShowModal(true);
-            setModified(false);
-          }}
+          onClick={() => setSelectedRow(row)}
           style={{
-            background: "#121212",
-            color: "#fff",
+            background: "#e8edf1ff",
+            color: "#121212",
             border: "none",
             borderRadius: 6,
             padding: "4px 10px",
@@ -178,74 +82,18 @@ export default function OrderImages() {
             fontSize: "0.8rem",
           }}
         >
-          Edit
+          View
         </button>
       ),
     },
   ];
 
+  const mainKeys = columns.map((c) => c.key);
+
   const paginatedData = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
   }, [filteredData, page]);
-
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
-  const sensors = useSensors(useSensor(PointerSensor));
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = editableImages.findIndex(
-      (img, idx) => (img.DisplayOrderID || idx + 1).toString() === active.id
-    );
-    const newIndex = editableImages.findIndex(
-      (img, idx) => (img.DisplayOrderID || idx + 1).toString() === over.id
-    );
-
-    const newArr = arrayMove(editableImages, oldIndex, newIndex).map(
-      (img, idx) => ({ ...img, DisplayOrderID: idx + 1 })
-    );
-    setEditableImages(newArr);
-    setModified(true);
-  };
-
-  const handleSave = async () => {
-    try {
-      await postData("OrderImage/UpdateOrder", editableImages);
-      alert("✅ Image order saved successfully!");
-      setShowModal(false);
-      setModified(false);
-    } catch (err) {
-      alert("❌ Failed to save order. Check server/API.");
-    }
-  };
-
-  const Spinner = () => (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "80vh",
-      }}
-    >
-      <div
-        style={{
-          width: 45,
-          height: 45,
-          border: "5px solid #ccc",
-          borderTop: "5px solid #252a2fff",
-          borderRadius: "50%",
-          animation: "spin 1s linear infinite",
-        }}
-      />
-      <style>
-        {`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}
-      </style>
-    </div>
-  );
 
   const toggleFilter = (key) => {
     setOpenFilter(openFilter === key ? null : key);
@@ -263,43 +111,87 @@ export default function OrderImages() {
     });
   };
 
+  const clearFilter = (key) => {
+    setFilters((prev) => ({ ...prev, [key]: [] }));
+    setOpenFilter(null);
+  };
+
+  const applyFilter = () => setOpenFilter(null);
   const uniqueValues = (key) =>
     Array.from(new Set(data.map((d) => d[key]).filter(Boolean)));
 
-  if (error) return <div>Error: {error}</div>;
+  // ✅ Spinner
+  const Spinner = () => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "80vh",
+      }}
+    >
+      <div
+        style={{
+          width: 45,
+          height: 45,
+          border: "5px solid #ccc",
+          borderTop: "5px solid #007bff",
+          borderRadius: "50%",
+          animation: "spin 1s linear infinite",
+        }}
+      />
+      <style>
+        {`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}
+      </style>
+    </div>
+  );
+
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+
+  const extraDetails = selectedRow
+    ? Object.entries(selectedRow).filter(
+        ([key]) => !mainKeys.includes(key) && selectedRow[key] !== null
+      )
+    : [];
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
       <Sidebar />
 
-      <div style={{ flex: 1, padding: 20,marginLeft: "180px" }}>
+      <div style={{ flex: 1, padding: 20 }}>
         <button
           onClick={() => navigate("/dashboard")}
           style={{
-            background: "#fff",
-            border: "#121212",
+            background: "#e7e7e7",
+            border: "none",
             borderRadius: 8,
             padding: "6px 14px",
             cursor: "pointer",
             fontSize: "0.9rem",
-            color: "#121212",
+            color: "#333",
           }}
         >
-           Back
+          ← Back
         </button>
 
-        <h2 style={{ marginBottom: 20, color: "#222" }}>
-          Project Image Display Order
-        </h2>
+        <h2 style={{ marginBottom: 20, color: "#222" }}>Total Listings</h2>
 
         {loading ? (
           <Spinner />
+        ) : error ? (
+          <p style={{ color: "red" }}>{error}</p>
         ) : (
           <div
             style={{
               borderRadius: 8,
               overflow: "hidden",
               background: "#fff",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
               padding: "10px 0",
             }}
           >
@@ -324,7 +216,7 @@ export default function OrderImages() {
                       }}
                     >
                       {col.label}
-                      {col.key !== "serialNo" && col.key !== "action" && (
+                      {col.key !== "serialNo" && col.key !== "more" && (
                         <Funnel
                           size={13}
                           style={{
@@ -407,6 +299,41 @@ export default function OrderImages() {
                                 </label>
                               ))}
                           </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              marginTop: 6,
+                            }}
+                          >
+                            <button
+                              onClick={() => clearFilter(col.key)}
+                              style={{
+                                background: "#f3f4f6",
+                                border: "none",
+                                borderRadius: 4,
+                                padding: "4px 8px",
+                                fontSize: "0.75rem",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Clear
+                            </button>
+                            <button
+                              onClick={applyFilter}
+                              style={{
+                                background: "#007bff",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: 4,
+                                padding: "4px 8px",
+                                fontSize: "0.75rem",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Apply
+                            </button>
+                          </div>
                         </div>
                       )}
                     </th>
@@ -425,7 +352,7 @@ export default function OrderImages() {
                     }}
                   >
                     {columns.map((col) => (
-                      <td key={col.key} style={{ padding: "4px 6px" }}>
+                      <td key={col.key} style={{ padding: "4px 6px", color: "#333" }}>
                         {col.render
                           ? col.render(row[col.key], row, idx)
                           : row[col.key] || "-"}
@@ -441,6 +368,7 @@ export default function OrderImages() {
               style={{
                 display: "flex",
                 justifyContent: "center",
+                alignItems: "center",
                 gap: "6px",
                 padding: "10px 0",
               }}
@@ -449,7 +377,8 @@ export default function OrderImages() {
                 disabled={page === 1}
                 onClick={() => setPage(page - 1)}
                 style={{
-                  background: "#fff",
+                  background: "#007bff",
+                  color: "#fff",
                   border: "none",
                   borderRadius: 6,
                   padding: "4px 10px",
@@ -459,11 +388,13 @@ export default function OrderImages() {
               >
                 Previous
               </button>
+
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage(page + 1)}
                 style={{
-                  background: "#fff",
+                  background: "#007bff",
+                  color: "#fff",
                   border: "none",
                   borderRadius: 6,
                   padding: "4px 10px",
@@ -476,105 +407,125 @@ export default function OrderImages() {
             </div>
           </div>
         )}
-      </div>
 
-      {/* ✅ Image reorder modal */}
-      {showModal && selectedRow && (
-        <div
-          onClick={() => setShowModal(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.3)",
-            zIndex: 1000,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "#fff",
-              padding: 30,
-              borderRadius: 14,
-              width:
-                editableImages.length <= 3
-                  ? Math.max(editableImages.length * 180, 300)
-                  : "95%",
-              maxWidth: "1500px",
-              maxHeight: "90vh",
-              overflowY: editableImages.length > 6 ? "auto" : "hidden",
-              boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
-            }}
-          >
-            <h3 style={{ marginBottom: 10 }}>{selectedRow.ProjectName}</h3>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+        {/* ✅ Slide Panel */}
+        {selectedRow && (
+          <>
+            <div
+              onClick={() => setSelectedRow(null)}
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                background: "rgba(0,0,0,0.4)",
+                zIndex: 998,
+              }}
+            />
+
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                right: 0,
+                width: "360px",
+                height: "100%",
+                background: "#fff",
+                zIndex: 999,
+                padding: 20,
+                overflowY: "auto",
+                boxShadow: "-2px 0 12px rgba(0,0,0,0.15)",
+                transform: "translateX(0)",
+                animation: "slideIn 0.3s ease-out",
+              }}
             >
-              <SortableContext
-                items={editableImages.map((img, idx) =>
-                  (img.DisplayOrderID != null
-                    ? img.DisplayOrderID
-                    : idx + 1
-                  ).toString()
-                )}
-                strategy={rectSortingStrategy}
-              >
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      editableImages.length === 1
-                        ? "1fr"
-                        : `repeat(auto-fit, minmax(180px, 1fr))`,
-                    gap: 18,
-                    justifyItems: "center",
-                  }}
-                >
-                  {editableImages.map((imgObj, index) => (
-                    <SortableImage
-                      key={
-                        imgObj.DisplayOrderID != null
-                          ? imgObj.DisplayOrderID
-                          : index + 1
-                      }
-                      img={imgObj}
-                      id={(
-                        imgObj.DisplayOrderID != null
-                          ? imgObj.DisplayOrderID
-                          : index + 1
-                      ).toString()}
-                      index={index}
-                      total={editableImages.length}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
+              <style>
+                {`
+                  @keyframes slideIn {
+                    from { transform: translateX(100%); }
+                    to { transform: translateX(0); }
+                  }
+                `}
+              </style>
 
-            {modified && (
-              <div style={{ textAlign: "right", marginTop: 20 }}>
-                <button
-                  onClick={handleSave}
-                  style={{
-                    background: "#121212",
-                    color: "#fff",
-                    padding: "8px 24px",
-                    borderRadius: 6,
-                    fontWeight: 600,
-                    border: "none",
-                  }}
-                >
-                  Save
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+              <button
+                onClick={() => setSelectedRow(null)}
+                style={{
+                  float: "right",
+                  fontSize: 24,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                ×
+              </button>
+
+              {selectedRow.ImageUrl && (
+                <div style={{ marginBottom: 16 }}>
+                  <img
+                    src={selectedRow.ImageUrl.replace(/[\[\]"']/g, "")}
+                    alt={selectedRow.PropertyName}
+                    style={{
+                      width: "100%",
+                      height: 200,
+                      objectFit: "cover",
+                      borderRadius: 6,
+                    }}
+                  />
+                </div>
+              )}
+
+              <h3
+                style={{
+                  marginTop: 0,
+                  marginBottom: 20,
+                  fontSize: "1.1rem",
+                  color: "#007bff",
+                  borderBottom: "1px solid #eee",
+                  paddingBottom: 6,
+                }}
+              >
+                {selectedRow.PropertyName || "Property Details"}
+              </h3>
+
+              {extraDetails.length === 0 ? (
+                <p style={{ color: "#666" }}>No additional details available.</p>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <tbody>
+                    {extraDetails.map(([key, val]) => (
+                      <tr key={key}>
+                        <td
+                          style={{
+                            fontWeight: 600,
+                            padding: "6px 8px",
+                            borderBottom: "1px solid #eee",
+                            textTransform: "capitalize",
+                            width: "40%",
+                          }}
+                        >
+                          {key}
+                        </td>
+                        <td
+                          style={{
+                            padding: "6px 8px",
+                            borderBottom: "1px solid #eee",
+                            width: "60%",
+                          }}
+                        >
+                          {val ?? "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

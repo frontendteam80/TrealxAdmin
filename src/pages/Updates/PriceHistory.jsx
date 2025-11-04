@@ -1,8 +1,8 @@
  import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar.jsx";
-import { useApi } from "../API/Api.js";
-import "./Updates/Updates.scss";
+import Sidebar from "../../components/Sidebar.jsx";
+import { useApi } from "../../API/Api.js";
+import "./Updates.scss";
 import { FaPaperPlane, FaSmile, FaSearch } from "react-icons/fa";
 import { MdPerson } from "react-icons/md";
 import EmojiPicker from "emoji-picker-react";
@@ -235,7 +235,7 @@ export default function PriceHistory() {
                       <th style={{ width: "7%", textAlign: "center", padding: "8px" }}>S.No</th>
                       <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Admin</th>
                       <th style={{ width: "30%", textAlign: "center", padding: "8px" }}>Property ID</th>
-                      <th style={{ width: "30%", textAlign: "center", padding: "8px" }}>Action</th>
+                      <th style={{ width: "30%", textAlign: "left", padding: "8px" }}>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -244,7 +244,7 @@ export default function PriceHistory() {
                         <td style={{ padding: "8px", textAlign: "center" }}>{index + 1}</td>
                         <td style={{ padding: "8px", textAlign: "left" }}>👤 {user.AdminName}</td>
                         <td style={{ padding: "8px", textAlign: "center" }}>🏠 {user.PropertyID || "-"}</td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
+                        <td style={{ padding: "8px", textAlign: "right" }}>
                           <button
                             className="action-button"
                             onClick={() => {
@@ -266,18 +266,45 @@ export default function PriceHistory() {
             {/* Comment input/chat */}
             <div className="comment-box">
               <div className="comment-filters">
-                <div className="input-wrapper" style={{ display: "flex", alignItems: "center" }}>
-                  <input
-                    type="text"
-                    placeholder="Search by ID or Name..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ padding: "7px", flex: 1 }}
-                  />
-                  <button>
-                    <FaSearch />
-                  </button>
-                </div>
+                 <div
+  className="input-wrapper"
+  style={{
+    position: "relative",
+    width: "40%",
+    marginBottom: "10px",
+  }}
+>
+  <FaSearch
+    style={{
+      position: "absolute",
+      left: "12px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      color: "#888",
+      fontSize: "15px",
+    }}
+  />
+  <input
+    type="text"
+    placeholder="Search by ID or Name..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    style={{
+      width: "100%",
+      padding: "10px 12px 10px 36px", // padding-left leaves space for icon
+      border: "1px solid #ddd",
+      borderRadius: "8px",
+      outline: "none",
+      fontSize: "14px",
+      backgroundColor: "#f9f9f9",
+      transition: "all 0.2s ease-in-out",
+    }}
+    
+    onFocus={(e) => (e.target.style.backgroundColor = "#fff")}
+    onBlur={(e) => (e.target.style.backgroundColor = "#f9f9f9")}
+  />
+</div>
+
               </div>
               <div className="chat-messages">
                 {allComments.map((msg, i) => {
