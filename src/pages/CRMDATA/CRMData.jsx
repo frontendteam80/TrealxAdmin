@@ -218,7 +218,7 @@ export default function AgentDetails() {
               marginBottom: 10,
             }}
           >
-            <h2 style={{ margin: 0 }}>CRM Data</h2>
+            <h2 style={{ margin: 0,fontweight:400 }}>CRM Data</h2>
             <div
               style={{
                 fontWeight: "bold",

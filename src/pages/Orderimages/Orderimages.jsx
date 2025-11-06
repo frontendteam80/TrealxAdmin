@@ -288,7 +288,7 @@ export default function OrderImages() {
            Back
         </button>
 
-        <h2 style={{ marginBottom: 20, color: "#222" }}>
+        <h2 style={{ marginBottom: 20, color: "#222" ,fontweight:400}}>
           Project Image Display Order
         </h2>
 
