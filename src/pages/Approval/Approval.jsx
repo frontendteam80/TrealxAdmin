@@ -183,7 +183,7 @@ export default function Approval() {
           Back
         </button>
 
-        <h2 style={{ marginBottom: 20, color: "#222" }}>Waiting For Approval</h2>
+        <h2 style={{ marginBottom: 20, color: "#222",fontweight:400 }}>Waiting For Approval</h2>
 
         {loading ? (
           <Spinner />

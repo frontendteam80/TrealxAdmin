@@ -193,7 +193,7 @@ export default function Updates() {
 
         {/* Heading and Search Bar Row */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16}}>
-          <h2 style={{ margin: 0, color: "#222" }}>Updates</h2>
+          <h2 style={{ margin: 0, color: "#222",fontweight:400 }}>Updates</h2>
 
           <div
             style={{

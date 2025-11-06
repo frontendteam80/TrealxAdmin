@@ -2230,7 +2230,7 @@ export default function SocialActivity() {
               marginBottom: 20,
             }}
           >
-            <h2 style={{ margin: 0 }}>Social Activity</h2>
+            <h2 style={{ margin: 0,fontweight:400 }}>Social Activity</h2>
             <div
               style={{
                 fontWeight: "bold",
