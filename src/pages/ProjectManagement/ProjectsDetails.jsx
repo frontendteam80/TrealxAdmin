@@ -3,7 +3,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
 import Table, { Pagination } from "../../Utils/Table.jsx";
+<<<<<<< HEAD
 import { Search, Filter, ArrowLeft } from "lucide-react";
+=======
+import { Search } from "lucide-react";
+>>>>>>> 575ef5d (newupdate)
 
 const TABS = {
   COMPANY: "company",
@@ -11,7 +15,11 @@ const TABS = {
   PROPERTIES: "properties",
 };
 
+<<<<<<< HEAD
 // Simple Modal component unchanged
+=======
+// ---------- Simple Modal ----------
+>>>>>>> 575ef5d (newupdate)
 function SimpleModal({ open, onClose, children }) {
   if (!open) return null;
   return (
@@ -39,7 +47,11 @@ function SimpleModal({ open, onClose, children }) {
           minWidth: 320,
           maxWidth: 600,
           maxHeight: "80vh",
+<<<<<<< HEAD
           overflowY: "auto",
+=======
+          //overflowY: "auto",
+>>>>>>> 575ef5d (newupdate)
           boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
         }}
       >
@@ -49,7 +61,11 @@ function SimpleModal({ open, onClose, children }) {
   );
 }
 
+<<<<<<< HEAD
 // Modal for project details unchanged
+=======
+// ---------- Modal for Project Details ----------
+>>>>>>> 575ef5d (newupdate)
 function ProjectDetailsModal({ open, onClose, project, TableComponent }) {
   if (!project) return null;
   const modalColumns = [
@@ -82,12 +98,21 @@ function ProjectDetailsModal({ open, onClose, project, TableComponent }) {
   );
 }
 
+<<<<<<< HEAD
+=======
+// ---------- Main Component ----------
+>>>>>>> 575ef5d (newupdate)
 export default function ProjectsDetails() {
   const navigate = useNavigate();
   const location = useLocation();
   const defaultTabFromDashboard = location.state?.defaultTab || TABS.COMPANY;
   const fromDashboard = location.state?.fromDashboard || false;
 
+<<<<<<< HEAD
+=======
+  const { fetchData } = useApi();
+
+>>>>>>> 575ef5d (newupdate)
   const [activeTab, setActiveTab] = useState(defaultTabFromDashboard);
   const [companyData, setCompanyData] = useState([]);
   const [projectsData, setProjectsData] = useState([]);
@@ -95,16 +120,27 @@ export default function ProjectsDetails() {
   const [filteredCompanies, setFilteredCompanies] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
+<<<<<<< HEAD
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { fetchData } = useApi();
+=======
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({});
+  const [openFilter, setOpenFilter] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+>>>>>>> 575ef5d (newupdate)
 
   const [page, setPage] = useState(1);
   const rowsPerPage = 15;
 
+<<<<<<< HEAD
   const [openFilter, setOpenFilter] = useState(null);
   const [filters, setFilters] = useState({});
   const [filterSearchValue, setFilterSearchValue] = useState("");
@@ -230,6 +266,9 @@ export default function ProjectsDetails() {
     { label: renderHeaderWithFilter("Facing", "Facing"), key: "Facing" },
   ];
 
+=======
+  // ---------- Fetch All Data ----------
+>>>>>>> 575ef5d (newupdate)
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -250,6 +289,10 @@ export default function ProjectsDetails() {
       .finally(() => setLoading(false));
   }, [fetchData]);
 
+<<<<<<< HEAD
+=======
+  // ---------- Search ----------
+>>>>>>> 575ef5d (newupdate)
   useEffect(() => {
     const lower = searchQuery.trim().toLowerCase();
     if (!lower) {
@@ -276,6 +319,111 @@ export default function ProjectsDetails() {
     );
   }, [searchQuery, companyData, projectsData, propertiesData]);
 
+<<<<<<< HEAD
+=======
+  // ---------- Filter Helpers ----------
+  const toggleFilter = (key) => {
+    setOpenFilter((prev) => (prev === key ? null : key));
+  };
+
+  const handleCheckboxChange = (key, value) => {
+    setFilters((prev) => {
+      const prevVals = prev[key] || [];
+      const newVals = prevVals.includes(value)
+        ? prevVals.filter((v) => v !== value)
+        : [...prevVals, value];
+      return { ...prev, [key]: newVals };
+    });
+  };
+
+  const clearFilter = (key) => {
+    setFilters((prev) => {
+      const newFilters = { ...prev };
+      delete newFilters[key];
+      return newFilters;
+    });
+    setOpenFilter(null);
+  };
+
+  const applyFilter = () => {
+    let source =
+      activeTab === TABS.COMPANY
+        ? companyData
+        : activeTab === TABS.PROJECTS
+        ? projectsData
+        : propertiesData;
+
+    const filtered = source.filter((item) =>
+      Object.entries(filters).every(([key, values]) =>
+        !values.length ? true : values.includes(item[key])
+      )
+    );
+
+    if (activeTab === TABS.COMPANY) setFilteredCompanies(filtered);
+    else if (activeTab === TABS.PROJECTS) setFilteredProjects(filtered);
+    else setFilteredProperties(filtered);
+
+    setOpenFilter(null);
+  };
+
+  const uniqueValues = (key) => {
+    let source =
+      activeTab === TABS.COMPANY
+        ? filteredCompanies
+        : activeTab === TABS.PROJECTS
+        ? filteredProjects
+        : filteredProperties;
+    return Array.from(
+      new Set(source.map((item) => item[key]).filter((val) => val != null))
+    );
+  };
+
+  // ---------- Columns ----------
+  const companyColumns = [
+    { label: "S.No", key: "serialNo", canFilter: false },
+    { label: "Company Name", key: "CompanyName" },
+    { label: "Projects", key: "TotalProjects" },
+    { label: "Operating Cities", key: "OperatingCities", render: (val) => {
+        if (!val) return "N/A";
+        const cities = val.split(",").map((city) => city.trim());
+        if (cities.length <= 2) return val;
+        const visible = cities.slice(0, 2).join(", ");
+        const remaining = cities.slice(2).join(", ");
+        return <span title={remaining}>{visible}, ...</span>;
+      }, },
+    { label: "Operating Since", key: "OperatingYear" },
+    { label: "Ready To Move", key: "ReadyToMove" },
+    { label: "Under Construction", key: "UnderConstruction" },
+  ];
+
+  const projectColumns = [
+    { label: "S.No", key: "serialNo", canFilter: false },
+    { label: "Project Name", key: "ProjectName" },
+    { label: "Project ID", key: "ProjectID" },
+    { label: "Custom Type", key: "CustomProjectTypes" },
+    { label: "Status", key: "ProjectStatus" },
+    { label: "Locality", key: "Locality" },
+  ];
+
+  const propertyColumns = [
+    { label: "S.No", key: "serialNo", canFilter: false },
+    { label: "Project Name", key: "projectname" },
+    { label: "Property ID", key: "PropertyID" },
+    { label: "Property Name", key: "PropertyName" },
+    {
+      label: "Price",
+      key: "AmountWithUnit",
+      render: (val) =>
+        val ? (String(val).includes("₹") ? val : `₹ ${val}`) : "-",
+    },
+    { label: "Type", key: "PropertyType" },
+    { label: "Status", key: "propertystatus" },
+    { label: "Bedrooms", key: "Bedrooms" },
+    { label: "Facing", key: "Facing" },
+  ];
+
+  // ---------- Pick Data for Current Tab ----------
+>>>>>>> 575ef5d (newupdate)
   let currentData, currentColumns;
   if (activeTab === TABS.COMPANY) {
     currentData = filteredCompanies;
@@ -295,13 +443,20 @@ export default function ProjectsDetails() {
 
   const totalPages = Math.ceil(currentData.length / rowsPerPage);
 
+<<<<<<< HEAD
   return (
     <div style={{ display: "flex", backgroundColor: "#fff" }}>
       {/* Sidebar container */}
+=======
+  // ---------- Render ----------
+  return (
+    <div style={{ display: "flex", backgroundColor: "#fff" }}>
+>>>>>>> 575ef5d (newupdate)
       <div style={{ flexShrink: 0 }}>
         <Sidebar />
       </div>
 
+<<<<<<< HEAD
       {/* Main content container */}
       <div style={{ flex: 1, padding: 24, marginLeft: "180px", minHeight: "100vh" }}>
         {fromDashboard && (
@@ -325,16 +480,65 @@ export default function ProjectsDetails() {
         )}
 
         {/* Tabs & Search */}
+=======
+      <div
+        style={{
+          flex: 1,
+          padding: 20,
+          marginLeft: "180px",
+          minHeight: "100vh",
+        }}
+      >
+        {/* Back button and heading (stacked vertically) */}
+        {fromDashboard && (
+          <div style={{ marginBottom: 10 }}>
+            <button
+              onClick={() => navigate(-1)}
+              style={{
+                background: "#fff",
+                border: "1px solid #ccc",
+                borderRadius: 8,
+                padding: "6px 14px",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+                color: "#121212",
+                marginBottom: 6,
+              }}
+            >
+              Back
+            </button>
+            <h2
+              style={{
+                color: "#222",
+                fontSize: "1.2rem",
+                fontWeight: 600,
+                margin: 0,
+              }}
+            >
+              Projects Details
+            </h2>
+          </div>
+        )}
+
+        {/* Tabs and Search */}
+>>>>>>> 575ef5d (newupdate)
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+<<<<<<< HEAD
             marginBottom: 20,
           }}
         >
           {/* Tabs */}
           <div style={{ display: "flex", gap: 2 }}>
+=======
+            marginBottom: 14,
+          }}
+        >
+          <div style={{ display: "flex", gap: 4 }}>
+>>>>>>> 575ef5d (newupdate)
             {Object.entries(TABS).map(([key, val]) => {
               const label = key.charAt(0) + key.slice(1).toLowerCase();
               const isActive = activeTab === val;
@@ -345,28 +549,42 @@ export default function ProjectsDetails() {
                     setActiveTab(val);
                     setPage(1);
                   }}
+<<<<<<< HEAD
                   onMouseEnter={(e) => {
                     if (!isActive) e.target.style.color = "#000";
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) e.target.style.color = "#666";
                   }}
+=======
+>>>>>>> 575ef5d (newupdate)
                   style={{
                     backgroundColor: isActive ? "#fff" : "#f0f0f0",
                     color: isActive ? "#2c3e50" : "#666",
                     border: "none",
+<<<<<<< HEAD
                     outline: "none",
                     cursor: "pointer",
                     padding: "10px 14px",
                     marginLeft: "1px",
                     fontSize: "13px",
+=======
+                    cursor: "pointer",
+                    padding: "6px 9px",
+                    fontSize: "12px",
+>>>>>>> 575ef5d (newupdate)
                     fontWeight: isActive ? 600 : 500,
                     borderBottom: isActive
                       ? "3px solid #2c3e50"
                       : "3px solid transparent",
+<<<<<<< HEAD
                     transition: "background-color 0.3s ease, color 0.3s ease",
                     // borderTopLeftRadius: 6,
                     // borderTopRightRadius: 6,
+=======
+                    borderTopLeftRadius: 3,
+                    borderTopRightRadius: 3,
+>>>>>>> 575ef5d (newupdate)
                   }}
                 >
                   {label}
@@ -375,6 +593,7 @@ export default function ProjectsDetails() {
             })}
           </div>
 
+<<<<<<< HEAD
           {/* Search */}
           <div style={{ position: "relative", width: 160 }}>
             <Search
@@ -385,6 +604,17 @@ export default function ProjectsDetails() {
                 top: "50%",
                 transform: "translateY(-50%)",
                 color: "#9ca3af",
+=======
+          <div style={{ position: "relative", width: 200}}>
+            <Search
+              size={16}
+              color="#adb1bd"
+              style={{
+                position: "absolute",
+                left: 9,
+                top: "50%",
+                transform: "translateY(-50%)",
+>>>>>>> 575ef5d (newupdate)
               }}
             />
             <input
@@ -393,7 +623,11 @@ export default function ProjectsDetails() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
+<<<<<<< HEAD
                 width: "130px",
+=======
+                width: "170px",
+>>>>>>> 575ef5d (newupdate)
                 padding: "8px 12px 8px 34px",
                 borderRadius: 8,
                 border: "1px solid #e5e7eb",
@@ -405,7 +639,11 @@ export default function ProjectsDetails() {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* Table */}
+=======
+        {/* Table and Pagination */}
+>>>>>>> 575ef5d (newupdate)
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
@@ -415,12 +653,20 @@ export default function ProjectsDetails() {
             <Table
               columns={currentColumns}
               paginatedData={paginatedData}
+<<<<<<< HEAD
+=======
+              page={page}
+              rowsPerPage={rowsPerPage}
+>>>>>>> 575ef5d (newupdate)
               openFilter={openFilter}
               toggleFilter={toggleFilter}
               filters={filters}
               handleCheckboxChange={handleCheckboxChange}
+<<<<<<< HEAD
               searchValue={filterSearchValue}
               setSearchValue={setFilterSearchValue}
+=======
+>>>>>>> 575ef5d (newupdate)
               uniqueValues={uniqueValues}
               clearFilter={clearFilter}
               applyFilter={applyFilter}
@@ -435,6 +681,10 @@ export default function ProjectsDetails() {
           </>
         )}
 
+<<<<<<< HEAD
+=======
+        {/* Modal */}
+>>>>>>> 575ef5d (newupdate)
         <ProjectDetailsModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}

@@ -1,5 +1,6 @@
  
  
+<<<<<<< HEAD
 //  import React, { useEffect, useState } from "react";
 // import Sidebar from "../../components/Sidebar.jsx";
 // import DataTable from "../../Utils/Table.jsx";
@@ -191,6 +192,17 @@ function HeaderWithFilter({ label, columnKey, openFilter, toggleFilter, filterSe
 function LocationCell({ value }) {
   const [showAll, setShowAll] = useState(false);
   if (!value || typeof value !== "string") return <>null</>;
+=======
+ import React, { useEffect, useState } from "react";
+import Sidebar from "../../components/Sidebar.jsx";
+import DataTable from "../../Utils/Table.jsx";
+import formatAmount from "../../Utils/formatAmount.js";
+import { useApi } from "../../API/Api.js"; // Your hook
+
+function LocationCell({ value }) {
+  const [showAll, setShowAll] = useState(false);
+  if (!value || typeof value !== "string") return <>N/A</>;
+>>>>>>> 575ef5d (newupdate)
   const locations = value.split(",");
   const firstLocation = locations[0];
   const remaining = locations.slice(1).join(", ");
@@ -218,6 +230,7 @@ export default function Buyers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+<<<<<<< HEAD
   // Pagination
   const [page, setPage] = useState(1);
   const rowsPerPage = 15;
@@ -274,13 +287,19 @@ export default function Buyers() {
     return Array.from(new Set(vals));
   };
 
+=======
+>>>>>>> 575ef5d (newupdate)
   useEffect(() => {
     async function load() {
       try {
         const data = await fetchData("Buyer_info");
+<<<<<<< HEAD
         const dataArr = Array.isArray(data) ? data : data.data || [];
         setBuyers(dataArr);
         setFilteredBuyers(dataArr);
+=======
+        setBuyers(Array.isArray(data) ? data : data.data || []);
+>>>>>>> 575ef5d (newupdate)
       } catch (err) {
         setError(err.message || "Error loading buyers");
       } finally {
@@ -290,7 +309,10 @@ export default function Buyers() {
     load();
   }, [fetchData]);
 
+<<<<<<< HEAD
   // Columns with header filters integrated
+=======
+>>>>>>> 575ef5d (newupdate)
   const columns = [
     {
       label: <HeaderWithFilter
@@ -464,16 +486,22 @@ export default function Buyers() {
     },
   ];
 
+<<<<<<< HEAD
   // Pagination logic for filtered data
   const paginatedData = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     return filteredBuyers.slice(start, start + rowsPerPage);
   }, [filteredBuyers, page]);
+=======
+  if (error) return <div>Error: {error}</div>;
+  if (loading) return <div>Loading...</div>;
+>>>>>>> 575ef5d (newupdate)
 
   return (
     <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff", position: "relative" }}>
       <Sidebar />
       <div style={{ flex: 1, minHeight: "100vh", overflowX: "auto", padding: 24, marginLeft: "180px" }}>
+<<<<<<< HEAD
         <h2>Buyers</h2>
 
         {error && <div style={{ color: "red" }}>Error: {error}</div>}
@@ -500,6 +528,19 @@ export default function Buyers() {
             </div>
           </>
         )}
+=======
+         <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+          Buyers
+        </h2>
+        <DataTable columns={columns} paginatedData={buyers} rowsPerPage={15} />
+>>>>>>> 575ef5d (newupdate)
       </div>
     </div>
   );

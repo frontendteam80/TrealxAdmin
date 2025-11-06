@@ -1,3 +1,4 @@
+<<<<<<< HEAD
  import React, { useEffect, useState, useMemo, useRef } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useNavigate } from "react-router-dom";
@@ -132,6 +133,14 @@ function FilterDropdown({
     </div>
   );
 }
+=======
+ import React, { useEffect, useState, useMemo } from "react";
+import Sidebar from "../../components/Sidebar.jsx";
+import { useNavigate } from "react-router-dom";
+import { useApi } from "../../API/Api.js";
+import { Search, Eye, X } from "lucide-react";
+import Table, { Pagination } from "../../Utils/Table.jsx"; // <-- import Table here
+>>>>>>> 575ef5d (newupdate)
 
 export default function ActiveListings() {
   const { fetchData } = useApi();
@@ -145,8 +154,13 @@ export default function ActiveListings() {
   const [page, setPage] = useState(1);
   const [selectedRow, setSelectedRow] = useState(null);
   const [loading, setLoading] = useState(true);
+<<<<<<< HEAD
   const rowsPerPage = 15;
   const filterRef = useRef(null);
+=======
+
+  const rowsPerPage = 15;
+>>>>>>> 575ef5d (newupdate)
 
   useEffect(() => {
     async function loadData() {
@@ -176,8 +190,15 @@ export default function ActiveListings() {
     loadData();
   }, [fetchData]);
 
+<<<<<<< HEAD
   useEffect(() => {
     let result = [...data];
+=======
+  // Filtering logic (global search + column filters)
+  useEffect(() => {
+    let result = [...data];
+
+>>>>>>> 575ef5d (newupdate)
     Object.keys(filters).forEach((key) => {
       const selected = filters[key];
       if (selected && selected.length > 0) {
@@ -198,6 +219,7 @@ export default function ActiveListings() {
     setPage(1);
   }, [filters, data, searchValue]);
 
+<<<<<<< HEAD
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterRef.current && !filterRef.current.contains(event.target)) {
@@ -211,6 +233,24 @@ export default function ActiveListings() {
   const getUniqueValues = (key) => [
     ...new Set(data.map((item) => item[key]).filter(Boolean)),
   ];
+=======
+  const getUniqueValues = (key) =>
+    [...new Set(data.map((item) => item[key]).filter(Boolean))];
+
+  const handleCheckboxChange = (columnKey, value) => {
+    setFilters((prev) => {
+      const existing = prev[columnKey] || [];
+      return existing.includes(value)
+        ? { ...prev, [columnKey]: existing.filter((v) => v !== value) }
+        : { ...prev, [columnKey]: [...existing, value] };
+    });
+  };
+
+  // toggleFilter adapter for Table component
+  const toggleFilter = (columnKey) => {
+    setOpenFilter((prev) => (prev === columnKey ? null : columnKey));
+  };
+>>>>>>> 575ef5d (newupdate)
 
   const handleCheckboxChange = (columnKey, value) => {
     setFilters((prev) => {
@@ -222,7 +262,8 @@ export default function ActiveListings() {
   };
 
   const columns = [
-    { label: "S.No", key: "serialNo", render: (_, __, idx) => idx + 1 },
+    // removed inline render for serialNo so Table can compute global serial using page + rowsPerPage
+    { label: "S.No", key: "serialNo", canFilter: false },
     { label: "Property ID", key: "PropertyID" },
     { label: "Property Name", key: "PropertyName" },
     { label: "Property Type", key: "PropertyType" },
@@ -232,57 +273,97 @@ export default function ActiveListings() {
       label: "Price",
       key: "AmountWithUnit",
       render: (val) =>
+<<<<<<< HEAD
         val
           ? val.toString().includes("₹")
             ? val
             : `₹ ${val}`
           : "-",
+=======
+        val ? (val.toString().includes("₹") ? val : `₹ ${val}`) : "-",
+>>>>>>> 575ef5d (newupdate)
     },
     { label: "Locality", key: "Locality" },
     { label: "Bedrooms", key: "Bedrooms" },
     {
       label: "Action",
       key: "action",
+<<<<<<< HEAD
+=======
+      canFilter: false,
+>>>>>>> 575ef5d (newupdate)
       render: (_, row) => (
         <button
-          onClick={() => setSelectedRow(row)}
+          onClick={(e) => { e.stopPropagation(); setSelectedRow(row); }}
           style={{
+<<<<<<< HEAD
             background: "#c4ced6",
             color: "#121212",
+=======
+           // background: "#c4ced6",
+            color: "#1b2337",
+>>>>>>> 575ef5d (newupdate)
             border: "none",
-            borderRadius: 6,
+           // borderRadius: 6,
             padding: "4px 10px",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
+<<<<<<< HEAD
             gap: 4,
           }}
         >
           <Eye size={10} /> View
+=======
+            gap: 8,
+            fontWeight: 500,
+          }}
+        >
+          <Eye size={15} />
+>>>>>>> 575ef5d (newupdate)
         </button>
       ),
     },
   ];
 
+<<<<<<< HEAD
+=======
+  // Paginate filtered data
+>>>>>>> 575ef5d (newupdate)
   const paginatedData = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
   }, [filteredData, page]);
 
   const formatKeyName = (key) => {
+<<<<<<< HEAD
     let name = key.replace(/^Property/, "");
     if (name === "AmountWithUnit") return "Price";
+=======
+    if (key === "MainEntranceFacing") return "Facing";
+    if (key === "AmountWithUnit") return "Price";
+    let name = key.replace(/^Property/, "");
+>>>>>>> 575ef5d (newupdate)
     if (name === "ID") return "ID";
     return name.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
   };
 
+<<<<<<< HEAD
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
       {/* Sidebar container with flexShrink to avoid collapsing */}
+=======
+  // helper used by Table to indicate active filters (optional for your UI)
+  const hasActiveFilter = (key) => filters[key]?.length > 0;
+
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
+>>>>>>> 575ef5d (newupdate)
       <div style={{ flexShrink: 0 }}>
         <Sidebar />
       </div>
 
+<<<<<<< HEAD
       {/* Main content container with flex grow and minWidth to prevent overlap */}
       <div style={{ flex: 1, padding: 20, marginLeft: "180px", position: "relative" }}>
         {/* Back Button */}
@@ -438,6 +519,84 @@ export default function ActiveListings() {
             </tbody>
           </table>
 
+=======
+      <div style={{ flex: 1, padding: 20, marginLeft: "180px", position: "relative" }}>
+        {/* reduced gap: marginBottom lowered from 10/15 to 6 */}
+        <button
+          onClick={() => navigate("/dashboard")}
+          style={{
+            background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: 8,
+            padding: "6px 14px",
+            cursor: "pointer",
+            fontSize: "0.8rem",
+            color: "#121212",
+            marginBottom: 6, // tightened gap here
+          }}
+        >
+          Back
+        </button>
+
+        {/* reduced gap between heading and back button: marginBottom 8 */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+           <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+          Active Listings
+        </h2>
+
+          <div style={{ position: "relative", width: 200}}>
+            <Search
+              size={17}
+              color="#adb1bd"
+              style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)" }}
+            />
+            <input
+              type="text"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Search"
+              style={{
+                padding: "8px 12px 8px 34px",
+                borderRadius: 8,
+                border: "1px solid #e5e7eb",
+                background: "#f7fafd",
+                fontSize: 14,
+                color: "#1a2230",
+                width: "170px",
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={{ borderRadius: 8, background: "#fff", padding: 10 }}>
+          {/* Use reusable Table component (handles filter icon, dropdown, sticky footer, fixed positioning) */}
+          <Table
+            columns={columns}
+            paginatedData={paginatedData}
+            filters={filters}
+            openFilter={openFilter}
+            toggleFilter={toggleFilter}
+            handleCheckboxChange={handleCheckboxChange}
+            uniqueValues={getUniqueValues}
+            hasActiveFilter={hasActiveFilter}
+            // pass page & rowsPerPage so Table can compute global S.No
+            page={page}
+            rowsPerPage={rowsPerPage}
+            // optional hooks you can use if Table expects them:
+            clearFilter={(colKey) => setFilters((prev) => ({ ...prev, [colKey]: [] }))}
+            applyFilter={() => { /* parent-level behavior (optional) */ }}
+            onRowClick={(row) => setSelectedRow(row)}
+          />
+
+          {/* Pagination (hidden automatically by Table's Pagination when totalPages <= 1) */}
+>>>>>>> 575ef5d (newupdate)
           <Pagination
             page={page}
             setPage={setPage}
@@ -445,7 +604,6 @@ export default function ActiveListings() {
           />
         </div>
 
-        {/* Slide Panel */}
         {selectedRow && (
           <div
             style={{
@@ -464,6 +622,7 @@ export default function ActiveListings() {
             <X
               size={22}
               color="red"
+<<<<<<< HEAD
               style={{
                 cursor: "pointer",
                 float: "right",
@@ -473,13 +632,24 @@ export default function ActiveListings() {
             <h3 style={{ fontSize: "1.4rem", marginBottom: 10 }}>
               Property Details
             </h3>
+=======
+              style={{ cursor: "pointer", float: "right" }}
+              onClick={() => setSelectedRow(null)}
+            />
+            <h3 style={{ fontSize: "1.4rem", marginBottom: 10 }}>Property Details</h3>
+>>>>>>> 575ef5d (newupdate)
 
             {Object.entries(selectedRow)
               .filter(
                 ([key]) =>
                   key !== "DisplayAmount" &&
                   key !== "PropertyLatitude" &&
+<<<<<<< HEAD
                   key !== "PropertyLongitude"
+=======
+                  key !== "PropertyLongitude" &&
+                  key !== "ProjectOrderID"
+>>>>>>> 575ef5d (newupdate)
               )
               .sort(([a], [b]) => {
                 if (a === "PropertyState" || a === "PropertyZipcode") return 1;
@@ -487,6 +657,7 @@ export default function ActiveListings() {
                 return 0;
               })
               .map(([key, value]) => (
+<<<<<<< HEAD
                 <p
                   key={key}
                   style={{
@@ -496,6 +667,11 @@ export default function ActiveListings() {
                   }}
                 >
                   <strong>{formatKeyName(key)}:</strong> {value || "-"}
+=======
+                <p key={key} style={{ fontSize: "1.05rem", margin: "6px 0", lineHeight: "1.6" }}>
+                  <strong>{key === "PropertyMainEntranceFacing" ? "Facing" : formatKeyName(key)}:</strong>{" "}
+                  {key === "AmountWithUnit" && value ? `₹ ${value}` : value || "-"}
+>>>>>>> 575ef5d (newupdate)
                 </p>
               ))}
           </div>

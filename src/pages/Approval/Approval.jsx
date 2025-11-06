@@ -4,9 +4,56 @@ import Sidebar from "../../components/Sidebar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "../../API/Api.js";
 import DataTable, { Pagination } from "../../Utils/Table.jsx";
+<<<<<<< HEAD
 
 const show = (val) => (val === null || val === undefined || val === "" ? "-" : val);
 
+=======
+import { Eye } from "lucide-react";
+
+const show = (val) => (val === null || val === undefined || val === "" ? "-" : val);
+
+/* ---------- helper: normalize image field into array ---------- */
+function parseImageList(raw) {
+  if (raw === null || raw === undefined) return [];
+  const str = String(raw).trim();
+  if (!str) return [];
+  // Try JSON parse (["a","b"])
+  try {
+    const parsed = JSON.parse(str);
+    if (Array.isArray(parsed)) {
+      return parsed.map((u) => String(u).replace(/["']/g, "").trim()).filter(Boolean);
+    }
+  } catch (e) {
+    // ignore
+  }
+  // Remove surrounding brackets and quotes then split on comma
+  const cleaned = str.replace(/^\[|\]$/g, "").replace(/["']/g, "").trim();
+  if (!cleaned) return [];
+  return cleaned
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/* ---------- helper: format date to dd-mm-yyyy (robust) ---------- */
+function formatDate(val) {
+  if (!val) return "-";
+  // try Date parse
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  }
+  // fallback: try to extract numbers from string
+  const m = String(val).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return String(val);
+}
+
+>>>>>>> 575ef5d (newupdate)
 export default function Approval() {
   const { fetchData } = useApi();
   const navigate = useNavigate();
@@ -22,15 +69,67 @@ export default function Approval() {
   const [error, setError] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
 
+<<<<<<< HEAD
   // Fetch approval data
+=======
+  // gallery modal states
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+
+  // Fetch and prepare data
+>>>>>>> 575ef5d (newupdate)
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
         const response = await fetchData("ApprovalData");
         const arr = Array.isArray(response) ? response : response?.data || [];
+<<<<<<< HEAD
         setData(arr);
         setFilteredData(arr);
+=======
+
+        // ---------- GROUP only Rajapushpa Green Dale ----------
+        const projectKey = "Rajapushpa Green Dale";
+        const repList = arr.filter((r) => r.ProjectName === projectKey);
+        const others = arr.filter((r) => r.ProjectName !== projectKey);
+
+        let grouped = [];
+        if (repList.length > 0) {
+          const representative = { ...repList[0] }; // keep first row's fields
+          const allImgs = repList.flatMap((r) => parseImageList(r.ImageUrl));
+          // dedupe while preserving order
+          const seen = new Set();
+          const deduped = [];
+          for (const u of allImgs) {
+            if (!u) continue;
+            if (!seen.has(u)) {
+              seen.add(u);
+              deduped.push(u);
+            }
+          }
+          representative.ImageUrlList = deduped;
+          // Representative's ImageUrl (preview) — keep as first deduped or existing ImageUrl
+          representative.ImageUrl = deduped[0] || representative.ImageUrl || "";
+          grouped.push(representative);
+        }
+
+        // For other rows, attach normalized ImageUrlList (single or multiple if present)
+        const normalizedOthers = others.map((r) => {
+          const copy = { ...r };
+          const imgs = parseImageList(r.ImageUrl);
+          copy.ImageUrlList = imgs.length > 0 ? imgs : (r.ImageUrl ? [String(r.ImageUrl).trim()] : []);
+          // ensure ImageUrl (preview) exists for consistency
+          copy.ImageUrl = copy.ImageUrlList[0] || copy.ImageUrl || "";
+          return copy;
+        });
+
+        const finalList = [...grouped, ...normalizedOthers];
+
+        setData(finalList);
+        setFilteredData(finalList);
+>>>>>>> 575ef5d (newupdate)
       } catch (err) {
         setError(err?.message || "Failed to fetch approval data");
       } finally {
@@ -40,7 +139,11 @@ export default function Approval() {
     loadData();
   }, [fetchData]);
 
+<<<<<<< HEAD
   // Apply column filters (same logic as ActiveListings)
+=======
+  // Apply column filters (same as before)
+>>>>>>> 575ef5d (newupdate)
   useEffect(() => {
     let result = [...data];
     Object.keys(filters).forEach((key) => {
@@ -53,7 +156,11 @@ export default function Approval() {
     setPage(1);
   }, [filters, data]);
 
+<<<<<<< HEAD
   // Columns — keys must match API JSON exactly (PascalCase where used)
+=======
+  // Table columns (unchanged except action shows Eye icon)
+>>>>>>> 575ef5d (newupdate)
   const columns = [
     { label: "S.No", key: "serialNo", render: (_, __, idx) => idx + 1 },
     { label: "Property Name", key: "PropertyName" },
@@ -73,17 +180,29 @@ export default function Approval() {
             e.stopPropagation();
             setSelectedRow(row);
           }}
+<<<<<<< HEAD
           style={{
             background: "#d0d9e2ff",
+=======
+          title="View details"
+          style={{
+            background: "transparent",
+>>>>>>> 575ef5d (newupdate)
             color: "#121212",
             border: "none",
-            padding: "6px 12px",
+            padding: 6,
             borderRadius: 6,
             cursor: "pointer",
-            fontSize: "0.9rem",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
+<<<<<<< HEAD
+=======
+          aria-label="View details"
+>>>>>>> 575ef5d (newupdate)
         >
-          View
+          <Eye size={18} />
         </button>
       ),
     },
@@ -123,6 +242,7 @@ export default function Approval() {
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
+<<<<<<< HEAD
   // Extra fields for slide panel: fields not in main table
   const extraDetails = selectedRow
     ? Object.entries(selectedRow).filter(
@@ -131,6 +251,23 @@ export default function Approval() {
     : [];
 
   // Spinner same as ActiveListings
+=======
+  // Exclude ImageUrl and ImageUrlList and sqft from extra details in slide panel
+  const extraDetails = selectedRow
+    ? Object.entries(selectedRow).filter(
+        ([key, value]) =>
+          !mainKeys.includes(key) &&
+          key !== "ImageUrl" &&
+          key !== "ImageUrlList" &&
+          // remove sqft column (any case)
+          String(key).toLowerCase() !== "sqft" &&
+          value !== null &&
+          value !== undefined
+      )
+    : [];
+
+  // Spinner unchanged
+>>>>>>> 575ef5d (newupdate)
   const Spinner = () => (
     <div
       style={{
@@ -160,12 +297,30 @@ export default function Approval() {
       </style>
     </div>
   );
+<<<<<<< HEAD
+=======
+
+  // Open gallery modal: receive an array of image URLs and optionally start index
+  const openGalleryFor = (images = [], startIndex = 0) => {
+    setGalleryImages(images || []);
+    setGalleryIndex(Math.max(0, startIndex || 0));
+    setShowGallery(true);
+  };
+
+  // navigate index safely
+  const prevImage = () => setGalleryIndex((i) => Math.max(0, i - 1));
+  const nextImage = () => setGalleryIndex((i) => Math.min(galleryImages.length - 1, i + 1));
+>>>>>>> 575ef5d (newupdate)
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
       <Sidebar />
 
+<<<<<<< HEAD
       <div style={{ flex: 1, padding: 20 ,marginLeft: "180px"}}>
+=======
+      <div style={{ flex: 1, padding: 20, marginLeft: "180px" }}>
+>>>>>>> 575ef5d (newupdate)
         {/* Back */}
         <button
           onClick={() => navigate("/dashboard")}
@@ -183,7 +338,20 @@ export default function Approval() {
           Back
         </button>
 
+<<<<<<< HEAD
         <h2 style={{ marginBottom: 20, color: "#222" }}>Waiting For Approval</h2>
+=======
+  <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+          Waiting For Approval
+        </h2>
+>>>>>>> 575ef5d (newupdate)
 
         {loading ? (
           <Spinner />
@@ -258,34 +426,80 @@ export default function Approval() {
                 `}
               </style>
 
+<<<<<<< HEAD
               <button
                 onClick={() => setSelectedRow(null)}
                 style={{
                   float: "right",
                   fontSize: 24,
                   background: "none",
+=======
+              {/* Close icon for slide panel */}
+              <button
+                onClick={() => setSelectedRow(null)}
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: 12,
+                  width: 34,
+                  height: 34,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "#f3f4f6",
+>>>>>>> 575ef5d (newupdate)
                   border: "none",
+                  borderRadius: 6,
                   cursor: "pointer",
+                  fontSize: 18,
                 }}
                 aria-label="Close"
               >
                 ×
               </button>
 
+<<<<<<< HEAD
               {selectedRow.ImageUrl && (
                 <div style={{ marginBottom: 16 }}>
                   <img
                     src={String(selectedRow.ImageUrl).replace(/[\[\]"']/g, "")}
+=======
+              {/* IMAGE PREVIEW (single) */}
+              {(selectedRow.ImageUrlList && selectedRow.ImageUrlList.length > 0) || selectedRow.ImageUrl ? (
+                <div style={{ marginBottom: 16, marginTop: 12 }}>
+                  <img
+                    src={
+                      (selectedRow.ImageUrlList && selectedRow.ImageUrlList.length > 0)
+                        ? selectedRow.ImageUrlList[0]
+                        : String(selectedRow.ImageUrl || "").replace(/[\[\]"']/g, "")
+                    }
+>>>>>>> 575ef5d (newupdate)
                     alt={selectedRow.PropertyName || "Image"}
                     style={{
                       width: "100%",
                       height: 200,
                       objectFit: "cover",
                       borderRadius: 6,
+<<<<<<< HEAD
                     }}
                   />
                 </div>
               )}
+=======
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      // open gallery with all images for this project (if grouped) or just the single image
+                      const imgs =
+                        (selectedRow.ImageUrlList && selectedRow.ImageUrlList.length > 0)
+                          ? selectedRow.ImageUrlList
+                          : parseImageList(selectedRow.ImageUrl);
+                      openGalleryFor(imgs, 0);
+                    }}
+                  />
+                </div>
+              ) : null}
+>>>>>>> 575ef5d (newupdate)
 
               <h3
                 style={{
@@ -314,6 +528,7 @@ export default function Approval() {
                 ) : (
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <tbody>
+<<<<<<< HEAD
                       {extraDetails.map(([key, val]) => (
                         <tr key={key}>
                           <td
@@ -338,18 +553,65 @@ export default function Approval() {
                           </td>
                         </tr>
                       ))}
+=======
+                      {extraDetails.map(([key, val]) => {
+                        // rename keys and format date fields
+                        let label = key;
+                        let valueToShow = val;
+                        if (key === "PropertyListingDate") {
+                          label = "ListingDate";
+                          valueToShow = formatDate(val);
+                        } else if (key === "PropertyAddedAt") {
+                          label = "AddedAt";
+                          valueToShow = formatDate(val);
+                        } else if (key === "PropertyFeatures" || key === "propertyFeatures") {
+                          label = "Features";
+                        }
+                        return (
+                          <tr key={key}>
+                            <td
+                              style={{
+                                fontWeight: 600,
+                                padding: "6px 8px",
+                                borderBottom: "1px solid #eee",
+                                textTransform: "capitalize",
+                                width: "40%",
+                              }}
+                            >
+                              {label}
+                            </td>
+                            <td
+                              style={{
+                                padding: "6px 8px",
+                                borderBottom: "1px solid #eee",
+                                width: "60%",
+                              }}
+                            >
+                              {String(valueToShow ?? "-")}
+                            </td>
+                          </tr>
+                        );
+                      })}
+>>>>>>> 575ef5d (newupdate)
                     </tbody>
                   </table>
                 )}
               </div>
 
               {/* Approve / Reject / Pending */}
+<<<<<<< HEAD
               <div style={{ marginTop: 18 }}>
+=======
+              <div style={{ marginTop: 18, paddingBottom: 60 /* leave space for sticky buttons */ }}>
+>>>>>>> 575ef5d (newupdate)
                 <div style={{ marginBottom: 8, fontWeight: 700 }}>Approval / Rejection Notes</div>
                 <ApprovalControls
                   currentRow={selectedRow}
                   saveLocal={(uid, payload) => {
+<<<<<<< HEAD
                     // local persistence similar to previous code pattern
+=======
+>>>>>>> 575ef5d (newupdate)
                     try {
                       const raw = localStorage.getItem("approvalComments");
                       const map = raw ? JSON.parse(raw) : {};
@@ -362,9 +624,124 @@ export default function Approval() {
                   }}
                 />
               </div>
+<<<<<<< HEAD
             </div>
           </>
         )}
+=======
+
+              <div style={{ position: "sticky", bottom: 16, left: 0, background: "transparent", paddingTop: 8 }}>
+                {/* spacer for bottom */}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ---------- IMAGE GALLERY MODAL ---------- */}
+        {showGallery && galleryImages && galleryImages.length > 0 && (
+          <div
+            onClick={() => setShowGallery(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: "rgba(0,0,0,0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2000,
+            }}
+          >
+            <div onClick={(e) => e.stopPropagation()} style={{ position: "relative", width: "80%", maxHeight: "85%" }}>
+              {/* Close icon */}
+              <div
+                onClick={() => setShowGallery(false)}
+                style={{
+                  position: "absolute",
+                  right: -10,
+                  top: -50,
+                  fontSize: 26,
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+                aria-label="Close gallery"
+              >
+                ✖
+              </div>
+
+              {/* Prev */}
+              {galleryIndex > 0 && (
+                <button
+                  onClick={prevImage}
+                  style={{
+                    position: "absolute",
+                    left: -50,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: 32,
+                    color: "#fff",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  ‹
+                </button>
+              )}
+
+              {/* Image */}
+              <img
+                src={galleryImages[galleryIndex]}
+                alt={`img-${galleryIndex}`}
+                style={{ width: "100%", maxHeight: "75vh", objectFit: "contain", borderRadius: 8 }}
+              />
+
+              {/* Next */}
+              {galleryIndex < galleryImages.length - 1 && (
+                <button
+                  onClick={nextImage}
+                  style={{
+                    position: "absolute",
+                    right: -50,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: 32,
+                    color: "#fff",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  ›
+                </button>
+              )}
+
+              {/* thumbnails strip (optional) */}
+              {galleryImages.length > 1 && (
+                <div style={{ display: "flex", gap: 8, marginTop: 10, overflowX: "auto" }}>
+                  {galleryImages.map((u, idx) => (
+                    <img
+                      key={idx}
+                      src={u}
+                      onClick={() => setGalleryIndex(idx)}
+                      style={{
+                        width: 80,
+                        height: 60,
+                        objectFit: "cover",
+                        borderRadius: 6,
+                        cursor: "pointer",
+                        outline: idx === galleryIndex ? "3px solid #fff" : "none",
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+>>>>>>> 575ef5d (newupdate)
       </div>
     </div>
   );
@@ -373,11 +750,23 @@ export default function Approval() {
 /**
  * ApprovalControls component: small self-contained approve/reject/pending UI (kept inside same file)
  * - Shows radio options and textarea, and calls saveLocal(uid, payload)
+<<<<<<< HEAD
+=======
+ * - CHANGES:
+ *    • initial status = "" (no default "Pending")
+ *    • textarea shown only when a status is selected
+ *    • Save / Reset buttons visible (left-aligned)
+>>>>>>> 575ef5d (newupdate)
  */
 function ApprovalControls({ currentRow, saveLocal }) {
   const uid =
     currentRow?.UserID ?? currentRow?.UserId ?? currentRow?.PropertyID ?? "unknown";
+<<<<<<< HEAD
   const [status, setStatus] = useState(currentRow?.verificationStatus ?? "");
+=======
+  // don't default to currentRow.verificationStatus to avoid showing comment box by default
+  const [status, setStatus] = useState("");
+>>>>>>> 575ef5d (newupdate)
   const [reason, setReason] = useState("");
   useEffectOnceOnMount(uid, setStatus, setReason);
 
@@ -397,7 +786,12 @@ function ApprovalControls({ currentRow, saveLocal }) {
         ))}
       </div>
 
+<<<<<<< HEAD
       {(status === "Approved" || status === "Rejected" || status === "Pending") && (
+=======
+      {/* textarea appears only when a status is selected */}
+      {status && (
+>>>>>>> 575ef5d (newupdate)
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: "0.95rem", marginBottom: 6, fontWeight: 600 }}>
             {status === "Approved" ? "Reason for Approval" : status === "Rejected" ? "Reason for Rejection" : "Remarks for Pending"}
@@ -406,6 +800,10 @@ function ApprovalControls({ currentRow, saveLocal }) {
         </div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Save & Reset always visible and left-aligned */}
+>>>>>>> 575ef5d (newupdate)
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={onSave} style={{ background: "#007bff", color: "#fff", border: "none", padding: "8px 12px", borderRadius: 6, cursor: "pointer" }}>
           Save Note
@@ -425,6 +823,10 @@ function useEffectOnceOnMount(uid, setStatus, setReason) {
       const raw = localStorage.getItem("approvalComments");
       const map = raw ? JSON.parse(raw) : {};
       if (map && map[uid]) {
+<<<<<<< HEAD
+=======
+        // restore previous saved state if exists; otherwise keep blank (no default)
+>>>>>>> 575ef5d (newupdate)
         setStatus(map[uid].status || "");
         setReason(map[uid].reason || "");
       }

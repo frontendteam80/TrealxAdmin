@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 //  import React, { useState, useEffect, useMemo, useRef } from "react";
 // import Sidebar from "../../components/Sidebar.jsx";
 // import { useApi } from "../../API/Api.js";
@@ -267,11 +268,17 @@
 
 // export default Alerts;
 import React, { useState, useEffect, useMemo, useRef } from "react";
+=======
+ import React, { useState, useEffect, useMemo, useRef } from "react";
+>>>>>>> 575ef5d (newupdate)
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
 import { useNavigate } from "react-router-dom";
 import Table from "../../Utils/Table.jsx";
+<<<<<<< HEAD
 import { Filter } from "lucide-react";
+=======
+>>>>>>> 575ef5d (newupdate)
 
 const formatAmount = (num) => {
   if (!num || isNaN(num)) return "-";
@@ -281,6 +288,7 @@ const formatAmount = (num) => {
   return n.toLocaleString("en-IN");
 };
 
+<<<<<<< HEAD
 function HeaderWithFilter({
   label,
   columnKey,
@@ -413,6 +421,8 @@ function HeaderWithFilter({
   );
 }
 
+=======
+>>>>>>> 575ef5d (newupdate)
 function Alerts() {
   const { fetchData } = useApi();
   const navigate = useNavigate();
@@ -437,8 +447,17 @@ function Alerts() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+<<<<<<< HEAD
   const addSerials = (arr) =>
     (Array.isArray(arr) ? arr : []).map((a, idx) => ({ ...a, serialNo: idx + 1 }));
+=======
+  function addSerials(arr) {
+    return (Array.isArray(arr) ? arr : []).map((a, idx) => ({
+      ...a,
+      serialNo: idx + 1,
+    }));
+  }
+>>>>>>> 575ef5d (newupdate)
 
   const fetchBuyerAlerts = async () => {
     const data = await fetchData("BuyerAlerts");
@@ -471,13 +490,20 @@ function Alerts() {
     });
   };
 
+<<<<<<< HEAD
+=======
+  const applyFilter = () => setOpenFilter(null);
+>>>>>>> 575ef5d (newupdate)
   const clearFilter = (key) => {
     setFilters((prev) => ({ ...prev, [key]: [] }));
     setOpenFilter(null);
   };
 
+<<<<<<< HEAD
   const applyFilter = () => setOpenFilter(null);
 
+=======
+>>>>>>> 575ef5d (newupdate)
   const uniqueValues = (key) => {
     const data = view === "buyer" ? buyerAlerts : sellerAlerts;
     return [...new Set(data.map((item) => item[key]).filter(Boolean))];
@@ -499,6 +525,7 @@ function Alerts() {
     return filteredData.slice(start, start + rowsPerPage);
   }, [filteredData, page, rowsPerPage]);
 
+<<<<<<< HEAD
   const sharedHeaderProps = {
     openFilter,
     toggleFilter,
@@ -532,12 +559,44 @@ function Alerts() {
     { key: "PropertyType", label: <HeaderWithFilter label="Property Type" columnKey="PropertyType" {...sharedHeaderProps} /> },
     { key: "AlertDate", label: <HeaderWithFilter label="Date" columnKey="AlertDate" {...sharedHeaderProps} />, render: (val) => (val ? new Date(val).toLocaleDateString() : "-") },
     { key: "AdditionalNotes", label: <HeaderWithFilter label="Additional Notes" columnKey="AdditionalNotes" {...sharedHeaderProps} /> },
+=======
+  const buyerColumns = [
+    { key: "serialNo", label: "S.No" },
+    { key: "BuyerAlertID", label: "ID" },
+    { key: "UserID", label: "UserID" },
+    { key: "Location", label: "Location" },
+    { key: "MinPrice", label: "Min Price", render: (val) => formatAmount(val) },
+    { key: "MaxPrice", label: "Max Price", render: (val) => formatAmount(val) },
+    { key: "PropertyType", label: "Property Type" },
+    {
+      key: "AlertDate",
+      label: "Date",
+      render: (val) => (val ? new Date(val).toLocaleDateString() : "-"),
+    },
+    { key: "AdditionalNotes", label: "Additional Notes" },
+  ];
+
+  const sellerColumns = [
+    { key: "serialNo", label: "S.No" },
+    { key: "SellerAlertID", label: "ID" },
+    { key: "UserID", label: "UserID" },
+    { key: "Location", label: "Location" },
+    { key: "Price", label: "Price", render: (val) => formatAmount(val) },
+    { key: "PropertyType", label: "Property Type" },
+    {
+      key: "AlertDate",
+      label: "Date",
+      render: (val) => (val ? new Date(val).toLocaleDateString() : "-"),
+    },
+    { key: "AdditionalNotes", label: "Additional Notes" },
+>>>>>>> 575ef5d (newupdate)
   ];
 
   const columns = view === "buyer" ? buyerColumns : sellerColumns;
 
   return (
     <div style={{ display: "flex", background: "#fff" }}>
+<<<<<<< HEAD
       <div style={{ flexShrink: 0 }}>
         <Sidebar />
       </div>
@@ -545,6 +604,24 @@ function Alerts() {
         style={{ flex: 1, backgroundColor: "#fff", minHeight: "100vh", padding: 24, marginLeft: "180px", position: "relative" }}
         ref={filterRef}
       >
+=======
+      {/* Wrap Sidebar with flexShrink: 0 */}
+      <div style={{ flexShrink: 0 }}>
+        <Sidebar />
+      </div>
+
+      {/* Main content with flex grow and minWidth 0 */}
+      <div
+        style={{
+          flex: 1,
+          backgroundColor: "#fff",
+          minHeight: "100vh",
+          padding: 24,
+          marginLeft:"180px",
+        }}
+      >
+        {/* Back Button */}
+>>>>>>> 575ef5d (newupdate)
         <button
           onClick={() => navigate("/dashboard")}
           style={{
@@ -562,8 +639,30 @@ function Alerts() {
           Back
         </button>
 
+<<<<<<< HEAD
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h2 style={{ margin: 0, color: "#22253b" }}>Alerts & Matches</h2>
+=======
+        {/* Header and Create Alert button */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+            <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+          Alerts & Matches
+        </h2>
+>>>>>>> 575ef5d (newupdate)
           <button
             onClick={() => navigate("/create-alert")}
             style={{
@@ -580,8 +679,23 @@ function Alerts() {
           </button>
         </div>
 
+<<<<<<< HEAD
         <div style={{ display: "flex", gap: 2, marginBottom: 20 }}>
           {[{ label: "Buyer Alerts", value: "buyer" }, { label: "Seller Alerts", value: "seller" }].map((tab) => {
+=======
+        {/* Tabs */}
+        <div
+          style={{
+            display: "flex",
+            gap: 2,
+            marginBottom: 20,
+          }}
+        >
+          {[
+            { label: "Buyer Alerts", value: "buyer" },
+            { label: "Seller Alerts", value: "seller" },
+          ].map((tab) => {
+>>>>>>> 575ef5d (newupdate)
             const isActive = view === tab.value;
             return (
               <button
@@ -599,7 +713,13 @@ function Alerts() {
                   padding: "10px 14px",
                   fontSize: "13px",
                   fontWeight: isActive ? 600 : 500,
+<<<<<<< HEAD
                   borderBottom: isActive ? "3px solid #2c3e50" : "3px solid transparent",
+=======
+                  borderBottom: isActive
+                    ? "3px solid #2c3e50"
+                    : "3px solid transparent",
+>>>>>>> 575ef5d (newupdate)
                   borderTopLeftRadius: 6,
                   borderTopRightRadius: 6,
                   transition: "0.3s ease",
@@ -617,6 +737,7 @@ function Alerts() {
           })}
         </div>
 
+<<<<<<< HEAD
         <Table columns={columns} paginatedData={paginatedData} />
 
         <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -637,6 +758,23 @@ function Alerts() {
           >
             Next
           </button>
+=======
+        {/* Table */}
+        <div ref={filterRef}>
+          <Table
+            columns={columns}
+            paginatedData={paginatedData}
+            openFilter={openFilter}
+            toggleFilter={toggleFilter}
+            filters={filters}
+            handleCheckboxChange={handleCheckboxChange}
+            searchValue={searchValue}
+            setSearchValue={setSearchValue}
+            uniqueValues={uniqueValues}
+            clearFilter={clearFilter}
+            applyFilter={applyFilter}
+          />
+>>>>>>> 575ef5d (newupdate)
         </div>
       </div>
     </div>

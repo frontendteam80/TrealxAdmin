@@ -1,3 +1,4 @@
+<<<<<<< HEAD
  
 // import React, { useEffect, useState } from "react";
 // import Sidebar from "../../components/Sidebar.jsx";
@@ -120,16 +121,28 @@ import React, { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import Table from "../../Utils/Table.jsx";
 import { Filter } from "lucide-react";
+=======
+ // src/pages/Sellers/Sellers.jsx
+import React, { useEffect, useState, useMemo } from "react";
+import Sidebar from "../../components/Sidebar.jsx";
+import Table, { Pagination } from "../../Utils/Table.jsx";
+>>>>>>> 575ef5d (newupdate)
 import { useApi } from "../../API/Api.js";
 
 function LocationCell({ value }) {
   const [showAll, setShowAll] = useState(false);
+<<<<<<< HEAD
   if (!value || typeof value !== "string") return null;
   const locations = value.split(",").map(item => item.trim());
+=======
+  if (!value || typeof value !== "string") return <>N/A</>;
+  const locations = value.split(",").map((item) => item.trim());
+>>>>>>> 575ef5d (newupdate)
   const firstLocation = locations[0];
   const hasMore = locations.length > 1;
   return (
     <span
+<<<<<<< HEAD
       style={{ cursor: hasMore ? "pointer" : "default", color: "black" }}
       onClick={() => hasMore && setShowAll(!showAll)}
       title={hasMore ? (showAll ? "Click to collapse" : "Click to expand full address") : ""}
@@ -138,10 +151,26 @@ function LocationCell({ value }) {
         {firstLocation}
         {hasMore ? ",..." : ""}
       </>}
+=======
+      style={{
+        cursor: hasMore ? "pointer" : "default",
+        color: "black",
+      }}
+      onClick={() => hasMore && setShowAll(!showAll)}
+      title={hasMore ? (showAll ? "Click to collapse" : "Click to expand full address") : ""}
+    >
+      {showAll ? locations.join(", ") : (
+        <>
+          {firstLocation}
+          {hasMore ? ",..." : ""}
+        </>
+      )}
+>>>>>>> 575ef5d (newupdate)
     </span>
   );
 }
 
+<<<<<<< HEAD
 // Filter header with dropdown rendered only here
 function HeaderWithFilter({
   label,
@@ -240,6 +269,22 @@ function HeaderWithFilter({
           </div>
         </div>
       )}
+=======
+function Spinner({ size = 36 }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "center", padding: 24 }}>
+      <div
+        style={{
+          width: size,
+          height: size,
+          border: `${Math.max(3, Math.round(size / 12))}px solid #e5e7eb`,
+          borderTop: `${Math.max(3, Math.round(size / 12))}px solid #111827`,
+          borderRadius: "50%",
+          animation: "spin 0.9s linear infinite",
+        }}
+      />
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+>>>>>>> 575ef5d (newupdate)
     </div>
   );
 }
@@ -247,6 +292,7 @@ function HeaderWithFilter({
 export default function Sellers() {
   const { fetchData } = useApi();
   const [sellers, setSellers] = useState([]);
+<<<<<<< HEAD
   const [filteredSellers, setFilteredSellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -258,10 +304,22 @@ export default function Sellers() {
   const [filters, setFilters] = useState({});
   const [filterSearchValue, setFilterSearchValue] = useState("");
 
+=======
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 15;
+
+>>>>>>> 575ef5d (newupdate)
   useEffect(() => {
+    let mounted = true;
     async function load() {
       try {
+        setLoading(true);
         const data = await fetchData("SellersDetails");
+<<<<<<< HEAD
         const arr = Array.isArray(data) ? data : data.data || [];
         const numberedData = arr.map((row, idx) => ({
           ...row,
@@ -269,15 +327,24 @@ export default function Sellers() {
         }));
         setSellers(numberedData);
         setFilteredSellers(numberedData);
+=======
+        const arr = Array.isArray(data) ? data : data?.data || [];
+        if (!mounted) return;
+        setSellers(arr);
+>>>>>>> 575ef5d (newupdate)
       } catch (err) {
-        setError(err.message || "Error loading sellers");
+        if (!mounted) return;
+        setError(err?.message || "Error loading sellers");
       } finally {
+        if (!mounted) return;
         setLoading(false);
       }
     }
     load();
+    return () => { mounted = false; };
   }, [fetchData]);
 
+<<<<<<< HEAD
   const toggleFilter = (key) => {
     setOpenFilter(prev => (prev === key ? null : key));
     setFilterSearchValue("");
@@ -354,6 +421,34 @@ export default function Sellers() {
         />
       ),
       key: "serialNo",
+=======
+  // keep page within bounds when data length changes
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(sellers.length / rowsPerPage));
+    if (page > totalPages) setPage(totalPages);
+    if (page < 1) setPage(1);
+  }, [sellers.length, page]);
+
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return sellers.slice(start, start + rowsPerPage);
+  }, [sellers, page]);
+
+  const columns = useMemo(() => [
+    {
+      label: "S.No",
+      key: "serialNo",
+      // compute serial with current page offset
+      render: (_, __, idx) => (page - 1) * rowsPerPage + idx + 1,
+      canFilter: false,
+    },
+    { label: "Seller Id", key: "Sellerid" },
+    { label: "Seller Name", key: "SellerName" },
+    {
+      label: "Residential Address",
+      key: "ResidentialAddress",
+      render: (val) => <LocationCell value={val} />,
+>>>>>>> 575ef5d (newupdate)
     },
     {
       label: (
@@ -465,14 +560,25 @@ export default function Sellers() {
       ),
       key: "Email",
     },
+<<<<<<< HEAD
   ];
 
   if (error) return <div>Error: {error}</div>;
   if (loading) return <div>Loading...</div>;
+=======
+    { label: "Contact Number", key: "ContactNumber" },
+    { label: "Email", key: "Email" },
+  ], [page]);
+
+  const totalPages = Math.ceil(sellers.length / rowsPerPage);
+
+  if (error) return <div style={{ padding: 24, color: "red" }}>Error: {error}</div>;
+>>>>>>> 575ef5d (newupdate)
 
   return (
     <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff", position: "relative" }}>
       <Sidebar />
+<<<<<<< HEAD
       <div style={{ flex: 1, minHeight: "100vh", overflowX: "auto", padding: 24, marginLeft: "180px" }}>
         <h2>Sellers</h2>
 
@@ -491,6 +597,43 @@ export default function Sellers() {
             onClick={() => setPage(p => Math.max(p - 1, 1))}
             disabled={page === 1}
             style={{ padding: "6px 12px", cursor: page === 1 ? "not-allowed" : "pointer" }}
+=======
+      <div
+        className="buyers-content"
+        style={{
+          flex: 1,
+          minHeight: "100vh",
+          overflowX: "auto",
+          padding: 24,
+          marginLeft: "180px",
+          boxSizing: "border-box",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 20,
+          }}
+        >
+           <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+          Sellers
+        </h2>
+          <div
+            style={{
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              color: "#d4af37",
+            }}
+>>>>>>> 575ef5d (newupdate)
           >
             Previous
           </button>
@@ -503,6 +646,29 @@ export default function Sellers() {
             Next
           </button>
         </div>
+<<<<<<< HEAD
+=======
+
+        <div style={{ borderRadius: 8, background: "#fff", padding: 6 }}>
+          {loading ? (
+            <Spinner />
+          ) : (
+            <>
+              <Table
+                columns={columns}
+                paginatedData={paginatedData}
+                rowsPerPage={rowsPerPage}
+              />
+
+              {totalPages > 1 && (
+                <div style={{ marginTop: 8 }}>
+                  <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+>>>>>>> 575ef5d (newupdate)
       </div>
     </div>
   );

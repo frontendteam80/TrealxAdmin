@@ -129,7 +129,20 @@ export default function NewListings() {
         </div>
  
         {/* Heading */}
+<<<<<<< HEAD
         <h2 style={{ marginBottom: "20px", color: "#333" }}>New Listings</h2>
+=======
+         <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+          New Listings
+        </h2>
+>>>>>>> 575ef5d (newupdate)
  
         {/* Data Table */}
         {loading ? (
