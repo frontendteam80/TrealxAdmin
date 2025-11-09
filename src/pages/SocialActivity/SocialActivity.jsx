@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // // // // import React, { useState, useEffect, useMemo } from "react";
 // // // // import { createPortal } from "react-dom";
 // // // // import { useNavigate } from "react-router-dom";
@@ -1803,54 +1804,54 @@
 //   );
 // }
 import React, { useState, useEffect } from "react";
+=======
+ import React, { useState, useEffect, useMemo } from "react";
+>>>>>>> 575ef5d (newupdate)
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar.jsx";
 import ProjectDetailsTabsComponent from "./ProjectDetailsTabsComponent.jsx";
 import AgentDetailsTable from "./AgentDetailsTable.jsx";
 import { useApi } from "../../API/Api.js";
 import { LoadScript } from "@react-google-maps/api";
+<<<<<<< HEAD
 import Table from "../../Utils/Table.jsx";
 import { Filter } from "lucide-react";
+=======
+import { Pagination } from "../../Utils/Table.jsx";
+>>>>>>> 575ef5d (newupdate)
 
-const SIDEBAR_WIDTH = 220;
-const PAGE_PADDING = 20;
 const GOOGLE_MAPS_API_KEY = "AIzaSyAGGzyx5AhGJIfBbzbz9ZeWWyjdGu7Elf0";
 
+// ✅ Reusable Modal
 function Modal({ children, open, onClose }) {
   if (!open) return null;
-
   return createPortal(
     <div
-      className="modal-overlay"
       onClick={onClose}
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "rgba(0,0,0,0.3)",
-        zIndex: 9999,
+        backgroundColor: "rgba(0,0,0,0.45)",
+        zIndex: 1000,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
       <div
-        style={{
-          marginLeft: `${SIDEBAR_WIDTH + PAGE_PADDING}px`,
-          marginRight: `${PAGE_PADDING}px`,
-          width: `calc(100vw - ${SIDEBAR_WIDTH + PAGE_PADDING * 2}px)`,
-          maxWidth: 1400,
-          maxHeight: "80vh",
-          padding: 24,
-          display: "flex",
-          gap: 24,
-          overflow: "auto",
-          position: "relative",
-          background: "#fff",
-          borderRadius: 12,
-          boxShadow: "0 16px 40px rgba(0,0,0,.18)",
-          boxSizing: "border-box",
-        }}
         onClick={(e) => e.stopPropagation()}
+        style={{
+          marginLeft: "220px",
+          width: "calc(100vw - 260px)",
+          maxWidth: 1400,
+          background: "#fff",
+          borderRadius: 10,
+          padding: 24,
+          boxShadow: "0 8px 25px rgba(0,0,0,0.25)",
+          overflowY: "auto",
+          maxHeight: "85vh",
+        }}
       >
         {children}
       </div>
@@ -1859,19 +1860,51 @@ function Modal({ children, open, onClose }) {
   );
 }
 
+// ✅ Spinner
+const Spinner = () => (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "70vh",
+    }}
+  >
+    <div
+      style={{
+        width: 48,
+        height: 48,
+        border: "5px solid #ddd",
+        borderTop: "5px solid #2c3e50",
+        borderRadius: "50%",
+        animation: "spin 1s linear infinite",
+      }}
+    />
+    <style>
+      {`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}
+    </style>
+  </div>
+);
+
 export default function SocialActivity() {
-  const [activeTab, setActiveTab] = useState("Tours");
-  const [displayData, setDisplayData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const { fetchData } = useApi();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 12;
+  const [activeTab, setActiveTab] = useState("Tours");
+  const [displayData, setDisplayData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState(null);
   const [projectDetail, setProjectDetail] = useState(null);
   const [agentList, setAgentList] = useState([]);
   const [shareUnit, setShareUnit] = useState(null);
   const [agentsOpen, setAgentsOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
 
   // Filter related states
   const [openFilter, setOpenFilter] = useState(null);
@@ -1890,58 +1923,62 @@ export default function SocialActivity() {
     "Shared Properties": "SharedPropertyDetails",
   };
 
-  // Helper to resolve row id
-  function getId(obj, keys) {
+  const getId = (obj, keys) => {
     for (const key of keys) if (obj[key] !== undefined) return obj[key];
     return null;
-  }
+  };
 
-  // Display fallback for null or undefined
-  const displayValue = (val) => (val === null || val === undefined ? "null" : val);
-
+  // ✅ Fetch list data
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
+    async function loadData() {
       try {
-        const paramtype = listParamTypes[activeTab] || "";
-        const data = await fetchData(paramtype);
-        setDisplayData(data || []);
-        setCurrentPage(1);
-        setSelectedRow(null);
-        setProjectDetail(null);
-        setAgentsOpen(false);
+        setLoading(true);
+        setPage(1);
+        const res = await fetchData(listParamTypes[activeTab]);
+        setDisplayData(Array.isArray(res) ? res : res?.data || []);
       } catch {
         setDisplayData([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    };
+    }
     loadData();
   }, [activeTab, fetchData]);
 
+  // ✅ Handle project details
   const handleDetailsClick = async (row) => {
     setSelectedRow(row);
     setProjectDetail(null);
     setAgentsOpen(false);
 
-    const projectId = getId(row, ["ProjectID", "ProjectId", "projectId", "projectid"]);
-    const propertyId = getId(row, ["PropertyID", "PropertyId", "propertyId", "propertyid"]);
+    const projectId = getId(row, ["ProjectID", "ProjectId", "projectId"]);
+    const propertyId = getId(row, ["PropertyID", "PropertyId", "propertyId"]);
     if (!projectId || !propertyId) return;
 
     try {
-      const paramtype = projectInfoParamTypes[activeTab];
-      if (!paramtype) return;
-      const allUnits = await fetchData(paramtype);
+      const allUnits = await fetchData(projectInfoParamTypes[activeTab]);
+      const units = Array.isArray(allUnits) ? allUnits : allUnits?.data || [];
 
+<<<<<<< HEAD
       const currentProjectUnits = allUnits.filter(
         (item) =>
           String(getId(item, ["ProjectID", "ProjectId", "projectId", "projectid"])) ===
+=======
+      const currentProjectUnits = units.filter(
+        (u) =>
+          String(getId(u, ["ProjectID", "ProjectId", "projectId"])) ===
+>>>>>>> 575ef5d (newupdate)
           String(projectId)
       );
-      if (currentProjectUnits.length === 0) return;
 
       const specificUnit = currentProjectUnits.find(
+<<<<<<< HEAD
         (unit) =>
           String(getId(unit, ["PropertyID", "PropertyId", "propertyId", "propertyid"])) ===
+=======
+        (u) =>
+          String(getId(u, ["PropertyID", "PropertyId", "propertyId"])) ===
+>>>>>>> 575ef5d (newupdate)
           String(propertyId)
       );
       if (!specificUnit) return;
@@ -1952,23 +1989,22 @@ export default function SocialActivity() {
           location:
             currentProjectUnits[0]?.Locality ||
             currentProjectUnits[0]?.Location ||
-            currentProjectUnits[0]?.GeoLocation ||
             "N/A",
-          ZipCode: currentProjectUnits[0]?.ZipCode || "N/A",
-          description: currentProjectUnits[0]?.ProjectDescription || "Project description here ...",
+          description:
+            currentProjectUnits[0]?.ProjectDescription || "No Description",
         },
         latitude: parseFloat(currentProjectUnits[0]?.Latitude) || 0,
         longitude: parseFloat(currentProjectUnits[0]?.Longitude) || 0,
-        units: currentProjectUnits.map((Unit) => ({
-          type: Unit.Type ?? "N/A",
-          price: Unit.Price ?? "N/A",
-          area: Unit.Area ?? "N/A",
-          facing: Unit.Facing ?? "N/A",
-          bhk: Unit.BHK ?? "N/A",
-          bath: Unit.Bath ?? "N/A",
-          id: getId(Unit, ["PropertyID", "PropertyId", "propertyId", "propertyid"]),
+        units: currentProjectUnits.map((u) => ({
+          type: u.Type ?? "N/A",
+          price: u.Price ?? "N/A",
+          area: u.Area ?? "N/A",
+          bhk: u.BHK ?? "N/A",
+          facing: u.Facing ?? "N/A",
+          id: getId(u, ["PropertyID", "PropertyId", "propertyId"]),
           projectId,
         })),
+<<<<<<< HEAD
         allPricesOfProject: currentProjectUnits
           .map((u) =>
             typeof u.Price === "string" ? parseFloat(u.Price.replace(/[^0-9.]/g, "")) : u.Price
@@ -1987,12 +2023,15 @@ export default function SocialActivity() {
         amenities: [],
         highlights: [],
         locationMap: true,
+=======
+>>>>>>> 575ef5d (newupdate)
       });
-    } catch (e) {
+    } catch {
       setProjectDetail(null);
     }
   };
 
+<<<<<<< HEAD
   // Filter handlers
   const toggleFilterHandler = (key) => {
     setOpenFilter((prev) => (prev === key ? null : key));
@@ -2161,33 +2200,82 @@ export default function SocialActivity() {
       { label: renderHeaderWithFilter("TimeSlot", "TimeSlot"), key: "TimeSlot" },
       { label: renderHeaderWithFilter("ProjectID", "ProjectID"), key: "ProjectID" },
       { label: renderHeaderWithFilter("PropertyID", "PropertyID"), key: "PropertyID" },
+=======
+  // ✅ Columns for each tab
+  const columnsConfig = {
+    Tours: [
+      { label: "Full Name", key: "FullName" },
+      { label: "Phone", key: "PhoneNo" },
+      { label: "Email", key: "Email" },
+      { label: "Scheduled At", key: "ScheduledAt" },
+      { label: "Time Slot", key: "Timeslot" },
+      { label: "Project ID", key: "ProjectID" },
+      { label: "Property ID", key: "PropertyID" },
+>>>>>>> 575ef5d (newupdate)
       {
         label: "Action",
         key: "action",
         render: (_, row) => (
+<<<<<<< HEAD
           <button className="details-btn" onClick={() => handleDetailsClick(row)}>
+=======
+          <button
+            onClick={() => handleDetailsClick(row)}
+            style={{
+              color: "#0d0c0c",
+              border: "none",
+              borderRadius: 6,
+              padding: "4px 10px",
+              cursor: "pointer",
+              backgroundColor: "#ebedf0",
+            }}
+          >
+>>>>>>> 575ef5d (newupdate)
             Details
           </button>
         ),
       },
     ],
     "Request Info": [
+<<<<<<< HEAD
       { label: renderHeaderWithFilter("Message", "Message"), key: "Message" },
       { label: renderHeaderWithFilter("Email", "Email"), key: "Email" },
       { label: renderHeaderWithFilter("Phone", "PhoneNo"), key: "PhoneNo" },
       { label: renderHeaderWithFilter("ProjectId", "ProjectID"), key: "ProjectID" },
       { label: renderHeaderWithFilter("PropertyId", "PropertyID"), key: "PropertyID" },
+=======
+      { label: "Message", key: "Message" },
+      { label: "Email", key: "Email" },
+      { label: "Phone", key: "PhoneNo" },
+      { label: "Project ID", key: "ProjectID" },
+      { label: "Property ID", key: "PropertyID" },
+>>>>>>> 575ef5d (newupdate)
       {
         label: "Action",
         key: "action",
         render: (_, row) => (
+<<<<<<< HEAD
           <button className="details-btn" onClick={() => handleDetailsClick(row)}>
+=======
+          <button
+            onClick={() => handleDetailsClick(row)}
+            style={{
+              color: "#fff",
+              border: "none",
+              borderRadius: 6,
+              padding: "4px 10px",
+              cursor: "pointer",
+              backgroundColor: "#bcc0c5",
+            }}
+          >
+>>>>>>> 575ef5d (newupdate)
             Details
           </button>
         ),
       },
     ],
     "Shared Properties": [
+<<<<<<< HEAD
       { label: renderHeaderWithFilter("Name", "Name"), key: "Name" },
       { label: renderHeaderWithFilter("Email", "Email"), key: "Email" },
       { label: renderHeaderWithFilter("Phone", "PhoneNo"), key: "PhoneNo" },
@@ -2195,11 +2283,34 @@ export default function SocialActivity() {
       { label: renderHeaderWithFilter("Channel", "Channel"), key: "Channel" },
       { label: renderHeaderWithFilter("ProjectId", "ProjectID"), key: "ProjectID" },
       { label: renderHeaderWithFilter("PropertyId", "PropertyID"), key: "PropertyID" },
+=======
+      { label: "Name", key: "Name" },
+      { label: "Email", key: "Email" },
+      { label: "Phone", key: "PhoneNo" },
+      { label: "Message", key: "Message" },
+      { label: "Channel", key: "Channel" },
+      { label: "Project ID", key: "ProjectID" },
+      { label: "Property ID", key: "PropertyID" },
+>>>>>>> 575ef5d (newupdate)
       {
         label: "Action",
         key: "action",
         render: (_, row) => (
+<<<<<<< HEAD
           <button className="details-btn" onClick={() => handleDetailsClick(row)}>
+=======
+          <button
+            onClick={() => handleDetailsClick(row)}
+            style={{
+              color: "#fff",
+              border: "none",
+              borderRadius: 6,
+              padding: "4px 10px",
+              cursor: "pointer",
+              backgroundColor: "#54575b",
+            }}
+          >
+>>>>>>> 575ef5d (newupdate)
             Details
           </button>
         ),
@@ -2207,14 +2318,27 @@ export default function SocialActivity() {
     ],
   };
 
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return displayData.slice(start, start + rowsPerPage);
+  }, [displayData, page]);
+
+  const totalPages = Math.ceil(displayData.length / rowsPerPage);
+
+  // ✅ FIX: main content spacing adjusted
   return (
     <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
+<<<<<<< HEAD
       <div className="dashboard-container" style={{ display: "flex", marginLeft: 180 }}>
+=======
+      <div style={{ display: "flex", minHeight: "100vh", background: "#fff" }}>
+>>>>>>> 575ef5d (newupdate)
         <Sidebar />
         <div
           className="buyers-content"
           style={{
             flex: 1,
+<<<<<<< HEAD
             position: "relative",
             minHeight: "100vh",
             overflowX: "hidden",
@@ -2259,13 +2383,174 @@ export default function SocialActivity() {
                   borderBottom: activeTab === tab ? "3px solid #2c3e50" : "3px solid transparent",
                   transition: "background-color 0.3s ease,color 0.3s ease",
                   marginRight:"1px #fff"
-                }}
-              >
-                {tab}
-              </button>
-            ))}
+=======
+            marginLeft: "190px",
+            padding: "20px 30px",
+            background: "#fff",
+          }}
+        >
+          {/* ✅ Back Button */}
+          <button
+            onClick={() => navigate("/dashboard")}
+            style={{
+              background: "none",
+              color: "#2c3e50",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              cursor: "pointer",
+              fontWeight: 500,
+              marginBottom: 10,
+            }}
+          >
+            Back
+          </button>
+
+            <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+        Social Activity
+        </h2>
+
+          {/* ✅ Tabs */}
+          <div
+            style={{
+              display: "flex",
+              gap: 2,
+              marginBottom: 20,
+            }}
+          >
+            {Object.keys(listParamTypes).map((tab) => {
+              const isActive = activeTab === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setPage(1);
+                  }}
+                  style={{
+                    backgroundColor: isActive ? "#fff" : "#f0f0f0",
+                    color: isActive ? "#2c3e50" : "#666",
+                    border: "none",
+                    outline: "none",
+                    cursor: "pointer",
+                    padding: "10px 14px",
+                    fontSize: "13px",
+                    fontWeight: isActive ? 600 : 500,
+                    borderBottom: isActive
+                      ? "3px solid #2c3e50"
+                      : "3px solid transparent",
+                    borderTopLeftRadius: 6,
+                    borderTopRightRadius: 6,
+                    transition: "0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) e.target.style.color = "#000";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) e.target.style.color = "#666";
+                  }}
+                >
+                  {tab}
+                </button>
+              );
+            })}
           </div>
 
+          {/* ✅ Table */}
+          {loading ? (
+            <Spinner />
+          ) : (
+            <>
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: 10,
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+                  overflow: "hidden",
+                  padding: "10px 0",
+>>>>>>> 575ef5d (newupdate)
+                }}
+              >
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    textAlign: "center",
+                  }}
+                >
+                  <thead>
+                    <tr style={{ background: "#f9fafb" }}>
+                      {columnsConfig[activeTab].map((col) => (
+                        <th
+                          key={col.key}
+                          style={{
+                            padding: "8px 10px",
+                            fontWeight: 600,
+                            fontSize: "0.85rem",
+                            borderBottom: "1px solid #e5e7eb",
+                            color: "#374151",
+                          }}
+                        >
+                          {col.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedData.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={columnsConfig[activeTab].length}
+                          style={{
+                            padding: 20,
+                            color: "#666",
+                            textAlign: "center",
+                          }}
+                        >
+                          No data available
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedData.map((row, idx) => (
+                        <tr
+                          key={idx}
+                          style={{
+                            height: 36,
+                            borderBottom: "1px solid #f1f1f1",
+                            backgroundColor:
+                              idx % 2 === 0 ? "#fff" : "#fafafa",
+                            fontSize: "0.84rem",
+                          }}
+                        >
+                          {columnsConfig[activeTab].map((col) => (
+                            <td
+                              key={col.key}
+                              style={{
+                                padding: "6px 8px",
+                                color: "#333",
+                              }}
+                            >
+                              {col.render
+                                ? col.render(row[col.key], row, idx)
+                                : row[col.key] || "-"}
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+<<<<<<< HEAD
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -2276,8 +2561,15 @@ export default function SocialActivity() {
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
             />
+=======
+              {totalPages > 1 && (
+                <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+              )}
+            </>
+>>>>>>> 575ef5d (newupdate)
           )}
 
+          {/* ✅ Modal Section */}
           <Modal
             open={!!selectedRow}
             onClose={() => {
@@ -2286,24 +2578,12 @@ export default function SocialActivity() {
               setAgentsOpen(false);
             }}
           >
-            <div style={{ display: "flex", width: "100%", gap: 24 }}>
-              <div
-                style={{
-                  flex: 2,
-                  overflowY: "auto",
-                  paddingRight: 8,
-                  minWidth: 360,
-                  maxHeight: "calc(80vh - 48px)",
-                }}
-              >
+            <div style={{ display: "flex", gap: 24 }}>
+              <div style={{ flex: 2 }}>
                 <ProjectDetailsTabsComponent
                   data={projectDetail}
                   initialTab="Details"
-                  onClose={() => {
-                    setSelectedRow(null);
-                    setProjectDetail(null);
-                    setAgentsOpen(false);
-                  }}
+                  onClose={() => setSelectedRow(null)}
                   onRequestShare={(unit) => {
                     fetchData("Agentinfo")
                       .then((agents) => {
@@ -2311,23 +2591,23 @@ export default function SocialActivity() {
                         setShareUnit(unit);
                         setAgentsOpen(true);
                       })
-                      .catch(() => alert("Could not fetch agent list."));
+                      .catch(() => alert("Failed to fetch agents."));
                   }}
+<<<<<<< HEAD
                   currentPropertyId={
                     selectedRow?.PropertyID ?? selectedRow?.propertyId
                   }
+=======
+                  currentPropertyId={selectedRow?.PropertyID}
+>>>>>>> 575ef5d (newupdate)
                 />
               </div>
-
               {agentsOpen && (
                 <div
                   style={{
                     flex: 1,
                     borderLeft: "1px solid #e5e7eb",
                     paddingLeft: 16,
-                    overflowY: "auto",
-                    maxHeight: "calc(80vh - 48px)",
-                    minWidth: 300,
                   }}
                 >
                   <AgentDetailsTable

@@ -249,12 +249,21 @@ export default function TotalListings() {
                             value={searchValue}
                             onChange={(e) => setSearchValue(e.target.value)}
                             style={{
+<<<<<<< HEAD
                               width: "100%",
                               padding: "4px 6px",
                               marginBottom: 6,
                               fontSize: "0.8rem",
                               border: "1px solid #ccc",
                               borderRadius: 4,
+=======
+                              //width: "100%",
+                              padding: "8px 12px 8px 34px",
+                               background: "#f7fafd",
+                fontSize: 14,
+                color: "#1a2230",
+                width: "170px",
+>>>>>>> 575ef5d (newupdate)
                             }}
                           />
                           <div

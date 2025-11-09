@@ -644,6 +644,11 @@
 // }
 
 // export default Alerts;
+ import React, { useState, useEffect, useMemo, useRef } from "react";
+import Sidebar from "../../components/Sidebar.jsx";
+import { useApi } from "../../API/Api.js";
+import { useNavigate } from "react-router-dom";
+import Table from "../../Utils/Table.jsx";
 import React, { useState, useEffect, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
@@ -660,7 +665,10 @@ const formatAmount = (num) => {
   return n.toLocaleString("en-IN");
 };
 
+function Alerts() {
+
 export default function Alerts() {
+
   const { fetchData } = useApi();
   const navigate = useNavigate();
 
@@ -673,10 +681,16 @@ export default function Alerts() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 15;
 
+  function addSerials(arr) {
+    return (Array.isArray(arr) ? arr : []).map((a, idx) => ({
+      ...a,
+      serialNo: idx + 1,
+    }));
+  
   // filter states (used by Table)
   const [openFilter, setOpenFilter] = useState(null);
   const [filters, setFilters] = useState({});
-  const [filterSearchValue, setFilterSearchValue] = useState("");
+  const [filterSearchValue, setFilterSearchValue] = useState("")
 
   // global search
   const [searchQuery, setSearchQuery] = useState("");
@@ -723,6 +737,7 @@ export default function Alerts() {
     });
   };
 
+  const applyFilter = () => setOpenFilter(null);
   const clearFilter = (key) => {
     setFilters((prev) => {
       const copy = { ...prev };
@@ -731,6 +746,8 @@ export default function Alerts() {
     });
     setOpenFilter(null);
   };
+
+
 
   const uniqueValues = (key) => {
     const data = view === "buyer" ? buyerAlerts : sellerAlerts;
@@ -769,6 +786,41 @@ export default function Alerts() {
   const paginatedData = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
+  const buyerColumns = [
+    { key: "serialNo", label: "S.No" },
+    { key: "BuyerAlertID", label: "ID" },
+    { key: "UserID", label: "UserID" },
+    { key: "Location", label: "Location" },
+    { key: "MinPrice", label: "Min Price", render: (val) => formatAmount(val) },
+    { key: "MaxPrice", label: "Max Price", render: (val) => formatAmount(val) },
+    { key: "PropertyType", label: "Property Type" },
+    {
+      key: "AlertDate",
+      label: "Date",
+      render: (val) => (val ? new Date(val).toLocaleDateString() : "-"),
+    },
+    { key: "AdditionalNotes", label: "Additional Notes" },
+  ];
+
+  const sellerColumns = [
+    { key: "serialNo", label: "S.No" },
+    { key: "SellerAlertID", label: "ID" },
+    { key: "UserID", label: "UserID" },
+    { key: "Location", label: "Location" },
+    { key: "Price", label: "Price", render: (val) => formatAmount(val) },
+    { key: "PropertyType", label: "Property Type" },
+    {
+      key: "AlertDate",
+      label: "Date",
+      render: (val) => (val ? new Date(val).toLocaleDateString() : "-"),
+    },
+    { key: "AdditionalNotes", label: "Additional Notes" },
+  ];
+
+  const columns = view === "buyer" ? buyerColumns : sellerColumns;
+
+  return (
+    <div style={{ display: "flex", background: "#fff" }}>
   }, [filteredData, page]);
 
   // columns
@@ -812,7 +864,25 @@ export default function Alerts() {
           position: "relative",
         }}
       >
+      {/* Wrap Sidebar with flexShrink: 0 */}
+      <div style={{ flexShrink: 0 }}>
+        <Sidebar />
+      </div>
+
+      {/* Main content with flex grow and minWidth 0 */}
+      <div
+        style={{
+          flex: 1,
+          backgroundColor: "#fff",
+          minHeight: "100vh",
+          padding: 24,
+          marginLeft:"180px",
+        }}
+      >
         {/* Back Button */}
+
+        {/* Back Button */}
+
         <button
           onClick={() => navigate("/dashboard")}
           style={{
@@ -830,9 +900,30 @@ export default function Alerts() {
           ← Back
         </button>
 
+        {/* Header and Create Alert button */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+            <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+          Alerts & Matches
+        </h2>
+
         {/* Header Section */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <h2 style={{ margin: 0, color: "#22253b", fontWeight: 600 }}>Alerts & Matches</h2>
+
           <button
             onClick={() => navigate("/create-alert")}
             style={{
@@ -850,12 +941,21 @@ export default function Alerts() {
         </div>
 
         {/* Tabs */}
+        <div
+          style={{
+            display: "flex",
+            gap: 2,
+            marginBottom: 20,
+          }}
+        >
+        {/* Tabs */}
         <div style={{ display: "flex", gap: 2, justifyContent:"space-between"}}>
           <div>
           {[
             { label: "Buyer Alerts", value: "buyer" },
             { label: "Seller Alerts", value: "seller" },
           ].map((tab) => {
+
             const isActive = view === tab.value;
             return (
               <button
@@ -872,7 +972,9 @@ export default function Alerts() {
                   padding: "10px 14px",
                   fontSize: "13px",
                   fontWeight: isActive ? 600 : 500,
-                  borderBottom: isActive ? "3px solid #2c3e50" : "3px solid transparent",
+                  borderBottom: isActive
+                    ? "3px solid #2c3e50"
+                    : "3px solid transparent",
                   borderTopLeftRadius: 6,
                   borderTopRightRadius: 6,
                 }}
@@ -893,6 +995,22 @@ export default function Alerts() {
             style={{ width: 320 }}
           />
         </div>
+        {/* Table */}
+        <div ref={filterRef}>
+          <Table
+            columns={columns}
+            paginatedData={paginatedData}
+            openFilter={openFilter}
+            toggleFilter={toggleFilter}
+            filters={filters}
+            handleCheckboxChange={handleCheckboxChange}
+            searchValue={searchValue}
+            setSearchValue={setSearchValue}
+            uniqueValues={uniqueValues}
+            clearFilter={clearFilter}
+            applyFilter={applyFilter}
+          />
+
         </div>
 
         {/* Table */}

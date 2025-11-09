@@ -1,8 +1,5 @@
-// @import '../styles/variables.scss';
- 
-.sidebar {
-  // width: 160px; // default desktop width
-  background-color: #121212;
+ .sidebar {
+  background-color: #121212; /* default black */
   color: white;
   padding: 1rem;
   position: fixed;
@@ -11,15 +8,27 @@
   height: 100vh;
   overflow-y: auto;
   z-index: 1000;
-  transition: width 0.3s ease;
- 
+  transition: background-color 0.3s ease, color 0.3s ease;
+
   img {
     width: 100%;
     max-width: 140px;
     margin-bottom: 2rem;
     transition: opacity 0.3s ease;
   }
- 
+
+  /* Sidebar heading */
+  .sidebar-name {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    letter-spacing: 2px;
+    text-align: center;
+    color: #fff; /* White for dark theme */
+    transition: color 0.3s ease;
+  }
+
   nav a {
     display: flex;
     align-items: center;
@@ -29,132 +38,106 @@
     font-weight: 500;
     gap: 8px;
     white-space: nowrap;
-    transition: color 0.2s;
- 
-    // Label text wrapper for easier styling
+    transition: color 0.2s ease;
+
     .nav-label {
       display: inline;
     }
   }
- 
+
   nav a.active,
   nav a:hover {
-    color: #d4af37;
+    color: #d4af37; /* gold hover */
   }
- 
+
   nav a svg,
   nav a .icon {
     flex-shrink: 0;
     font-size: 18px;
   }
-  .sidebar-name{
-    display:block;
-    font-size:1.6rem;
-    font-weight:bold;
-    margin-bottom:2rem;
-    letter-spacing:2px;
-    text-align:center;
-    color:#fff;
-    transition:font-size 0.3s,opacity 0.3s;
-  }
- 
-  // Collapsed state - show only icons
+
   &.collapsed {
     width: 30px;
     padding: 1rem 0.5rem;
- 
+
     img {
-      opacity: 1; // hide logo when collapsed
-      max-width:48px;
-      height:auto;
+      opacity: 1;
+      max-width: 48px;
+      height: auto;
       pointer-events: auto;
-      // height: 0;
       margin-bottom: 0.5rem;
-      transition:all 0.3s;
+      transition: all 0.3s ease;
     }
-    .sidebar-name{
-      display:none;
+
+    .sidebar-name {
+      display: none;
     }
- 
+
     nav a {
       justify-content: left;
       gap: 0;
       margin: 1rem 0;
       padding: 0;
- 
+
       .nav-label {
-        display: none; // hide text labels
+        display: none;
       }
+
       svg {
         font-size: 24px;
       }
     }
   }
- 
-  // --- Responsive widths ---
+
+  &.light {
+    background-color: #fff;
+    color: #222;
+
+    /* Sidebar heading color for light theme */
+    .sidebar-name {
+      color: #222;
+    }
+
+    nav a {
+      color: #222;
+    }
+
+    nav a.active,
+    nav a:hover {
+      color: #d4af37;
+    }
+  }
+
+  /* Responsive styles remain unchanged */
   @media (max-width: 1200px) {
-    &collapsed{
-    width: 160px;
+    &collapsed {
+      width: 160px;
     }
   }
- 
   @media (max-width: 992px) {
-    &collapsed{
-    width: 140px;
+    &collapsed {
+      width: 140px;
     }
   }
- 
   @media (max-width: 768px) {
-    &collapsed{
-    width: 30px;
+    &collapsed {
+      width: 30px;
     }
   }
- 
   @media (max-width: 576px) {
-    
     width: 30px;
   }
- 
-  // On mobile, collapsed by default
-  // @media (max-width: 768px) {
-    
-  //     width: 30px;
-    
-  // }
 }
- 
-// --- Content container adjustments ---
-//  .alerts-container {
-// //   margin-left: 180px; // desktop default
- 
-//   // @media (max-width: 1200px) {
-//   //    margin-left: 160px;
-//   }
-//   @media (max-width: 992px) {
-//     margin-left: 140px;
-//   }
-//   @media (max-width: 768px) {
-//     margin-left: 120px;
-//   }
-//   @media (max-width: 576px) {
-//     margin-left: 100px;
-//   }
- 
-//   @media (max-width: 768px) {
-//     margin-left: 80px; // adjust for collapsed sidebar on mobile
-//   }
-// }
- 
-// --- Hamburger toggle button ---
-// Mobile: Make sure menu doesn't overlap icons
+
+/* Hamburger toggle styles */
 .menu-toggle {
   display: none;
- 
+
   @media (max-width: 768px) {
     display: block;
     position: fixed;
     top: 18px;
-    left: 90px; // Place the button to the right of icons
+    left: 90px;
     z-index: 1100;
     background-color: #121212;
     color: #fff;
@@ -166,4 +149,3 @@
     user-select: none;
   }
 }
- 

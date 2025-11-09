@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
 import DataTable, { Pagination } from "../../Utils/Table.jsx";
+<<<<<<< HEAD
 import { Search, ArrowLeft } from "lucide-react";
+=======
+//import { Search, ArrowLeft } from "lucide-react";
+import { Search, Filter, Eye, X } from "lucide-react";
+>>>>>>> 575ef5d (newupdate)
 import "./Updates.scss";
 
 function formatDate(dateString) {
@@ -108,7 +113,7 @@ export default function Updates() {
             navigate(`/price-history/${row.ProjectID}`);
           }}
         >
-          Click
+           <Eye size={15} style={{ marginRight: 2 }} /> 
         </button>
       ),
     },
@@ -192,6 +197,7 @@ export default function Updates() {
         </button>
 
         {/* Heading and Search Bar Row */}
+<<<<<<< HEAD
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16}}>
           <h2 style={{ margin: 0, color: "#222",fontweight:400 }}>Updates</h2>
 
@@ -246,6 +252,70 @@ export default function Updates() {
             />
             <Pagination page={page} setPage={setPage} totalPages={totalPages} />
           </div>
+=======
+        {/* Header and Search */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 15,
+                  }}
+                >
+                  <h2 style={{ color: "#222", margin: 0 }}>Price Updates</h2>
+                  <div style={{ position: "relative", width: 200 }}>
+                    <Search
+                      size={18}
+                      color="#adb1bd"
+                      style={{
+                        position: "absolute",
+                        left: 8,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                      }}
+                    />
+                    <input
+                      type="text"
+                      value={searchValue}
+                      onChange={(e) => setSearchValue(e.target.value)}
+                      placeholder="Search"
+                      style={{
+                        padding: "8px 12px 8px 34px",
+                        borderRadius: 8,
+                        border:  "1px solid #e5e7eb",
+                        background: "#f7fafd",
+                        fontSize: 14,
+                        color: "#1a2230",
+                        width: "170px",
+                      }}
+                    />
+                  </div>
+        </div>
+
+        {loading ? (
+          <Spinner />
+        ) : error ? (
+          <p style={{ color: "red" }}>{error}</p>
+        ) : (
+          <div style={{ borderRadius: 8, overflow: "hidden", background: "#fff" }}>
+            <DataTable
+              columns={columns}
+              data={data}
+              paginatedData={paginatedData}
+              openFilter={openFilter}
+              toggleFilter={toggleFilter}
+              filters={filters}
+              handleCheckboxChange={handleCheckboxChange}
+              searchValue={searchValue}
+              setSearchValue={setSearchValue}
+              uniqueValues={uniqueValues}
+              clearFilter={clearFilter}
+              applyFilter={applyFilter}
+              onRowClick={setSelectedRow}
+            />
+            <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+          </div>
+>>>>>>> 575ef5d (newupdate)
         )}
       </main>
     </div>

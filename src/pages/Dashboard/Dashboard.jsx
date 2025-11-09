@@ -1,4 +1,4 @@
- import { useState, useEffect, useRef } from "react";
+ import { useState, useEffect, useRef, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import Navbar from "../../components/Navbar.jsx";
 import StatsCard from "../../components/StatsCard.jsx";
@@ -16,9 +16,13 @@ import { FiSun, FiMoon } from "react-icons/fi";
 import { useApi } from "../../API/Api.js";
 import { useAuth } from "../../auth/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
+import Table, { Pagination } from "../../Utils/Table.jsx";
 import "../Dashboard/Dashboard.scss";
 
 export default function Dashboard() {
+  const [theme, setTheme] = useState(() =>
+    localStorage.getItem("theme") || "dark"
+  );
   const [activeTab, setActiveTab] = useState("AgentOverview");
   const [stats, setStats] = useState({});
   const [agentData, setAgentData] = useState([]);
@@ -30,10 +34,19 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const calledOnce = useRef(false);
 
-  const [theme, setTheme] = useState(() =>
-    document.body.classList.contains("dark-theme") ? "dark" : "light"
-  );
+  // Global table states
+  const [filters, setFilters] = useState({});
+  const [openFilter, setOpenFilter] = useState(null);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
 
+  // Theme
+  useEffect(() => {
+    document.body.classList.toggle("dark-theme", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  // Fetch Dashboard Data
   useEffect(() => {
     if (calledOnce.current) return;
     calledOnce.current = true;
@@ -59,38 +72,47 @@ export default function Dashboard() {
           propertyData: Number(data.PropertyData || 0).toLocaleString(),
         });
 
+<<<<<<< HEAD
         setAgentData(Array.isArray(agentOverview) ? agentOverview : []);
         setFeedbackData(Array.isArray(userFeedback) ? userFeedback : []);
+=======
+        setAgentData(
+          Array.isArray(agentOverview)
+            ? agentOverview.map((a, i) => ({ serialNo: i + 1, ...a }))
+            : []
+        );
+        setFeedbackData(
+          Array.isArray(userFeedback)
+            ? userFeedback.map((f, i) => ({ serialNo: i + 1, ...f }))
+            : []
+        );
+>>>>>>> 575ef5d (newupdate)
       } catch (err) {
         console.error("Dashboard data fetch failed:", err);
       }
     }
-
     loadDashboardData();
   }, [fetchData]);
 
+  // Popup click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (popupRef.current && !popupRef.current.contains(e.target)) {
         setShowSignOutPopup(false);
       }
     };
-    if (showSignOutPopup) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    if (showSignOutPopup) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSignOutPopup]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-    document.body.classList.toggle("dark-theme");
-  };
-
+  const toggleTheme = () => setTheme((p) => (p === "dark" ? "light" : "dark"));
   const handleSignOut = () => {
     logout();
     navigate("/login");
   };
+  const handleCardClick = (route, state = {}) => navigate(route, { state });
 
+<<<<<<< HEAD
   const handleCardClick = (route, state = {}) => {
     navigate(route, { state });
   };
@@ -150,11 +172,68 @@ export default function Dashboard() {
         </tbody>
       </table>
     );
+=======
+  // ---------- Table Helpers ----------
+  const toggleFilter = (key) =>
+    setOpenFilter((prev) => (prev === key ? null : key));
+
+  const handleCheckboxChange = (columnKey, value) => {
+    setFilters((prev) => {
+      const existing = prev[columnKey] || [];
+      return existing.includes(value)
+        ? { ...prev, [columnKey]: existing.filter((v) => v !== value) }
+        : { ...prev, [columnKey]: [...existing, value] };
+    });
+>>>>>>> 575ef5d (newupdate)
   };
 
+  const clearFilter = (key) => {
+    setFilters((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
+    setOpenFilter(null);
+  };
+
+  const hasActiveFilter = (key) => filters[key]?.length > 0;
+
+  const getUniqueValues = (data, key) =>
+    [...new Set(data.map((i) => i[key]).filter(Boolean))];
+
+  const activeData = activeTab === "AgentOverview" ? agentData : feedbackData;
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return activeData.slice(start, start + rowsPerPage);
+  }, [activeData, page]);
+
+  const totalPages = Math.ceil(activeData.length / rowsPerPage);
+
+  // Columns
+  const agentColumns = [
+    { label: "S.No", key: "serialNo", canFilter: false },
+    { label: "Agent Name", key: "AgentName" },
+    { label: "Total Listings", key: "TotalListings" },
+    { label: "Avg Listing Time", key: "AvgListingTime" },
+    { label: "Approval Rate", key: "ApprovalRate" },
+    { label: "Active Listings", key: "ActiveListings" },
+    { label: "Inactive Listings", key: "InActiveListings" },
+  ];
+
+  const feedbackColumns = [
+    { key: "serialNo", label: "S.No" },
+    { key: "AgentName", label: "Agent Name" },
+    { key: "AverageRatings", label: "Average Ratings" },
+    { key: "Complaints", label: "Complaints" },
+    { key: "AgentResponseTime", label: "Agent Response Time" },
+  ];
+
+  const columns = activeTab === "AgentOverview" ? agentColumns : feedbackColumns;
+
   return (
-    <div className="dashboard-container">
+    <div className={`dashboard-container ${theme}`}>
       <div className="dashboard">
+<<<<<<< HEAD
         <Sidebar />
         
         <main
@@ -166,6 +245,17 @@ export default function Dashboard() {
           transition: "all 0.3s ease",
         }}
       >
+=======
+        <Sidebar theme={theme} />
+        <main
+          style={{
+            flex: 1,
+            padding: "20px 30px",
+            marginLeft: "180px",
+            overflowX: "hidden",
+          }}
+        >
+>>>>>>> 575ef5d (newupdate)
           <Navbar />
 
           {/* Theme + Logout */}
@@ -214,7 +304,6 @@ export default function Dashboard() {
               {showSignOutPopup && (
                 <div
                   ref={popupRef}
-                  className="signout-popup"
                   style={{
                     position: "absolute",
                     top: "45px",
@@ -260,7 +349,11 @@ export default function Dashboard() {
             </div>
           </div>
 
+<<<<<<< HEAD
           {/* 🟢 Stats Cards */}
+=======
+          {/* Stats Cards */}
+>>>>>>> 575ef5d (newupdate)
           <section className="stats-grid">
             <div onClick={() => handleCardClick("/activelistings")}>
               <StatsCard
@@ -332,7 +425,18 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #ff9a9e, #fad0c4)"
               />
             </div>
+<<<<<<< HEAD
             <div onClick={() => handleCardClick("/Projectmanagement")}>
+=======
+            <div
+              onClick={() =>
+                handleCardClick("/Projectmanagement", {
+                  defaultTab: "projects",
+                  fromDashboard: true,
+                })
+              }
+            >
+>>>>>>> 575ef5d (newupdate)
               <StatsCard
                 title="Project Data"
                 value={stats.projectData || 0}
@@ -343,14 +447,22 @@ export default function Dashboard() {
             </div>
           </section>
 
+<<<<<<< HEAD
           {/* 🧩 Tabs Section (Updated Inline Design) */}
+=======
+          {/* Tabs */}
+>>>>>>> 575ef5d (newupdate)
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: 2,
+<<<<<<< HEAD
               padding: "0 0 15px 0",
               background: "transparent",
+=======
+              paddingBottom: 15,
+>>>>>>> 575ef5d (newupdate)
               marginBottom: 20,
               marginTop: 10,
             }}
@@ -363,27 +475,41 @@ export default function Dashboard() {
               return (
                 <button
                   key={tab.id}
+<<<<<<< HEAD
                   onClick={() => setActiveTab(tab.id)}
                   onMouseEnter={(e) => {
                     if (!isActive) e.target.style.color = "#000";
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) e.target.style.color = "#666";
+=======
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setPage(1);
+>>>>>>> 575ef5d (newupdate)
                   }}
                   style={{
                     backgroundColor: isActive ? "#fff" : "#f0f0f0",
                     color: isActive ? "#2c3e50" : "#666",
                     border: "none",
+<<<<<<< HEAD
                     outline: "none",
                     cursor: "pointer",
                     padding: "10px 14px",
                     marginLeft: "1px",
+=======
+                    cursor: "pointer",
+                    padding: "10px 14px",
+>>>>>>> 575ef5d (newupdate)
                     fontSize: "13px",
                     fontWeight: isActive ? 600 : 500,
                     borderBottom: isActive
                       ? "3px solid #2c3e50"
                       : "3px solid transparent",
+<<<<<<< HEAD
                     transition: "background-color 0.3s ease, color 0.3s ease",
+=======
+>>>>>>> 575ef5d (newupdate)
                     borderTopLeftRadius: 6,
                     borderTopRightRadius: 6,
                   }}
@@ -394,6 +520,7 @@ export default function Dashboard() {
             })}
           </div>
 
+<<<<<<< HEAD
           {/* 🗂️ Tab Content */}
           <div className="tab-content">
             {activeTab === "AgentOverview" && (
@@ -408,6 +535,32 @@ export default function Dashboard() {
                 {/* <h2>User Feedback</h2> */}
                 {renderTable(feedbackData)}
               </div>
+=======
+          {/* Table Section (Agent + Feedback use same component) */}
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 12,
+              padding: 10,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+            }}
+          >
+            <Table
+              columns={columns}
+              paginatedData={paginatedData}
+              filters={filters}
+              openFilter={openFilter}
+              toggleFilter={toggleFilter}
+              handleCheckboxChange={handleCheckboxChange}
+              uniqueValues={(key) => getUniqueValues(activeData, key)}
+              clearFilter={clearFilter}
+              hasActiveFilter={hasActiveFilter}
+              applyFilter={() => setOpenFilter(null)}
+            />
+
+            {totalPages > 1 && (
+              <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+>>>>>>> 575ef5d (newupdate)
             )}
           </div>
         </main>

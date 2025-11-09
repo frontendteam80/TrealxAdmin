@@ -1289,6 +1289,18 @@ import { useApi } from "../../API/Api.js";
 
 function LocationCell({ value }) {
   const [showAll, setShowAll] = useState(false);
+ import React, { useEffect, useState } from "react";
+import Sidebar from "../../components/Sidebar.jsx";
+import DataTable from "../../Utils/Table.jsx";
+import formatAmount from "../../Utils/formatAmount.js";
+import { useApi } from "../../API/Api.js"; // Your hook
+
+function LocationCell({ value }) {
+  const [showAll, setShowAll] = useState(false);
+  if (!value || typeof value !== "string") return <>N/A</>;
+  const locations = value.split(",");
+  const firstLocation = locations[0];
+  const remaining = locations.slice(1).join(", ");
   if (!value || typeof value !== "string" || value.trim() === "" || value === "null") {
     return <>N/A</>;
   }
@@ -1296,6 +1308,7 @@ function LocationCell({ value }) {
   if (!locations.length) return <>N/A</>;
   const first = locations[0];
   const more = locations.slice(1).join(", ");
+
   return (
     <span
       onClick={() => more && setShowAll((s) => !s)}
@@ -1411,10 +1424,20 @@ export default function Buyers() {
     setPage(1);
   };
 
+
+
   useEffect(() => {
+        setBuyers(Array.isArray(data) ? data : data.data || []);
+      } catch (err) {
+        setError(err.message || "Error loading buyers");
+      } finally {
+        setLoading(false);
+      }
+
     if (!searchQuery) {
       setFilteredBuyers(buyers);
       return;
+
     }
     const lower = searchQuery.toLowerCase();
     setFilteredBuyers(
@@ -1431,6 +1454,7 @@ export default function Buyers() {
     const start = (page - 1) * rowsPerPage;
     return filteredBuyers.slice(start, start + rowsPerPage);
   }, [filteredBuyers, page]);
+
 
   const columns = [
     { label: "S.No", key: "serialNo", render: (_, __, idx) => (page - 1) * rowsPerPage + idx + 1 },
@@ -1452,9 +1476,25 @@ export default function Buyers() {
   if (error) return <div>Error: {error}</div>;
   if (loading) return <div>Loading...</div>;
 
+  if (error) return <div>Error: {error}</div>;
+  if (loading) return <div>Loading...</div>;
+
+
   return (
     <div style={{ display: "flex", backgroundColor: "#fff" }}>
       <Sidebar />
+         <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+          Buyers
+        </h2>
+        <DataTable columns={columns} paginatedData={buyers} rowsPerPage={15} />
+
       <div style={{ flex: 1, minHeight: "100vh", padding: 24, marginLeft: "180px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
           <h2 style={{ margin: 0, fontWeight: 400 }}>Buyers</h2>
@@ -1487,6 +1527,7 @@ export default function Buyers() {
           setPage={setPage}
           totalPages={Math.max(1, Math.ceil(filteredBuyers.length / rowsPerPage))}
         />
+
       </div>
     </div>
   );

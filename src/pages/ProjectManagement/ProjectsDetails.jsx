@@ -2811,7 +2811,10 @@ import React, { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import SearchBar from "../../Utils/SearchBar.jsx";
 import Table, { Pagination } from "../../Utils/Table.jsx";
+import { Search } from "lucide-react";
+
 import { useApi } from "../../API/Api.js";
+
 
 const listParamTypes = {
   COMPANY: "Companies",
@@ -2819,10 +2822,87 @@ const listParamTypes = {
   PROPERTIES: "Properties",
 };
 
+// ---------- Simple Modal ----------
+function SimpleModal({ open, onClose, children }) {
+  if (!open) return null;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999,
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: "#fff",
+          padding: 24,
+          borderRadius: 8,
+          minWidth: 320,
+          maxWidth: 600,
+          maxHeight: "80vh",
+          //overflowY: "auto",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ---------- Modal for Project Details ----------
+function ProjectDetailsModal({ open, onClose, project, TableComponent }) {
+  if (!project) return null;
+  const modalColumns = [
+    { label: "Type", key: "PropertyType" },
+    { label: "Status", key: "PropertyStatus" },
+    { label: "Bedrooms", key: "Bedrooms" },
+    { label: "Facing", key: "Facing" },
+  ];
+  return (
+    <SimpleModal open={open} onClose={onClose}>
+      <h2 style={{ marginTop: 0, marginBottom: 12, color: "#22253b" }}>
+        {project.ProjectName || project.projectname}
+      </h2>
+      <div>
+        <strong>Description:</strong>{" "}
+        {project.Description || project.description || "Not specified"}
+      </div>
+      <div>
+        <strong>Price Range:</strong>{" "}
+        {project.AmountWithUnit || project.amountwithunit || "N/A"}
+      </div>
+      <div style={{ marginTop: 18 }}>
+        <TableComponent
+          columns={modalColumns}
+          paginatedData={[project]}
+          rowsPerPage={1}
+        />
+      </div>
+    </SimpleModal>
+  );
+}
+
+// ---------- Main Component ----------
+
 export default function ProjectsDetails() {
   const { fetchData } = useApi();
 
   const [activeTab, setActiveTab] = useState("COMPANY");
+
+  const { fetchData } = useApi();
+
+  const [activeTab, setActiveTab] = useState(defaultTabFromDashboard);
 
   const [companyData, setCompanyData] = useState([]);
   const [projectsData, setProjectsData] = useState([]);
@@ -2838,7 +2918,16 @@ export default function ProjectsDetails() {
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [companySidebarOpen, setCompanySidebarOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({});
+  const [openFilter, setOpenFilter] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const [projectSidebarOpen, setProjectSidebarOpen] = useState(false);
+
 
   // search + pagination + filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -2847,70 +2936,10 @@ export default function ProjectsDetails() {
   const [projectPage, setProjectPage] = useState(1);
   const [propertyPage, setPropertyPage] = useState(1);
 
-  const [openFilter, setOpenFilter] = useState(null);
-  const [filters, setFilters] = useState({});
-  const [filterSearchValue, setFilterSearchValue] = useState("");
-
-  // toggle filter dropdown for a column
-  const toggleFilter = (key) => {
-    setOpenFilter((prev) => (prev === key ? null : key));
-    setFilterSearchValue("");
-  };
-
-  // checkbox change in dropdown -> update filters state
-  const handleCheckboxChange = (key, value) => {
-    setFilters((prev) => {
-      const prevVals = prev[key] || [];
-      const newVals = prevVals.includes(value)
-        ? prevVals.filter((v) => v !== value)
-        : [...prevVals, value];
-      return { ...prev, [key]: newVals };
-    });
-  };
-
-  const clearFilter = (key) => {
-    setFilters((prev) => {
-      const copy = { ...prev };
-      delete copy[key];
-      return copy;
-    });
-    setOpenFilter(null);
-  };
-
-  // apply filters: create filtered arrays for each dataset
-  const applyFilter = () => {
-    const filterData = (data) =>
-      data.filter((item) =>
-        Object.entries(filters).every(([key, values]) => {
-          if (!values || values.length === 0) return true;
-          const itemVal = item[key];
-          if (key === "OperatingCities" && typeof itemVal === "string") {
-            const arr = itemVal.split(",").map((s) => s.trim());
-            return values.some((v) => arr.includes(v));
-          }
-          return values.includes(itemVal);
-        })
-      );
-
-    setFilteredCompanies(filterData(companyData));
-    setFilteredProjects(filterData(projectsData));
-    setFilteredProperties(filterData(propertiesData));
-    setOpenFilter(null);
-    setCompanyPage(1);
-    setProjectPage(1);
-    setPropertyPage(1);
-  };
-
-  // uniqueValues helper used by Table (pass dataset explicitly)
-  const uniqueValues = (key, dataset) => {
-    const vals = (dataset || []).map((item) => item[key]).filter((v) => v != null);
-    if (key === "OperatingCities") {
-      return Array.from(new Set(vals.flatMap((v) => String(v).split(",").map((s) => s.trim())))).filter(Boolean);
-    }
-    return Array.from(new Set(vals));
-  };
+  // ---------- Fetch All Data ----------
 
   // fetch all three datasets on mount
+
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -2941,7 +2970,10 @@ export default function ProjectsDetails() {
       .finally(() => setLoading(false));
   }, [fetchData]);
 
+  // ---------- Search ----------
+
   // search across dataset -> update filtered lists
+
   useEffect(() => {
     if (!searchQuery) {
       setFilteredCompanies(companyData);
@@ -2961,11 +2993,126 @@ export default function ProjectsDetails() {
     setFilteredProperties(filterByFields(propertiesData, ["PropertyName", "PropertyID", "ReraNumber"]));
   }, [searchQuery, companyData, projectsData, propertiesData]);
 
+  // ---------- Filter Helpers ----------
+  const toggleFilter = (key) => {
+    setOpenFilter((prev) => (prev === key ? null : key));
+  };
+
+  const handleCheckboxChange = (key, value) => {
+    setFilters((prev) => {
+      const prevVals = prev[key] || [];
+      const newVals = prevVals.includes(value)
+        ? prevVals.filter((v) => v !== value)
+        : [...prevVals, value];
+      return { ...prev, [key]: newVals };
+    });
+  };
+
+  const clearFilter = (key) => {
+    setFilters((prev) => {
+      const newFilters = { ...prev };
+      delete newFilters[key];
+      return newFilters;
+    });
+    setOpenFilter(null);
+  };
+
+  const applyFilter = () => {
+    let source =
+      activeTab === TABS.COMPANY
+        ? companyData
+        : activeTab === TABS.PROJECTS
+        ? projectsData
+        : propertiesData;
+
+    const filtered = source.filter((item) =>
+      Object.entries(filters).every(([key, values]) =>
+        !values.length ? true : values.includes(item[key])
+      )
+    );
+
+    if (activeTab === TABS.COMPANY) setFilteredCompanies(filtered);
+    else if (activeTab === TABS.PROJECTS) setFilteredProjects(filtered);
+    else setFilteredProperties(filtered);
+
+    setOpenFilter(null);
+  };
+
+  const uniqueValues = (key) => {
+    let source =
+      activeTab === TABS.COMPANY
+        ? filteredCompanies
+        : activeTab === TABS.PROJECTS
+        ? filteredProjects
+        : filteredProperties;
+    return Array.from(
+      new Set(source.map((item) => item[key]).filter((val) => val != null))
+    );
+  };
+
+  // ---------- Columns ----------
+  const companyColumns = [
+    { label: "S.No", key: "serialNo", canFilter: false },
+    { label: "Company Name", key: "CompanyName" },
+    { label: "Projects", key: "TotalProjects" },
+    { label: "Operating Cities", key: "OperatingCities", render: (val) => {
+        if (!val) return "N/A";
+        const cities = val.split(",").map((city) => city.trim());
+        if (cities.length <= 2) return val;
+        const visible = cities.slice(0, 2).join(", ");
+        const remaining = cities.slice(2).join(", ");
+        return <span title={remaining}>{visible}, ...</span>;
+      }, },
+    { label: "Operating Since", key: "OperatingYear" },
+    { label: "Ready To Move", key: "ReadyToMove" },
+    { label: "Under Construction", key: "UnderConstruction" },
+  ];
+
+  const projectColumns = [
+    { label: "S.No", key: "serialNo", canFilter: false },
+    { label: "Project Name", key: "ProjectName" },
+    { label: "Project ID", key: "ProjectID" },
+    { label: "Custom Type", key: "CustomProjectTypes" },
+    { label: "Status", key: "ProjectStatus" },
+    { label: "Locality", key: "Locality" },
+  ];
+
+  const propertyColumns = [
+    { label: "S.No", key: "serialNo", canFilter: false },
+    { label: "Project Name", key: "projectname" },
+    { label: "Property ID", key: "PropertyID" },
+    { label: "Property Name", key: "PropertyName" },
+    {
+      label: "Price",
+      key: "AmountWithUnit",
+      render: (val) =>
+        val ? (String(val).includes("₹") ? val : `₹ ${val}`) : "-",
+    },
+    { label: "Type", key: "PropertyType" },
+    { label: "Status", key: "propertystatus" },
+    { label: "Bedrooms", key: "Bedrooms" },
+    { label: "Facing", key: "Facing" },
+  ];
+
+  // ---------- Pick Data for Current Tab ----------
+  let currentData, currentColumns;
+  if (activeTab === TABS.COMPANY) {
+    currentData = filteredCompanies;
+    currentColumns = companyColumns;
+  } else if (activeTab === TABS.PROJECTS) {
+    currentData = filteredProjects;
+    currentColumns = projectColumns;
+  } else {
+    currentData = filteredProperties;
+    currentColumns = propertyColumns;
+  }
+
   // reset page & sidebars when active tab changes
   useEffect(() => {
     if (activeTab === "COMPANY") setCompanyPage(1);
     else if (activeTab === "PROJECTS") setProjectPage(1);
     else setPropertyPage(1);
+
 
     setCompanySidebarOpen(false);
     setProjectSidebarOpen(false);
@@ -2975,6 +3122,73 @@ export default function ProjectsDetails() {
   useEffect(() => {
     if (activeTab === "COMPANY") setCompanyPage(1);
   }, [filteredCompanies, activeTab]);
+
+  // ---------- Render ----------
+  return (
+    <div style={{ display: "flex", backgroundColor: "#fff" }}>
+      <div style={{ flexShrink: 0 }}>
+        <Sidebar />
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          padding: 20,
+          marginLeft: "180px",
+          minHeight: "100vh",
+        }}
+      >
+        {/* Back button and heading (stacked vertically) */}
+        {fromDashboard && (
+          <div style={{ marginBottom: 10 }}>
+            <button
+              onClick={() => navigate(-1)}
+              style={{
+                background: "#fff",
+                border: "1px solid #ccc",
+                borderRadius: 8,
+                padding: "6px 14px",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+                color: "#121212",
+                marginBottom: 6,
+              }}
+            >
+              Back
+            </button>
+            <h2
+              style={{
+                color: "#222",
+                fontSize: "1.2rem",
+                fontWeight: 600,
+                margin: 0,
+              }}
+            >
+              Projects Details
+            </h2>
+          </div>
+        )}
+
+        {/* Tabs and Search */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 14,
+          }}
+        >
+          <div style={{ display: "flex", gap: 4 }}>
+            {Object.entries(TABS).map(([key, val]) => {
+              const label = key.charAt(0) + key.slice(1).toLowerCase();
+              const isActive = activeTab === val;
+              return (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setActiveTab(val);
+                    setPage(1);
+                  }}
 
   useEffect(() => {
     if (activeTab === "PROJECTS") setProjectPage(1);
@@ -3117,6 +3331,7 @@ export default function ProjectsDetails() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
+
                   style={{
                     padding: "8px 15px",
                     fontWeight: isActive ? 600 : 500,
@@ -3125,8 +3340,19 @@ export default function ProjectsDetails() {
                     backgroundColor: isActive ? "#fff" : "#f0f0f0",
                     color: isActive ? "#2c3e50" : "#666",
                     cursor: "pointer",
+                    padding: "6px 9px",
+                    fontSize: "12px",
+                    fontWeight: isActive ? 600 : 500,
+                    borderBottom: isActive
+                      ? "3px solid #2c3e50"
+                      : "3px solid transparent",
+                    borderTopLeftRadius: 3,
+                    borderTopRightRadius: 3,
+
+                    cursor: "pointer",
                     borderBottom: isActive ? "3px solid #2c3e50" : "3px solid transparent",
                     transition: "background-color 0.2s ease",
+
                   }}
                 >
                   {listParamTypes[tab]}
@@ -3134,6 +3360,48 @@ export default function ProjectsDetails() {
               );
             })}
           </div>
+
+          <div style={{ position: "relative", width: 200}}>
+            <Search
+              size={16}
+              color="#adb1bd"
+              style={{
+                position: "absolute",
+                left: 9,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: "170px",
+                padding: "8px 12px 8px 34px",
+                borderRadius: 8,
+                border: "1px solid #e5e7eb",
+                fontSize: 14,
+                background: "#f9fafb",
+                color: "#111827",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Table and Pagination */}
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p style={{ color: "red" }}>Error: {error}</p>
+        ) : (
+          <>
+            <Table
+              columns={currentColumns}
+              paginatedData={paginatedData}
+              page={page}
+              rowsPerPage={rowsPerPage}
 
           <div style={{ minWidth: 150, maxWidth: 360, flex: "0 1 auto" }}>
             <SearchBar value={searchQuery} onChange={setSearchQuery} onSubmit={() => {}} />
@@ -3156,10 +3424,13 @@ export default function ProjectsDetails() {
                 const ds = activeTab === "COMPANY" ? companyData : activeTab === "PROJECTS" ? projectsData : propertiesData;
                 return uniqueValues(key, ds);
               }}
+
               openFilter={openFilter}
               toggleFilter={toggleFilter}
               filters={filters}
               handleCheckboxChange={handleCheckboxChange}
+              uniqueValues={uniqueValues}
+
               clearFilter={clearFilter}
               applyFilter={applyFilter}
               searchValue={filterSearchValue}
@@ -3174,6 +3445,14 @@ export default function ProjectsDetails() {
             />
           </>
         )}
+
+        {/* Modal */}
+        <ProjectDetailsModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          project={selectedProject}
+          TableComponent={Table}
+        />
 
         {/* Sidebars */}
         <CompanyDetailsSidebar open={companySidebarOpen} onClose={() => setCompanySidebarOpen(false)} company={selectedCompany} />
@@ -3228,6 +3507,7 @@ function ProjectDetailsSidebar({ open, onClose, project }) {
         <div style={{ fontWeight: 600 }}>Project Status</div><div>{project.ProjectStatus || "N/A"}</div>
         <div style={{ fontWeight: 600 }}>Custom Project Types</div><div>{project.CustomProjectTypes || "N/A"}</div>
         <div style={{ fontWeight: 600 }}>Locality</div><div>{project.Locality || "N/A"}</div>
+
       </div>
     </div>
   );
