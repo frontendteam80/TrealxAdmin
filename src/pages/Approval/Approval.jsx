@@ -4,11 +4,6 @@ import Sidebar from "../../components/Sidebar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "../../API/Api.js";
 import DataTable, { Pagination } from "../../Utils/Table.jsx";
-<<<<<<< HEAD
-
-const show = (val) => (val === null || val === undefined || val === "" ? "-" : val);
-
-=======
 import { Eye } from "lucide-react";
 
 const show = (val) => (val === null || val === undefined || val === "" ? "-" : val);
@@ -53,7 +48,6 @@ function formatDate(val) {
   return String(val);
 }
 
->>>>>>> 575ef5d (newupdate)
 export default function Approval() {
   const { fetchData } = useApi();
   const navigate = useNavigate();
@@ -69,26 +63,18 @@ export default function Approval() {
   const [error, setError] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
 
-<<<<<<< HEAD
-  // Fetch approval data
-=======
   // gallery modal states
   const [showGallery, setShowGallery] = useState(false);
   const [galleryImages, setGalleryImages] = useState([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
 
   // Fetch and prepare data
->>>>>>> 575ef5d (newupdate)
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
         const response = await fetchData("ApprovalData");
         const arr = Array.isArray(response) ? response : response?.data || [];
-<<<<<<< HEAD
-        setData(arr);
-        setFilteredData(arr);
-=======
 
         // ---------- GROUP only Rajapushpa Green Dale ----------
         const projectKey = "Rajapushpa Green Dale";
@@ -129,7 +115,6 @@ export default function Approval() {
 
         setData(finalList);
         setFilteredData(finalList);
->>>>>>> 575ef5d (newupdate)
       } catch (err) {
         setError(err?.message || "Failed to fetch approval data");
       } finally {
@@ -139,11 +124,7 @@ export default function Approval() {
     loadData();
   }, [fetchData]);
 
-<<<<<<< HEAD
-  // Apply column filters (same logic as ActiveListings)
-=======
   // Apply column filters (same as before)
->>>>>>> 575ef5d (newupdate)
   useEffect(() => {
     let result = [...data];
     Object.keys(filters).forEach((key) => {
@@ -156,11 +137,7 @@ export default function Approval() {
     setPage(1);
   }, [filters, data]);
 
-<<<<<<< HEAD
-  // Columns — keys must match API JSON exactly (PascalCase where used)
-=======
   // Table columns (unchanged except action shows Eye icon)
->>>>>>> 575ef5d (newupdate)
   const columns = [
     { label: "S.No", key: "serialNo", render: (_, __, idx) => idx + 1 },
     { label: "Property Name", key: "PropertyName" },
@@ -180,14 +157,9 @@ export default function Approval() {
             e.stopPropagation();
             setSelectedRow(row);
           }}
-<<<<<<< HEAD
-          style={{
-            background: "#d0d9e2ff",
-=======
           title="View details"
           style={{
             background: "transparent",
->>>>>>> 575ef5d (newupdate)
             color: "#121212",
             border: "none",
             padding: 6,
@@ -197,10 +169,7 @@ export default function Approval() {
             alignItems: "center",
             justifyContent: "center",
           }}
-<<<<<<< HEAD
-=======
           aria-label="View details"
->>>>>>> 575ef5d (newupdate)
         >
           <Eye size={18} />
         </button>
@@ -242,16 +211,6 @@ export default function Approval() {
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-<<<<<<< HEAD
-  // Extra fields for slide panel: fields not in main table
-  const extraDetails = selectedRow
-    ? Object.entries(selectedRow).filter(
-        ([key]) => !mainKeys.includes(key) && selectedRow[key] !== null && selectedRow[key] !== undefined
-      )
-    : [];
-
-  // Spinner same as ActiveListings
-=======
   // Exclude ImageUrl and ImageUrlList and sqft from extra details in slide panel
   const extraDetails = selectedRow
     ? Object.entries(selectedRow).filter(
@@ -267,7 +226,6 @@ export default function Approval() {
     : [];
 
   // Spinner unchanged
->>>>>>> 575ef5d (newupdate)
   const Spinner = () => (
     <div
       style={{
@@ -297,8 +255,6 @@ export default function Approval() {
       </style>
     </div>
   );
-<<<<<<< HEAD
-=======
 
   // Open gallery modal: receive an array of image URLs and optionally start index
   const openGalleryFor = (images = [], startIndex = 0) => {
@@ -310,17 +266,12 @@ export default function Approval() {
   // navigate index safely
   const prevImage = () => setGalleryIndex((i) => Math.max(0, i - 1));
   const nextImage = () => setGalleryIndex((i) => Math.min(galleryImages.length - 1, i + 1));
->>>>>>> 575ef5d (newupdate)
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
       <Sidebar />
 
-<<<<<<< HEAD
-      <div style={{ flex: 1, padding: 20 ,marginLeft: "180px"}}>
-=======
       <div style={{ flex: 1, padding: 20, marginLeft: "180px" }}>
->>>>>>> 575ef5d (newupdate)
         {/* Back */}
         <button
           onClick={() => navigate("/dashboard")}
@@ -338,9 +289,6 @@ export default function Approval() {
           Back
         </button>
 
-<<<<<<< HEAD
-        <h2 style={{ marginBottom: 20, color: "#222" }}>Waiting For Approval</h2>
-=======
   <h2
           style={{
             marginBottom: 14,
@@ -351,7 +299,9 @@ export default function Approval() {
         >
           Waiting For Approval
         </h2>
->>>>>>> 575ef5d (newupdate)
+
+        <h2 style={{ marginBottom: 20, color: "#222",fontweight:400 }}>Waiting For Approval</h2>
+
 
         {loading ? (
           <Spinner />
@@ -426,14 +376,6 @@ export default function Approval() {
                 `}
               </style>
 
-<<<<<<< HEAD
-              <button
-                onClick={() => setSelectedRow(null)}
-                style={{
-                  float: "right",
-                  fontSize: 24,
-                  background: "none",
-=======
               {/* Close icon for slide panel */}
               <button
                 onClick={() => setSelectedRow(null)}
@@ -447,7 +389,6 @@ export default function Approval() {
                   alignItems: "center",
                   justifyContent: "center",
                   background: "#f3f4f6",
->>>>>>> 575ef5d (newupdate)
                   border: "none",
                   borderRadius: 6,
                   cursor: "pointer",
@@ -458,12 +399,6 @@ export default function Approval() {
                 ×
               </button>
 
-<<<<<<< HEAD
-              {selectedRow.ImageUrl && (
-                <div style={{ marginBottom: 16 }}>
-                  <img
-                    src={String(selectedRow.ImageUrl).replace(/[\[\]"']/g, "")}
-=======
               {/* IMAGE PREVIEW (single) */}
               {(selectedRow.ImageUrlList && selectedRow.ImageUrlList.length > 0) || selectedRow.ImageUrl ? (
                 <div style={{ marginBottom: 16, marginTop: 12 }}>
@@ -473,19 +408,12 @@ export default function Approval() {
                         ? selectedRow.ImageUrlList[0]
                         : String(selectedRow.ImageUrl || "").replace(/[\[\]"']/g, "")
                     }
->>>>>>> 575ef5d (newupdate)
                     alt={selectedRow.PropertyName || "Image"}
                     style={{
                       width: "100%",
                       height: 200,
                       objectFit: "cover",
                       borderRadius: 6,
-<<<<<<< HEAD
-                    }}
-                  />
-                </div>
-              )}
-=======
                       cursor: "pointer",
                     }}
                     onClick={() => {
@@ -499,7 +427,6 @@ export default function Approval() {
                   />
                 </div>
               ) : null}
->>>>>>> 575ef5d (newupdate)
 
               <h3
                 style={{
@@ -528,32 +455,6 @@ export default function Approval() {
                 ) : (
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <tbody>
-<<<<<<< HEAD
-                      {extraDetails.map(([key, val]) => (
-                        <tr key={key}>
-                          <td
-                            style={{
-                              fontWeight: 600,
-                              padding: "6px 8px",
-                              borderBottom: "1px solid #eee",
-                              textTransform: "capitalize",
-                              width: "40%",
-                            }}
-                          >
-                            {key}
-                          </td>
-                          <td
-                            style={{
-                              padding: "6px 8px",
-                              borderBottom: "1px solid #eee",
-                              width: "60%",
-                            }}
-                          >
-                            {String(val ?? "-")}
-                          </td>
-                        </tr>
-                      ))}
-=======
                       {extraDetails.map(([key, val]) => {
                         // rename keys and format date fields
                         let label = key;
@@ -592,26 +493,17 @@ export default function Approval() {
                           </tr>
                         );
                       })}
->>>>>>> 575ef5d (newupdate)
                     </tbody>
                   </table>
                 )}
               </div>
 
               {/* Approve / Reject / Pending */}
-<<<<<<< HEAD
-              <div style={{ marginTop: 18 }}>
-=======
               <div style={{ marginTop: 18, paddingBottom: 60 /* leave space for sticky buttons */ }}>
->>>>>>> 575ef5d (newupdate)
                 <div style={{ marginBottom: 8, fontWeight: 700 }}>Approval / Rejection Notes</div>
                 <ApprovalControls
                   currentRow={selectedRow}
                   saveLocal={(uid, payload) => {
-<<<<<<< HEAD
-                    // local persistence similar to previous code pattern
-=======
->>>>>>> 575ef5d (newupdate)
                     try {
                       const raw = localStorage.getItem("approvalComments");
                       const map = raw ? JSON.parse(raw) : {};
@@ -624,11 +516,6 @@ export default function Approval() {
                   }}
                 />
               </div>
-<<<<<<< HEAD
-            </div>
-          </>
-        )}
-=======
 
               <div style={{ position: "sticky", bottom: 16, left: 0, background: "transparent", paddingTop: 8 }}>
                 {/* spacer for bottom */}
@@ -741,7 +628,6 @@ export default function Approval() {
             </div>
           </div>
         )}
->>>>>>> 575ef5d (newupdate)
       </div>
     </div>
   );
@@ -750,23 +636,16 @@ export default function Approval() {
 /**
  * ApprovalControls component: small self-contained approve/reject/pending UI (kept inside same file)
  * - Shows radio options and textarea, and calls saveLocal(uid, payload)
-<<<<<<< HEAD
-=======
  * - CHANGES:
  *    • initial status = "" (no default "Pending")
  *    • textarea shown only when a status is selected
  *    • Save / Reset buttons visible (left-aligned)
->>>>>>> 575ef5d (newupdate)
  */
 function ApprovalControls({ currentRow, saveLocal }) {
   const uid =
     currentRow?.UserID ?? currentRow?.UserId ?? currentRow?.PropertyID ?? "unknown";
-<<<<<<< HEAD
-  const [status, setStatus] = useState(currentRow?.verificationStatus ?? "");
-=======
   // don't default to currentRow.verificationStatus to avoid showing comment box by default
   const [status, setStatus] = useState("");
->>>>>>> 575ef5d (newupdate)
   const [reason, setReason] = useState("");
   useEffectOnceOnMount(uid, setStatus, setReason);
 
@@ -786,12 +665,8 @@ function ApprovalControls({ currentRow, saveLocal }) {
         ))}
       </div>
 
-<<<<<<< HEAD
-      {(status === "Approved" || status === "Rejected" || status === "Pending") && (
-=======
       {/* textarea appears only when a status is selected */}
       {status && (
->>>>>>> 575ef5d (newupdate)
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: "0.95rem", marginBottom: 6, fontWeight: 600 }}>
             {status === "Approved" ? "Reason for Approval" : status === "Rejected" ? "Reason for Rejection" : "Remarks for Pending"}
@@ -800,10 +675,7 @@ function ApprovalControls({ currentRow, saveLocal }) {
         </div>
       )}
 
-<<<<<<< HEAD
-=======
       {/* Save & Reset always visible and left-aligned */}
->>>>>>> 575ef5d (newupdate)
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={onSave} style={{ background: "#007bff", color: "#fff", border: "none", padding: "8px 12px", borderRadius: 6, cursor: "pointer" }}>
           Save Note
@@ -823,10 +695,7 @@ function useEffectOnceOnMount(uid, setStatus, setReason) {
       const raw = localStorage.getItem("approvalComments");
       const map = raw ? JSON.parse(raw) : {};
       if (map && map[uid]) {
-<<<<<<< HEAD
-=======
         // restore previous saved state if exists; otherwise keep blank (no default)
->>>>>>> 575ef5d (newupdate)
         setStatus(map[uid].status || "");
         setReason(map[uid].reason || "");
       }

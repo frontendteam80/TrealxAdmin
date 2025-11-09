@@ -179,7 +179,7 @@ export default function TotalListings() {
           ← Back
         </button>
 
-        <h2 style={{ marginBottom: 20, color: "#222" }}>Total Listings</h2>
+        <h2 style={{ marginBottom: 20, color: "#222",fontweight:400 }}>Total Listings</h2>
 
         {loading ? (
           <Spinner />

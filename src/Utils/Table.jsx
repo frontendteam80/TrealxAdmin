@@ -1,8 +1,912 @@
-<<<<<<< HEAD
 //  import React from "react";
 // import { Funnel } from "lucide-react";
 
-// // ✅ Pagination (with numbered buttons, ellipsis & gold highlight)
+// // // // // // ✅ Pagination (with numbered buttons, ellipsis & gold highlight)
+// // // // // export function Pagination({ page, setPage, totalPages }) {
+// // // // //   const maxVisiblePages = 3;
+
+// // // // //   const generatePages = () => {
+// // // // //     let pages = [];
+// // // // //     if (totalPages <= 5) {
+// // // // //       for (let i = 1; i <= totalPages; i++) pages.push(i);
+// // // // //     } else {
+// // // // //       if (page <= maxVisiblePages) {
+// // // // //         pages = [1, 2, 3, "...", totalPages];
+// // // // //       } else if (page >= totalPages - 2) {
+// // // // //         pages = [1, "...", totalPages - 2, totalPages - 1, totalPages];
+// // // // //       } else {
+// // // // //         pages = [1, "...", page, "...", totalPages];
+// // // // //       }
+// // // // //     }
+// // // // //     return pages;
+// // // // //   };
+
+// // // // //   const pages = generatePages();
+
+// // // // //   const handleClick = (p) => {
+// // // // //     if (p === "..." || p === page) return;
+// // // // //     setPage(p);
+// // // // //   };
+
+// // // // //   return (
+// // // // //     <div
+// // // // //       style={{
+// // // // //         display: "flex",
+// // // // //         justifyContent: "center",
+// // // // //         alignItems: "center",
+// // // // //         gap: "6px",
+// // // // //         padding: "18px 0",
+// // // // //         fontFamily: "Inter, sans-serif",
+// // // // //       }}
+// // // // //     >
+// // // // //       {/* Prev Button */}
+// // // // //       <button
+// // // // //         onClick={() => setPage(page - 1)}
+// // // // //         disabled={page === 1}
+// // // // //         style={{
+// // // // //           border: "1px solid #d1d5db",
+// // // // //           background: page === 1 ? "#f3f4f6" : "#fff",
+// // // // //           color: "#374151",
+// // // // //           borderRadius: "6px",
+// // // // //           padding: "5px 9px",
+// // // // //           cursor: page === 1 ? "not-allowed" : "pointer",
+// // // // //           fontWeight: 500,
+// // // // //         }}
+// // // // //       >
+// // // // //         &lt;
+// // // // //       </button>
+
+// // // // //       {/* Number Buttons */}
+// // // // //       {pages.map((p, idx) => (
+// // // // //         <button
+// // // // //           key={idx}
+// // // // //           onClick={() => handleClick(p)}
+// // // // //           disabled={p === "..."}
+// // // // //           style={{
+// // // // //             border: p === page ? "1px solid gold" : "1px solid #d1d5db",
+// // // // //             background: "#fff",
+// // // // //             color: p === page ? "#000" : "#374151",
+// // // // //             borderRadius: "6px",
+// // // // //             padding: "5px 10px",
+// // // // //             minWidth: "32px",
+// // // // //             cursor: p === "..." ? "default" : "pointer",
+// // // // //             fontWeight: p === page ? 600 : 400,
+// // // // //           }}
+// // // // //         >
+// // // // //           {p}
+// // // // //         </button>
+// // // // //       ))}
+
+// // // // //       {/* Next Button */}
+// // // // //       <button
+// // // // //         onClick={() => setPage(page + 1)}
+// // // // //         disabled={page === totalPages}
+// // // // //         style={{
+// // // // //           border: "1px solid #d1d5db",
+// // // // //           background: page === totalPages ? "#f3f4f6" : "#fff",
+// // // // //           color: "#374151",
+// // // // //           borderRadius: "6px",
+// // // // //           padding: "5px 9px",
+// // // // //           cursor: page === totalPages ? "not-allowed" : "pointer",
+// // // // //           fontWeight: 500,
+// // // // //         }}
+// // // // //       >
+// // // // //         &gt;
+// // // // //       </button>
+
+// // // // //       {/* Page Info */}
+// // // // //       <span style={{ fontSize: "0.9rem", color: "#444", marginLeft: 8 }}>
+// // // // //         Page <strong>{page}</strong> of {totalPages}
+// // // // //       </span>
+// // // // //     </div>
+// // // // //   );
+// // // // // }
+
+// // // // // // ✅ Main Table
+// // // // // export default function Table({
+// // // // //   columns,
+// // // // //   paginatedData = [],
+// // // // //   openFilter,
+// // // // //   toggleFilter,
+// // // // //   filters,
+// // // // //   handleCheckboxChange,
+// // // // //   searchValue,
+// // // // //   setSearchValue,
+// // // // //   uniqueValues,
+// // // // //   clearFilter,
+// // // // //   applyFilter,
+// // // // //   onRowClick,
+// // // // // }) {
+// // // // //   return (
+// // // // //     <div
+// // // // //       style={{
+// // // // //         background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+// // // // //         borderRadius: 10,
+// // // // //         padding: "12px",
+// // // // //         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+// // // // //       }}
+// // // // //     >
+// // // // //       <table
+// // // // //         style={{
+// // // // //           width: "100%",
+// // // // //           borderCollapse: "collapse",
+// // // // //           textAlign: "center",
+// // // // //           fontFamily: "Inter, sans-serif,outfit",
+// // // // //           fontSize: "0.85rem",
+// // // // //         }}
+// // // // //       >
+// // // // //         <thead>
+// // // // //           <tr style={{ background: "#f3f4f6", height: 36 }}>
+// // // // //             {columns.map((col) => (
+// // // // //               <th
+// // // // //                 key={col.key}
+// // // // //                 style={{
+// // // // //                   padding: "6px 8px",
+// // // // //                   fontWeight: 600,
+// // // // //                   fontSize: "0.85rem",
+// // // // //                   borderBottom: "1px solid #e5e7eb",
+// // // // //                   position: "relative",
+// // // // //                   color: "#1e293b",
+// // // // //                   textAlign: "center",
+// // // // //                   background: "#f8fafc",
+// // // // //                 }}
+// // // // //               >
+// // // // //                 {col.label}
+// // // // //                 {col.key !== "serialNo" && col.key !== "more" && (
+// // // // //                   <Funnel
+// // // // //                     size={4}
+// // // // //                     style={{
+// // // // //                       marginLeft: 6,
+// // // // //                       cursor: "pointer",
+// // // // //                       verticalAlign: "middle",
+// // // // //                       opacity: 0.3,
+// // // // //                     }}
+// // // // //                     onClick={() => toggleFilter(col.key)}
+// // // // //                   />
+// // // // //                 )}
+// // // // //                 {openFilter === col.key && (
+// // // // //                   <div
+// // // // //                     style={{
+// // // // //                       position: "absolute",
+// // // // //                       top: "110%",
+// // // // //                       right: 0,
+// // // // //                       background: "#fff",
+// // // // //                       border: "1px solid #ddd",
+// // // // //                       borderRadius: 6,
+// // // // //                       boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+// // // // //                       width: 180,
+// // // // //                       zIndex: 2500,
+// // // // //                       padding: 8,
+// // // // //                       textAlign: "left",
+// // // // //                     }}
+// // // // //                   >
+// // // // //                     <input
+// // // // //                       type="text"
+// // // // //                       placeholder="Search..."
+// // // // //                       value={searchValue}
+// // // // //                       onChange={(e) => setSearchValue(e.target.value)}
+// // // // //                       style={{
+// // // // //                         width: "100%",
+// // // // //                         padding: "4px 6px",
+// // // // //                         marginBottom: 6,
+// // // // //                         fontSize: "0.8rem",
+// // // // //                         border: "1px solid #ccc",
+// // // // //                         borderRadius: 4,
+// // // // //                       }}
+// // // // //                     />
+// // // // //                     <div
+// // // // //                       style={{
+// // // // //                         maxHeight: 150,
+// // // // //                         overflowY: "auto",
+// // // // //                         fontSize: "0.8rem",
+// // // // //                       }}
+// // // // //                     >
+// // // // //                       {uniqueValues(col.key)
+// // // // //                         .filter((v) =>
+// // // // //                           v
+// // // // //                             ?.toString()
+// // // // //                             .toLowerCase()
+// // // // //                             .includes(searchValue.toLowerCase())
+// // // // //                         )
+// // // // //                         .map((val) => (
+// // // // //                           <label key={val} style={{ display: "block" }}>
+// // // // //                             <input
+// // // // //                               type="checkbox"
+// // // // //                               checked={(filters[col.key] || []).includes(val)}
+// // // // //                               onChange={() =>
+// // // // //                                 handleCheckboxChange(col.key, val)
+// // // // //                               }
+// // // // //                             />{" "}
+// // // // //                             {val}
+// // // // //                           </label>
+// // // // //                         ))}
+// // // // //                     </div>
+// // // // //                     <div
+// // // // //                       style={{
+// // // // //                         display: "flex",
+// // // // //                         justifyContent: "space-between",
+// // // // //                         marginTop: 6,
+// // // // //                       }}
+// // // // //                     >
+// // // // //                       <button
+// // // // //                         onClick={() => clearFilter(col.key)}
+// // // // //                         style={{
+// // // // //                           background: "#f3f4f6",
+// // // // //                           border: "none",
+// // // // //                           borderRadius: 4,
+// // // // //                           padding: "4px 8px",
+// // // // //                           fontSize: "0.75rem",
+// // // // //                           cursor: "pointer",
+// // // // //                         }}
+// // // // //                       >
+// // // // //                         Clear
+// // // // //                       </button>
+// // // // //                       <button
+// // // // //                         onClick={applyFilter}
+// // // // //                         style={{
+// // // // //                           background: "#007bff",
+// // // // //                           color: "#fff",
+// // // // //                           border: "none",
+// // // // //                           borderRadius: 4,
+// // // // //                           padding: "4px 8px",
+// // // // //                           fontSize: "0.75rem",
+// // // // //                           cursor: "pointer",
+// // // // //                         }}
+// // // // //                       >
+// // // // //                         Apply
+// // // // //                       </button>
+// // // // //                     </div>
+// // // // //                   </div>
+// // // // //                 )}
+// // // // //               </th>
+// // // // //             ))}
+// // // // //           </tr>
+// // // // //         </thead>
+
+// // // // //         <tbody>
+// // // // //           {(Array.isArray(paginatedData) ? paginatedData : []).map((row, idx) => (
+// // // // //             <tr
+// // // // //               key={idx}
+// // // // //               style={{
+// // // // //                 height: 32,
+// // // // //                 borderBottom: "1px solid #e5e7eb",
+// // // // //                 fontSize: "0.83rem",
+// // // // //                 cursor: onRowClick ? "pointer" : "default",
+// // // // //                 background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+// // // // //                 transition: "background 0.2s ease",
+// // // // //               }}
+// // // // //               onClick={onRowClick ? () => onRowClick(row) : undefined}
+// // // // //               onMouseEnter={(e) =>
+// // // // //                 (e.currentTarget.style.background = "#e0f2fe")
+// // // // //               }
+// // // // //               onMouseLeave={(e) =>
+// // // // //                 (e.currentTarget.style.background =
+// // // // //                   idx % 2 === 0 ? "#ffffff" : "#f9fafb")
+// // // // //               }
+// // // // //             >
+// // // // //               {columns.map((col) => (
+// // // // //                 <td
+// // // // //                   key={col.key}
+// // // // //                   style={{
+// // // // //                     padding: "4px 6px",
+// // // // //                     color: "#1f2937",
+// // // // //                     verticalAlign: "middle",
+// // // // //                   }}
+// // // // //                 >
+// // // // //                   {col.render ? col.render(row[col.key], row, idx) : row[col.key] || "-"}
+// // // // //                 </td>
+// // // // //               ))}
+// // // // //             </tr>
+// // // // //           ))}
+// // // // //         </tbody>
+// // // // //       </table>
+// // // // //     </div>
+// // // // //   );
+// // // // // }
+
+// // // // import React from "react";
+// // // // import { Funnel } from "lucide-react";
+
+// // // // // ✅ Pagination (without "Page 1 of 553" text)
+// // // // export function Pagination({ page, setPage, totalPages }) {
+// // // //   const maxVisiblePages = 3;
+
+// // // //   const generatePages = () => {
+// // // //     let pages = [];
+// // // //     if (totalPages <= 5) {
+// // // //       for (let i = 1; i <= totalPages; i++) pages.push(i);
+// // // //     } else {
+// // // //       if (page <= maxVisiblePages) {
+// // // //         pages = [1, 2, 3, "...", totalPages];
+// // // //       } else if (page >= totalPages - 2) {
+// // // //         pages = [1, "...", totalPages - 2, totalPages - 1, totalPages];
+// // // //       } else {
+// // // //         pages = [1, "...", page, "...", totalPages];
+// // // //       }
+// // // //     }
+// // // //     return pages;
+// // // //   };
+
+// // // //   const pages = generatePages();
+
+// // // //   const handleClick = (p) => {
+// // // //     if (p === "..." || p === page) return;
+// // // //     setPage(p);
+// // // //   };
+
+// // // //   return (
+// // // //     <div
+// // // //       style={{
+// // // //         display: "flex",
+// // // //         justifyContent: "center",
+// // // //         alignItems: "center",
+// // // //         gap: "6px",
+// // // //         padding: "18px 0",
+// // // //         fontFamily: "Inter, sans-serif",
+// // // //       }}
+// // // //     >
+// // // //       {/* Prev Button */}
+// // // //       <button
+// // // //         onClick={() => setPage(page - 1)}
+// // // //         disabled={page === 1}
+// // // //         style={{
+// // // //           border: "1px solid #d1d5db",
+// // // //           background: page === 1 ? "#f3f4f6" : "#fff",
+// // // //           color: "#374151",
+// // // //           borderRadius: "6px",
+// // // //           padding: "5px 9px",
+// // // //           cursor: page === 1 ? "not-allowed" : "pointer",
+// // // //           fontWeight: 500,
+// // // //         }}
+// // // //       >
+// // // //         &lt;
+// // // //       </button>
+
+// // // //       {/* Number Buttons */}
+// // // //       {pages.map((p, idx) => (
+// // // //         <button
+// // // //           key={idx}
+// // // //           onClick={() => handleClick(p)}
+// // // //           disabled={p === "..."}
+// // // //           style={{
+// // // //             border: p === page ? "1px solid gold" : "1px solid #d1d5db",
+// // // //             background: "#fff",
+// // // //             color: p === page ? "#000" : "#374151",
+// // // //             borderRadius: "6px",
+// // // //             padding: "5px 10px",
+// // // //             minWidth: "32px",
+// // // //             cursor: p === "..." ? "default" : "pointer",
+// // // //             fontWeight: p === page ? 600 : 400,
+// // // //           }}
+// // // //         >
+// // // //           {p}
+// // // //         </button>
+// // // //       ))}
+
+// // // //       {/* Next Button */}
+// // // //       <button
+// // // //         onClick={() => setPage(page + 1)}
+// // // //         disabled={page === totalPages}
+// // // //         style={{
+// // // //           border: "1px solid #d1d5db",
+// // // //           background: page === totalPages ? "#f3f4f6" : "#fff",
+// // // //           color: "#374151",
+// // // //           borderRadius: "6px",
+// // // //           padding: "5px 9px",
+// // // //           cursor: page === totalPages ? "not-allowed" : "pointer",
+// // // //           fontWeight: 500,
+// // // //         }}
+// // // //       >
+// // // //         &gt;
+// // // //       </button>
+// // // //     </div>
+// // // //   );
+// // // // }
+
+// // // // // ✅ Main Table
+// // // // export default function Table({
+// // // //   columns,
+// // // //   paginatedData = [],
+// // // //   openFilter,
+// // // //   toggleFilter,
+// // // //   filters,
+// // // //   handleCheckboxChange,
+// // // //   searchValue,
+// // // //   setSearchValue,
+// // // //   uniqueValues,
+// // // //   clearFilter,
+// // // //   applyFilter,
+// // // //   onRowClick,
+// // // // }) {
+// // // //   return (
+// // // //     <div
+// // // //       style={{
+// // // //         background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+// // // //         borderRadius: 10,
+// // // //         padding: "12px",
+// // // //         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+// // // //       }}
+// // // //     >
+// // // //       <table
+// // // //         style={{
+// // // //           width: "100%",
+// // // //           borderCollapse: "collapse",
+// // // //           textAlign: "center",
+// // // //           fontFamily: "Inter, sans-serif,outfit",
+// // // //           fontSize: "0.85rem",
+// // // //         }}
+// // // //       >
+// // // //         <thead>
+// // // //           <tr style={{ background: "#f3f4f6", height: 36 }}>
+// // // //             {columns.map((col) => (
+// // // //               <th
+// // // //                 key={col.key}
+// // // //                 style={{
+// // // //                   padding: "6px 8px",
+// // // //                   fontWeight: 600,
+// // // //                   fontSize: "0.85rem",
+// // // //                   borderBottom: "1px solid #e5e7eb",
+// // // //                   position: "relative",
+// // // //                   color: "#1e293b",
+// // // //                   textAlign: "center",
+// // // //                   background: "#f8fafc",
+// // // //                 }}
+// // // //               >
+// // // //                 {col.label}
+// // // //                 {col.key !== "serialNo" && col.key !== "more" && (
+// // // //                   <Funnel
+// // // //                     size={4}
+// // // //                     style={{
+// // // //                       marginLeft: 6,
+// // // //                       cursor: "pointer",
+// // // //                       verticalAlign: "middle",
+// // // //                       opacity: 0.3,
+// // // //                     }}
+// // // //                     onClick={() => toggleFilter(col.key)}
+// // // //                   />
+// // // //                 )}
+// // // //                 {openFilter === col.key && (
+// // // //                   <div
+// // // //                     style={{
+// // // //                       position: "absolute",
+// // // //                       top: "110%",
+// // // //                       right: 0,
+// // // //                       background: "#fff",
+// // // //                       border: "1px solid #ddd",
+// // // //                       borderRadius: 6,
+// // // //                       boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+// // // //                       width: 180,
+// // // //                       zIndex: 2500,
+// // // //                       padding: 8,
+// // // //                       textAlign: "left",
+// // // //                     }}
+// // // //                   >
+// // // //                     <input
+// // // //                       type="text"
+// // // //                       placeholder="Search..."
+// // // //                       value={searchValue}
+// // // //                       onChange={(e) => setSearchValue(e.target.value)}
+// // // //                       style={{
+// // // //                         width: "100%",
+// // // //                         padding: "4px 6px",
+// // // //                         marginBottom: 6,
+// // // //                         fontSize: "0.8rem",
+// // // //                         border: "1px solid #ccc",
+// // // //                         borderRadius: 4,
+// // // //                       }}
+// // // //                     />
+// // // //                     <div
+// // // //                       style={{
+// // // //                         maxHeight: 150,
+// // // //                         overflowY: "auto",
+// // // //                         fontSize: "0.8rem",
+// // // //                       }}
+// // // //                     >
+// // // //                       {uniqueValues(col.key)
+// // // //                         .filter((v) =>
+// // // //                           v
+// // // //                             ?.toString()
+// // // //                             .toLowerCase()
+// // // //                             .includes(searchValue.toLowerCase())
+// // // //                         )
+// // // //                         .map((val) => (
+// // // //                           <label key={val} style={{ display: "block" }}>
+// // // //                             <input
+// // // //                               type="checkbox"
+// // // //                               checked={(filters[col.key] || []).includes(val)}
+// // // //                               onChange={() =>
+// // // //                                 handleCheckboxChange(col.key, val)
+// // // //                               }
+// // // //                             />{" "}
+// // // //                             {val}
+// // // //                           </label>
+// // // //                         ))}
+// // // //                     </div>
+// // // //                     <div
+// // // //                       style={{
+// // // //                         display: "flex",
+// // // //                         justifyContent: "space-between",
+// // // //                         marginTop: 6,
+// // // //                       }}
+// // // //                     >
+// // // //                       <button
+// // // //                         onClick={() => clearFilter(col.key)}
+// // // //                         style={{
+// // // //                           background: "#f3f4f6",
+// // // //                           border: "none",
+// // // //                           borderRadius: 4,
+// // // //                           padding: "4px 8px",
+// // // //                           fontSize: "0.75rem",
+// // // //                           cursor: "pointer",
+// // // //                         }}
+// // // //                       >
+// // // //                         Clear
+// // // //                       </button>
+// // // //                       <button
+// // // //                         onClick={applyFilter}
+// // // //                         style={{
+// // // //                           background: "#007bff",
+// // // //                           color: "#fff",
+// // // //                           border: "none",
+// // // //                           borderRadius: 4,
+// // // //                           padding: "4px 8px",
+// // // //                           fontSize: "0.75rem",
+// // // //                           cursor: "pointer",
+// // // //                         }}
+// // // //                       >
+// // // //                         Apply
+// // // //                       </button>
+// // // //                     </div>
+// // // //                   </div>
+// // // //                 )}
+// // // //               </th>
+// // // //             ))}
+// // // //           </tr>
+// // // //         </thead>
+
+// // // //         <tbody>
+// // // //           {(Array.isArray(paginatedData) ? paginatedData : []).map((row, idx) => (
+// // // //             <tr
+// // // //               key={idx}
+// // // //               style={{
+// // // //                 height: 32,
+// // // //                 borderBottom: "1px solid #e5e7eb",
+// // // //                 fontSize: "0.83rem",
+// // // //                 cursor: onRowClick ? "pointer" : "default",
+// // // //                 background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+// // // //                 transition: "background 0.2s ease",
+// // // //               }}
+// // // //               onClick={onRowClick ? () => onRowClick(row) : undefined}
+// // // //               onMouseEnter={(e) =>
+// // // //                 (e.currentTarget.style.background = "#e0f2fe")
+// // // //               }
+// // // //               onMouseLeave={(e) =>
+// // // //                 (e.currentTarget.style.background =
+// // // //                   idx % 2 === 0 ? "#ffffff" : "#f9fafb")
+// // // //               }
+// // // //             >
+// // // //               {columns.map((col) => (
+// // // //                 <td
+// // // //                   key={col.key}
+// // // //                   style={{
+// // // //                     padding: "4px 6px",
+// // // //                     color: "#1f2937",
+// // // //                     verticalAlign: "middle",
+// // // //                   }}
+// // // //                 >
+// // // //                   {col.render ? col.render(row[col.key], row, idx) : row[col.key] || "-"}
+// // // //                 </td>
+// // // //               ))}
+// // // //             </tr>
+// // // //           ))}
+// // // //         </tbody>
+// // // //       </table>
+// // // //     </div>
+// // // //   );
+// // // // }
+// // // import React from "react";
+// // // import { Funnel } from "lucide-react";
+
+// // // // ✅ Pagination (without "Page 1 of 553" text)
+// // // export function Pagination({ page, setPage, totalPages }) {
+// // //   const maxVisiblePages = 3;
+
+// // //   const generatePages = () => {
+// // //     let pages = [];
+// // //     if (totalPages <= 5) {
+// // //       for (let i = 1; i <= totalPages; i++) pages.push(i);
+// // //     } else {
+// // //       if (page <= maxVisiblePages) {
+// // //         pages = [1, 2, 3, "...", totalPages];
+// // //       } else if (page >= totalPages - 2) {
+// // //         pages = [1, "...", totalPages - 2, totalPages - 1, totalPages];
+// // //       } else {
+// // //         pages = [1, "...", page, "...", totalPages];
+// // //       }
+// // //     }
+// // //     return pages;
+// // //   };
+
+// // //   const pages = generatePages();
+
+// // //   const handleClick = (p) => {
+// // //     if (p === "..." || p === page) return;
+// // //     setPage(p);
+// // //   };
+
+// // //   return (
+// // //     <div
+// // //       style={{
+// // //         display: "flex",
+// // //         justifyContent: "center",
+// // //         alignItems: "center",
+// // //         gap: "6px",
+// // //         padding: "18px 0",
+// // //         fontFamily: "Inter, sans-serif",
+// // //       }}
+// // //     >
+// // //       {/* Prev Button */}
+// // //       <button
+// // //         onClick={() => setPage(page - 1)}
+// // //         disabled={page === 1}
+// // //         style={{
+// // //           border: "1px solid #d1d5db",
+// // //           background: page === 1 ? "#f3f4f6" : "#fff",
+// // //           color: "#374151",
+// // //           borderRadius: "6px",
+// // //           padding: "5px 9px",
+// // //           cursor: page === 1 ? "not-allowed" : "pointer",
+// // //           fontWeight: 500,
+// // //         }}
+// // //       >
+// // //         &lt;
+// // //       </button>
+
+// // //       {/* Number Buttons */}
+// // //       {pages.map((p, idx) => (
+// // //         <button
+// // //           key={idx}
+// // //           onClick={() => handleClick(p)}
+// // //           disabled={p === "..."}
+// // //           style={{
+// // //             border: p === page ? "1px solid gold" : "1px solid #d1d5db",
+// // //             background: "#fff",
+// // //             color: p === page ? "#000" : "#374151",
+// // //             borderRadius: "6px",
+// // //             padding: "5px 10px",
+// // //             minWidth: "32px",
+// // //             cursor: p === "..." ? "default" : "pointer",
+// // //             fontWeight: p === page ? 600 : 400,
+// // //           }}
+// // //         >
+// // //           {p}
+// // //         </button>
+// // //       ))}
+
+// // //       {/* Next Button */}
+// // //       <button
+// // //         onClick={() => setPage(page + 1)}
+// // //         disabled={page === totalPages}
+// // //         style={{
+// // //           border: "1px solid #d1d5db",
+// // //           background: page === totalPages ? "#f3f4f6" : "#fff",
+// // //           color: "#374151",
+// // //           borderRadius: "6px",
+// // //           padding: "5px 9px",
+// // //           cursor: page === totalPages ? "not-allowed" : "pointer",
+// // //           fontWeight: 500,
+// // //         }}
+// // //       >
+// // //         &gt;
+// // //       </button>
+// // //     </div>
+// // //   );
+// // // }
+
+// // // // ✅ Main Table
+// // // export default function Table({
+// // //   columns,
+// // //   paginatedData = [],
+// // //   openFilter,
+// // //   toggleFilter,
+// // //   filters,
+// // //   handleCheckboxChange,
+// // //   searchValue,
+// // //   setSearchValue,
+// // //   uniqueValues,
+// // //   clearFilter,
+// // //   applyFilter,
+// // //   onRowClick,
+// // // }) {
+// // //   return (
+// // //     <div
+// // //       style={{
+// // //         background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+// // //         borderRadius: 10,
+// // //         padding: "12px",
+// // //         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+// // //       }}
+// // //     >
+// // //       <table
+// // //         style={{
+// // //           width: "100%",
+// // //           borderCollapse: "collapse",
+// // //           textAlign: "center",
+// // //           fontFamily: "Inter, sans-serif,outfit",
+// // //           fontSize: "0.85rem",
+// // //         }}
+// // //       >
+// // //         <thead>
+// // //           <tr style={{ background: "#f3f4f6", height: 36 }}>
+// // //             {columns.map((col) => (
+// // //               <th
+// // //                 key={col.key}
+// // //                 style={{
+// // //                   padding: "6px 8px",
+// // //                   fontWeight: 600,
+// // //                   fontSize: "0.85rem",
+// // //                   borderBottom: "1px solid #e5e7eb",
+// // //                   position: "relative",
+// // //                   color: "#1e293b",
+// // //                   textAlign: "center",
+// // //                   background: "#f8fafc",
+// // //                 }}
+// // //               >
+// // //                 {col.label}
+// // //                 {/* {col.key !== "serialNo" && col.key !== "more" && ( 
+// // //                   <Funnel
+// // //                     size={4}
+// // //                     style={{
+// // //                       marginLeft: 6,
+// // //                       cursor: "pointer",
+// // //                       verticalAlign: "middle",
+// // //                       opacity: 0.3,
+// // //                     }}
+// // //                     onClick={() => toggleFilter(col.key)}
+// // //                   />
+// // //                   )} */}
+// // //                 {/* {openFilter === col.key && (
+// // //                   <div
+// // //                     // style={{
+// // //                     //   position: "absolute",
+// // //                     //   top: "110%",
+// // //                     //   right: 0,
+// // //                     //   background: "#fff",
+// // //                     //   border: "1px solid #ddd",
+// // //                     //   borderRadius: 6,
+// // //                     //   boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+// // //                     //   width: 180,
+// // //                     //   zIndex: 2500,
+// // //                     //   padding: 8,
+// // //                     //   textAlign: "left",
+// // //                     // }}
+// // //                   > */}
+// // //                     <input
+// // //                       type="text"
+// // //                       placeholder="Search..."
+// // //                       value={searchValue}
+// // //                       onChange={(e) => setSearchValue(e.target.value)}
+// // //                       style={{
+// // //                         width: "100%",
+// // //                         padding: "4px 6px",
+// // //                         marginBottom: 6,
+// // //                         fontSize: "0.8rem",
+// // //                         border: "1px solid #ccc",
+// // //                         borderRadius: 4,
+// // //                       }}
+// // //                     />
+// // //                     <div
+// // //                       style={{
+// // //                         maxHeight: 150,
+// // //                         overflowY: "auto",
+// // //                         fontSize: "0.8rem",
+// // //                       }}
+// // //                     >
+// // //                       {uniqueValues(col.key)
+// // //                         .filter((v) =>
+// // //                           v
+// // //                             ?.toString()
+// // //                             .toLowerCase()
+// // //                             .includes(searchValue.toLowerCase())
+// // //                         )
+// // //                         .map((val) => (
+// // //                           <label key={val} style={{ display: "block" }}>
+// // //                             <input
+// // //                               type="checkbox"
+// // //                               checked={(filters[col.key] || []).includes(val)}
+// // //                               onChange={() =>
+// // //                                 handleCheckboxChange(col.key, val)
+// // //                               }
+// // //                             />{" "}
+// // //                             {val}
+// // //                           </label>
+// // //                         ))}
+// // //                     </div>
+// // //                     <div
+// // //                       style={{
+// // //                         display: "flex",
+// // //                         justifyContent: "space-between",
+// // //                         marginTop: 6,
+// // //                       }}
+// // //                     >
+// // //                       <button
+// // //                         onClick={() => clearFilter(col.key)}
+// // //                         style={{
+// // //                           background: "#f3f4f6",
+// // //                           border: "none",
+// // //                           borderRadius: 4,
+// // //                           padding: "4px 8px",
+// // //                           fontSize: "0.75rem",
+// // //                           cursor: "pointer",
+// // //                         }}
+// // //                       >
+// // //                         Clear
+// // //                       </button>
+// // //                       <button
+// // //                         onClick={applyFilter}
+// // //                         style={{
+// // //                           background: "#007bff",
+// // //                           color: "#fff",
+// // //                           border: "none",
+// // //                           borderRadius: 4,
+// // //                           padding: "4px 8px",
+// // //                           fontSize: "0.75rem",
+// // //                           cursor: "pointer",
+// // //                         }}
+// // //                       >
+// // //                         Apply
+// // //                       </button>
+// // //                     </div>
+// // //                   {/* </div> */}
+// // //                 )
+// // //               </th>
+// // //             ))}
+// // //           </tr>
+// // //         </thead>
+
+// // //         <tbody>
+// // //           {(Array.isArray(paginatedData) ? paginatedData : []).map((row, idx) => (
+// // //             <tr
+// // //               key={idx}
+// // //               style={{
+// // //                 height: 32,
+// // //                 borderBottom: "1px solid #e5e7eb",
+// // //                 fontSize: "0.83rem",
+// // //                 cursor: onRowClick ? "pointer" : "default",
+// // //                 background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+// // //                 transition: "background 0.2s ease",
+// // //               }}
+// // //               onClick={onRowClick ? () => onRowClick(row) : undefined}
+// // //               onMouseEnter={(e) =>
+// // //                 (e.currentTarget.style.background = "#e0f2fe")
+// // //               }
+// // //               onMouseLeave={(e) =>
+// // //                 (e.currentTarget.style.background =
+// // //                   idx % 2 === 0 ? "#ffffff" : "#f9fafb")
+// // //               }
+// // //             >
+// // //               {columns.map((col) => (
+// // //                 <td
+// // //                   key={col.key}
+// // //                   style={{
+// // //                     padding: "4px 6px",
+// // //                     color: "#1f2937",
+// // //                     verticalAlign: "middle",
+// // //                   }}
+// // //                 >
+// // //                   {col.render ? col.render(row[col.key], row, idx) : row[col.key] || "-"}
+// // //                 </td>
+// // //               ))}
+// // //             </tr>
+// // //           ))}
+// // //         </tbody>
+// // //       </table>
+// // //     </div>
+// // //   );
+// // // }
+// import React from "react";
+
+// // ✅ Pagination (use if this file also exports it)
 // export function Pagination({ page, setPage, totalPages }) {
 //   const maxVisiblePages = 3;
 
@@ -12,11 +916,11 @@
 //       for (let i = 1; i <= totalPages; i++) pages.push(i);
 //     } else {
 //       if (page <= maxVisiblePages) {
-//         pages = [1, 2, 3, "...", totalPages];
+//         pages = [1,2,3,4 ,"...", totalPages];
 //       } else if (page >= totalPages - 2) {
-//         pages = [1, "...", totalPages - 2, totalPages - 1, totalPages];
+//         pages = [1, "...", totalPages - 3,totalPages-2, totalPages - 1, totalPages];
 //       } else {
-//         pages = [1, "...", page, "...", totalPages];
+//         pages = [1, "...",,page-1,page,page+1,"...", totalPages];
 //       }
 //     }
 //     return pages;
@@ -94,11 +998,6 @@
 //       >
 //         &gt;
 //       </button>
-
-//       {/* Page Info */}
-//       <span style={{ fontSize: "0.9rem", color: "#444", marginLeft: 8 }}>
-//         Page <strong>{page}</strong> of {totalPages}
-//       </span>
 //     </div>
 //   );
 // }
@@ -107,32 +1006,24 @@
 // export default function Table({
 //   columns,
 //   paginatedData = [],
-//   openFilter,
-//   toggleFilter,
-//   filters,
-//   handleCheckboxChange,
-//   searchValue,
-//   setSearchValue,
-//   uniqueValues,
-//   clearFilter,
-//   applyFilter,
+//   rowsPerPage,
 //   onRowClick,
 // }) {
 //   return (
-//     <div
-//       style={{
-//         background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
-//         borderRadius: 10,
-//         padding: "12px",
-//         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-//       }}
-//     >
+//     // <div
+//     //   style={{
+//     //     background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+//     //     borderRadius: 10,
+//     //     padding: "12px",
+//     //     boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+//     //   }}
+//     // >
 //       <table
 //         style={{
 //           width: "100%",
 //           borderCollapse: "collapse",
 //           textAlign: "center",
-//           fontFamily: "Inter, sans-serif,outfit",
+//           fontFamily: "Inter, sans-serif, outfit",
 //           fontSize: "0.85rem",
 //         }}
 //       >
@@ -153,117 +1044,10 @@
 //                 }}
 //               >
 //                 {col.label}
-//                 {col.key !== "serialNo" && col.key !== "more" && (
-//                   <Funnel
-//                     size={4}
-//                     style={{
-//                       marginLeft: 6,
-//                       cursor: "pointer",
-//                       verticalAlign: "middle",
-//                       opacity: 0.3,
-//                     }}
-//                     onClick={() => toggleFilter(col.key)}
-//                   />
-//                 )}
-//                 {openFilter === col.key && (
-//                   <div
-//                     style={{
-//                       position: "absolute",
-//                       top: "110%",
-//                       right: 0,
-//                       background: "#fff",
-//                       border: "1px solid #ddd",
-//                       borderRadius: 6,
-//                       boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-//                       width: 180,
-//                       zIndex: 2500,
-//                       padding: 8,
-//                       textAlign: "left",
-//                     }}
-//                   >
-//                     <input
-//                       type="text"
-//                       placeholder="Search..."
-//                       value={searchValue}
-//                       onChange={(e) => setSearchValue(e.target.value)}
-//                       style={{
-//                         width: "100%",
-//                         padding: "4px 6px",
-//                         marginBottom: 6,
-//                         fontSize: "0.8rem",
-//                         border: "1px solid #ccc",
-//                         borderRadius: 4,
-//                       }}
-//                     />
-//                     <div
-//                       style={{
-//                         maxHeight: 150,
-//                         overflowY: "auto",
-//                         fontSize: "0.8rem",
-//                       }}
-//                     >
-//                       {uniqueValues(col.key)
-//                         .filter((v) =>
-//                           v
-//                             ?.toString()
-//                             .toLowerCase()
-//                             .includes(searchValue.toLowerCase())
-//                         )
-//                         .map((val) => (
-//                           <label key={val} style={{ display: "block" }}>
-//                             <input
-//                               type="checkbox"
-//                               checked={(filters[col.key] || []).includes(val)}
-//                               onChange={() =>
-//                                 handleCheckboxChange(col.key, val)
-//                               }
-//                             />{" "}
-//                             {val}
-//                           </label>
-//                         ))}
-//                     </div>
-//                     <div
-//                       style={{
-//                         display: "flex",
-//                         justifyContent: "space-between",
-//                         marginTop: 6,
-//                       }}
-//                     >
-//                       <button
-//                         onClick={() => clearFilter(col.key)}
-//                         style={{
-//                           background: "#f3f4f6",
-//                           border: "none",
-//                           borderRadius: 4,
-//                           padding: "4px 8px",
-//                           fontSize: "0.75rem",
-//                           cursor: "pointer",
-//                         }}
-//                       >
-//                         Clear
-//                       </button>
-//                       <button
-//                         onClick={applyFilter}
-//                         style={{
-//                           background: "#007bff",
-//                           color: "#fff",
-//                           border: "none",
-//                           borderRadius: 4,
-//                           padding: "4px 8px",
-//                           fontSize: "0.75rem",
-//                           cursor: "pointer",
-//                         }}
-//                       >
-//                         Apply
-//                       </button>
-//                     </div>
-//                   </div>
-//                 )}
 //               </th>
 //             ))}
 //           </tr>
 //         </thead>
-
 //         <tbody>
 //           {(Array.isArray(paginatedData) ? paginatedData : []).map((row, idx) => (
 //             <tr
@@ -294,47 +1078,52 @@
 //                     verticalAlign: "middle",
 //                   }}
 //                 >
-//                   {col.render ? col.render(row[col.key], row, idx) : row[col.key] || "-"}
+//                   {col.render
+//                     ? col.render(row[col.key], row, idx)
+//                     : row[col.key] || "-"}
 //                 </td>
 //               ))}
 //             </tr>
 //           ))}
 //         </tbody>
 //       </table>
-//     </div>
+//     // </div>
 //   );
 // }
-
-import React from "react";
-import { Funnel } from "lucide-react";
-
-// ✅ Pagination (without "Page 1 of 553" text)
-export function Pagination({ page, setPage, totalPages }) {
+ import React, { useEffect, useRef, useState } from "react";
+ 
+/* Inline funnel icon */
+function FunnelIcon({ active = false, size = 14 }) {
+  const stroke = active ? "#b8860b" : "#7a7a7a";
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M3 5.2C3 4.6 3.5 4 4.1 4h15.8c.6 0 1.1.6 1.1 1.2 0 .4-.2.8-.5 1.1L13 12v6.3c0 .4-.3.7-.7.7h-1.6c-.4 0-.7-.3-.7-.7V12L3.4 6.3C3.2 6 3 5.6 3 5.2z"
+        stroke={stroke}
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      {active && <circle cx="17.8" cy="6.4" r="2.0" fill="#b8860b" />}
+    </svg>
+  );
+}
+ 
+/* Pagination (hidden for <=1) */
+export function Pagination({ page, setPage, totalPages = 0 }) {
+  if (!totalPages || totalPages <= 1) return null;
   const maxVisiblePages = 3;
-
   const generatePages = () => {
     let pages = [];
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (page <= maxVisiblePages) {
-        pages = [1, 2, 3, "...", totalPages];
-      } else if (page >= totalPages - 2) {
-        pages = [1, "...", totalPages - 2, totalPages - 1, totalPages];
-      } else {
-        pages = [1, "...", page, "...", totalPages];
-      }
-    }
+    if (totalPages <= 5) for (let i = 1; i <= totalPages; i++) pages.push(i);
+    else if (page <= maxVisiblePages) pages = [1, 2, 3, "...", totalPages];
+    else if (page >= totalPages - 2) pages = [1, "...", totalPages - 2, totalPages - 1, totalPages];
+    else pages = [1, "...", page, "...", totalPages];
     return pages;
   };
-
   const pages = generatePages();
-
-  const handleClick = (p) => {
-    if (p === "..." || p === page) return;
-    setPage(p);
-  };
-
+ 
   return (
     <div
       style={{
@@ -379,82 +1168,10 @@ export function Pagination({ page, setPage, totalPages }) {
             cursor: p === "..." ? "default" : "pointer",
             fontWeight: p === page ? 600 : 400,
           }}
-=======
- /* src/Utils/Table.jsx */
-import React, { useEffect, useRef, useState } from "react";
-
-/* ---------- Filled funnel SVG ---------- */
-function FilledFunnel({ active = false, size = 16 }) {
-  const fill = active ? "#2563eb" : "#9ca3af";
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
-      <path
-        d="M3 5.5C3 4.6716 3.6716 4 4.5 4H19.5C20.3284 4 21 4.6716 21 5.5C21 5.9886 20.7548 6.4439 20.3466 6.7399L13 11.9V16.5C13 16.7761 12.7761 17 12.5 17H11.5C11.2239 17 11 16.7761 11 16.5V11.9L3.6534 6.7399C3.2452 6.4439 3 5.9886 3 5.5Z"
-        fill={fill}
-        stroke={fill}
-        strokeWidth="0.4"
-      />
-    </svg>
-  );
-}
-
-/* ---------- Pagination (styled like your screenshot) ---------- */
-export function Pagination({ page, setPage, totalPages = 0 }) {
-  if (!totalPages || totalPages <= 1) return null;
-
-  const pages = (() => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    const out = [1];
-    if (page > 3) out.push("...");
-    const start = Math.max(2, page - 1);
-    const end = Math.min(totalPages - 1, page + 1);
-    for (let i = start; i <= end; i++) out.push(i);
-    if (page < totalPages - 2) out.push("...");
-    out.push(totalPages);
-    return out;
-  })();
-
-  const btn = (disabled) => ({
-    minWidth: 34,
-    height: 34,
-    borderRadius: 8,
-    border: "1px solid #e6eef8",
-    background: disabled ? "#f8fafc" : "#fff",
-    color: disabled ? "#cbd5e1" : "#374151",
-    cursor: disabled ? "not-allowed" : "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  });
-
-  const pageBtn = {
-    minWidth: 34,
-    height: 34,
-    borderRadius: 8,
-    border: "1px solid #e6eef8",
-    background: "#fff",
-    color: "#334155",
-    cursor: "pointer",
-    fontSize: 14,
-  };
-
-  const activePage = { ...pageBtn, background: "#2563eb", color: "#fff", border: "1px solid #2563eb", fontWeight: 700 };
-
-  return (
-    <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 12 }}>
-      <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} style={btn(page === 1)} aria-label="Prev">‹</button>
-      {pages.map((p, i) => (
-        <button
-          key={i}
-          onClick={() => typeof p === "number" && setPage(p)}
-          disabled={p === "..."}
-          style={p === page ? activePage : pageBtn}
->>>>>>> 575ef5d (newupdate)
         >
           {p}
         </button>
       ))}
-<<<<<<< HEAD
 
       {/* Next Button */}
       <button
@@ -472,25 +1189,18 @@ export function Pagination({ page, setPage, totalPages = 0 }) {
       >
         &gt;
       </button>
-=======
-      <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} style={btn(page === totalPages)} aria-label="Next">›</button>
->>>>>>> 575ef5d (newupdate)
     </div>
   );
 }
 
-<<<<<<< HEAD
 // ✅ Main Table
 export default function Table({
   columns,
   paginatedData = [],
   openFilter,
   toggleFilter,
-  filters,
+  filters = {},
   handleCheckboxChange,
-  searchValue,
-  setSearchValue,
-=======
 /* ---------- inject CSS helpers once ---------- */
 function injectHelpers() {
   if (document.getElementById("tutils-styles")) return;
@@ -525,152 +1235,10 @@ export default function Table({
   openFilter,
   toggleFilter = () => {},
   handleCheckboxChange = () => {},
->>>>>>> 575ef5d (newupdate)
   uniqueValues,
   clearFilter,
   applyFilter,
   onRowClick,
-<<<<<<< HEAD
-}) {
-  return (
-    <div
-      style={{
-        background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
-        borderRadius: 10,
-        padding: "12px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-      }}
-    >
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          textAlign: "center",
-          fontFamily: "Inter, sans-serif,outfit",
-          fontSize: "0.85rem",
-        }}
-      >
-        <thead>
-          <tr style={{ background: "#f3f4f6", height: 36 }}>
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                style={{
-                  padding: "6px 8px",
-                  fontWeight: 600,
-                  fontSize: "0.85rem",
-                  borderBottom: "1px solid #e5e7eb",
-                  position: "relative",
-                  color: "#1e293b",
-                  textAlign: "center",
-                  background: "#f8fafc",
-                }}
-              >
-                {col.label}
-                {col.key !== "serialNo" && col.key !== "more" && (
-                  <Funnel
-                    size={4}
-                    style={{
-                      marginLeft: 6,
-                      cursor: "pointer",
-                      verticalAlign: "middle",
-                      opacity: 0.3,
-                    }}
-                    onClick={() => toggleFilter(col.key)}
-                  />
-                )}
-                {openFilter === col.key && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "110%",
-                      right: 0,
-                      background: "#fff",
-                      border: "1px solid #ddd",
-                      borderRadius: 6,
-                      boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                      width: 180,
-                      zIndex: 2500,
-                      padding: 8,
-                      textAlign: "left",
-                    }}
-                  >
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchValue}
-                      onChange={(e) => setSearchValue(e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "4px 6px",
-                        marginBottom: 6,
-                        fontSize: "0.8rem",
-                        border: "1px solid #ccc",
-                        borderRadius: 4,
-                      }}
-                    />
-                    <div
-                      style={{
-                        maxHeight: 150,
-                        overflowY: "auto",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      {uniqueValues(col.key)
-                        .filter((v) =>
-                          v
-                            ?.toString()
-                            .toLowerCase()
-                            .includes(searchValue.toLowerCase())
-                        )
-                        .map((val) => (
-                          <label key={val} style={{ display: "block" }}>
-                            <input
-                              type="checkbox"
-                              checked={(filters[col.key] || []).includes(val)}
-                              onChange={() =>
-                                handleCheckboxChange(col.key, val)
-                              }
-                            />{" "}
-                            {val}
-                          </label>
-                        ))}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginTop: 6,
-                      }}
-                    >
-                      <button
-                        onClick={() => clearFilter(col.key)}
-                        style={{
-                          background: "#f3f4f6",
-                          border: "none",
-                          borderRadius: 4,
-                          padding: "4px 8px",
-                          fontSize: "0.75rem",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Clear
-                      </button>
-                      <button
-                        onClick={applyFilter}
-                        style={{
-                          background: "#007bff",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 4,
-                          padding: "4px 8px",
-                          fontSize: "0.75rem",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Apply
-                      </button>
-=======
   page = 1,
   rowsPerPage = 15,
 }) {
@@ -927,7 +1495,6 @@ export default function Table({
                           Apply
                         </button>
                       </div>
->>>>>>> 575ef5d (newupdate)
                     </div>
                   </div>
                 )}
@@ -935,44 +1502,8 @@ export default function Table({
             ))}
           </tr>
         </thead>
-
+ 
         <tbody>
-<<<<<<< HEAD
-          {(Array.isArray(paginatedData) ? paginatedData : []).map((row, idx) => (
-            <tr
-              key={idx}
-              style={{
-                height: 32,
-                borderBottom: "1px solid #e5e7eb",
-                fontSize: "0.83rem",
-                cursor: onRowClick ? "pointer" : "default",
-                background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
-                transition: "background 0.2s ease",
-              }}
-              onClick={onRowClick ? () => onRowClick(row) : undefined}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "#e0f2fe")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background =
-                  idx % 2 === 0 ? "#ffffff" : "#f9fafb")
-              }
-            >
-              {columns.map((col) => (
-                <td
-                  key={col.key}
-                  style={{
-                    padding: "4px 6px",
-                    color: "#1f2937",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  {col.render ? col.render(row[col.key], row, idx) : row[col.key] || "-"}
-                </td>
-              ))}
-            </tr>
-          ))}
-=======
           {(paginatedData || []).length === 0 ? (
             <tr><td colSpan={columns.length} className="tutils-td" style={{ textAlign: "center", padding: 14, color: "#64748b" }}>Loading</td></tr>
           ) : (
@@ -1002,7 +1533,24 @@ export default function Table({
               );
             })
           )}
->>>>>>> 575ef5d (newupdate)
+          
+          {(paginatedData || []).length === 0 ? (
+            <tr>
+              <td colSpan={columns.length} style={{ padding: 18, textAlign: "center", color: "#666" }}>
+                No records found
+              </td>
+            </tr>
+          ) : (
+            (paginatedData || []).map((row, rIdx) => (
+              <tr key={rIdx} onClick={onRowClick ? () => onRowClick(row) : undefined} style={{ borderBottom: "1px solid #f1f5f9", background: rIdx % 2 === 0 ? "#fff" : "#fbfdff", cursor: onRowClick ? "pointer" : "default" }}>
+                {columns.map((col, cIdx) => (
+                  <td key={cIdx} style={{ padding: "8px 10px", textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {col.render ? col.render(row[col.key], row, rIdx) : row[col.key] ?? "-"}
+                  </td>
+                ))}
+              </tr>
+            ))
+          )} 
         </tbody>
       </table>
     </div>
