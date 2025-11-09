@@ -1,24 +1,46 @@
- import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
+import { useNavigate } from "react-router-dom";
 import { useApi } from "../../API/Api.js";
-import Table from "../../Utils/Table.jsx";
-import formatAmount from "../../Utils/formatAmount.js";
+import { Search, Eye, X } from "lucide-react";
+import Table,{Pagination}from "../../Utils/Table.jsx";
 
 export default function ActiveListings() {
   const { fetchData } = useApi();
+  const navigate = useNavigate();
+
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
+  const [filters, setFilters] = useState({});
+  const [openFilter, setOpenFilter] = useState(null);
+  const [searchValue, setSearchValue] = useState("");
+  const [page, setPage] = useState(1);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const rowsPerPage = 15;
 
   useEffect(() => {
     async function loadData() {
-      setLoading(true);
       try {
+        setLoading(true);
         const response = await fetchData("ActiveListingDataInfo");
-        setData(response || []);
+        const arr = Array.isArray(response) ? response : response.data || [];
+        const cleanedData = arr.map(
+          ({
+            PropertyLatitude,
+            PropertyLongitude,
+            ProjectSpecialOrderID,
+            PreCalculatedSqft,
+            PreCalculatedDisplayAmount,
+            DisplayOrderID,
+            ...rest
+          }) => rest
+        );
+        setData(cleanedData);
+        setFilteredData(cleanedData);
       } catch (err) {
-        setError(err.message || "Failed to fetch active listings");
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -26,193 +48,247 @@ export default function ActiveListings() {
     loadData();
   }, [fetchData]);
 
-  const mainKeys = [
-    "PropertyID",
-    "PropertyName",
-    "PropertyType",
-    "PropertyStatus",
-    "PropertyArea",
-    "DisplayAmount",
-    "Locality",
-    "Bedrooms",
-  ];
+  // Filtering logic (global search + column filters)
+  useEffect(() => {
+    let result = [...data];
+
+    Object.keys(filters).forEach((key) => {
+      const selected = filters[key];
+      if (selected && selected.length > 0) {
+        result = result.filter((row) => selected.includes(row[key]));
+      }
+    });
+
+    if (searchValue.trim()) {
+      const lower = searchValue.toLowerCase();
+      result = result.filter((row) =>
+        Object.values(row).some(
+          (val) => val && val.toString().toLowerCase().includes(lower)
+        )
+      );
+    }
+
+    setFilteredData(result);
+    setPage(1);
+  }, [filters, data, searchValue]);
+
+  const getUniqueValues = (key) =>
+    [...new Set(data.map((item) => item[key]).filter(Boolean))];
+
+  const handleCheckboxChange = (columnKey, value) => {
+    setFilters((prev) => {
+      const existing = prev[columnKey] || [];
+      return existing.includes(value)
+        ? { ...prev, [columnKey]: existing.filter((v) => v !== value) }
+        : { ...prev, [columnKey]: [...existing, value] };
+    });
+  };
+
+  // toggleFilter adapter for Table component
+  const toggleFilter = (columnKey) => {
+    setOpenFilter((prev) => (prev === columnKey ? null : columnKey));
+  };
 
   const columns = [
-    { label: "S.No", key: "serialNo", render: (_, __, idx) => idx + 1 },
+    // Table computes serial using page + rowsPerPage if passed
+    { label: "S.No", key: "serialNo", canFilter: false },
     { label: "Property ID", key: "PropertyID" },
     { label: "Property Name", key: "PropertyName" },
     { label: "Property Type", key: "PropertyType" },
     { label: "Property Status", key: "PropertyStatus" },
     { label: "Area", key: "PropertyArea" },
     {
-      label: "Amount",
-      key: "DisplayAmount",
-      render: (val) => (val ? formatAmount(val) : "-"),
+      label: "Price",
+      key: "AmountWithUnit",
+      render: (val) =>
+        val ? (val.toString().includes("₹") ? val : `₹ ${val}`) : "-",
+      // align right if your Table supports `align` (Table.jsx treats `align` if present)
+      align: "right",
     },
     { label: "Locality", key: "Locality" },
     { label: "Bedrooms", key: "Bedrooms" },
     {
-      label: "More",
-      key: "more",
+      label: "Action",
+      key: "action",
+      canFilter: false,
       render: (_, row) => (
-        <button
-          onClick={() => setSelectedRow(row)}
+        // Eye icon only (no surrounding button box)
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedRow(row);
+          }}
+          role="button"
+          aria-label="View property"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setSelectedRow(row);
+            }
+          }}
           style={{
-            background: "#007bff",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            padding: "4px 10px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             cursor: "pointer",
-            fontSize: "0.85rem",
+            padding: 0,
+            margin: 0,
+            lineHeight: 0,
+            color: "#1b2337",
           }}
         >
-          View
-        </button>
+          <Eye size={16} />
+        </span>
       ),
     },
   ];
 
-  const hiddenCols = selectedRow
-    ? Object.entries(selectedRow).filter(([key]) => !mainKeys.includes(key))
-    : [];
+  // Paginate filtered data
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return filteredData.slice(start, start + rowsPerPage);
+  }, [filteredData, page]);
 
-  const renameKey = (key) => {
-    const mapping = {
-      PropertyCity: "City",
-      PropertyState: "State",
-      PropertyZipcode: "Zipcode",
-      PropertyLatitude: "Latitude",
-      PropertyLongitude: "Longitude",
-      AmountWithUnit: "Amount with Unit",
-      ProjectID: "Project ID",
-      DisplayOrderID: "Display Order ID",
-      ProjectSpecialOrderID: "Special Order ID",
-      PropertyBathrooms: "Bathrooms",
-      PropertyMainEntranceFacing: "Main Entrance Facing",
-    };
-    return mapping[key] || key;
+  const formatKeyName = (key) => {
+    if (key === "MainEntranceFacing") return "Facing";
+    if (key === "AmountWithUnit") return "Price";
+    let name = key.replace(/^Property/, "");
+    if (name === "ID") return "ID";
+    return name.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
   };
 
-  if (loading) return <p style={{ padding: 24 }}>Loading active listings...</p>;
-  if (error) return <p style={{ padding: 24, color: "red" }}>{error}</p>;
-  if (!data.length) return <p style={{ padding: 24 }}>No active listings found.</p>;
+  // helper used by Table to indicate active filters (optional for your UI)
+  const hasActiveFilter = (key) => filters[key]?.length > 0;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f9f9f9" }}>
-      <Sidebar />
-      <div
-        style={{
-          flex: 1,
-          padding: 24,
-          marginLeft: 235, // Important to prevent table overflow
-        }}
-      >
-        <h2 style={{ marginBottom: 20 }}>Active Listings</h2>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
+      <div style={{ flexShrink: 0 }}>
+        <Sidebar />
+      </div>
 
-        <div
+      <div style={{ flex: 1, padding: 20, marginLeft: "180px", position: "relative" }}>
+        {/* reduced gap: marginBottom lowered */}
+        <button
+          onClick={() => navigate("/dashboard")}
           style={{
-            borderRadius: 8,
-            overflow: "hidden",
             background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: 8,
+            padding: "6px 14px",
+            cursor: "pointer",
+            fontSize: "0.8rem",
+            color: "#121212",
+            marginBottom: 1,
           }}
         >
+          Back
+        </button>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <h2
+            style={{
+              marginBottom: 3,
+              color: "#222",
+              fontSize: "1.05rem",
+              fontWeight: "600",
+            }}
+          >
+            Active Listings
+          </h2>
+
+          <div style={{ position: "relative", width: 200 }}>
+            <Search
+              size={17}
+              color="#adb1bd"
+              style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)" }}
+            />
+            <input
+              type="text"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Search"
+              style={{
+                padding: "8px 12px 8px 34px",
+                borderRadius: 8,
+                border: "1px solid #e5e7eb",
+                background: "#f7fafd",
+                fontSize: 14,
+                color: "#1a2230",
+                width: "170px",
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={{ borderRadius: 8, background: "#fff", padding: 10 }}>
+          {/* Reusable Table component */}
           <Table
             columns={columns}
-            data={data}
-            rowsPerPage={15}
-            rowStyle={{ height: 30, fontSize: "0.85rem" }} // Reduced row height
+            paginatedData={paginatedData}
+            filters={filters}
+            openFilter={openFilter}
+            toggleFilter={toggleFilter}
+            handleCheckboxChange={handleCheckboxChange}
+            uniqueValues={getUniqueValues}
+            hasActiveFilter={hasActiveFilter}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            clearFilter={(colKey) => setFilters((prev) => ({ ...prev, [colKey]: [] }))}
+            applyFilter={() => {}}
+            onRowClick={(row) => setSelectedRow(row)}
+          />
+
+          <Pagination
+            page={page}
+            setPage={setPage}
+            totalPages={Math.ceil(filteredData.length / rowsPerPage)}
           />
         </div>
 
-        {/* Slide Panel */}
         {selectedRow && (
-          <>
-            <div
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              right: 0,
+              width: "400px",
+              height: "100%",
+              background: "#fff",
+              boxShadow: "-2px 0 8px rgba(0,0,0,0.2)",
+              zIndex: 1500,
+             // overflowY: "auto",
+              padding: 20,
+            }}
+          >
+            <X
+              size={22}
+              color="red"
+              style={{ cursor: "pointer", float: "right" }}
               onClick={() => setSelectedRow(null)}
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "90%",
-                height: "100%",
-                background: "rgba(0,0,0,0.4)",
-                zIndex: 998,
-              }}
             />
+            <h3 style={{ fontSize: "1.4rem", marginBottom: 10 }}>Property Details</h3>
 
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                right: 0,
-                width: "350px",
-                height: "100%",
-                background: "#fff",
-                zIndex: 999,
-                padding: 20,
-                overflowY: "auto",
-                boxShadow: "-2px 0 12px rgba(0,0,0,0.15)",
-              }}
-            >
-              <button
-                onClick={() => setSelectedRow(null)}
-                style={{
-                  float: "right",
-                  fontSize: 24,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                ×
-              </button>
-
-              {selectedRow.ImageUrl && (
-                <div style={{ marginBottom: 16 }}>
-                  <img
-                    src={selectedRow.ImageUrl.replace(/[\[\]"']/g, "")}
-                    alt={selectedRow.PropertyName}
-                    style={{
-                      width: "100%",
-                      height: 200,
-                      objectFit: "cover",
-                      borderRadius: 6,
-                    }}
-                  />
-                </div>
-              )}
-
-              <h3 style={{ marginTop: 0, marginBottom: 20 }}>Property Details</h3>
-
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left", padding: 6, borderBottom: "2px solid #ddd" }}>Column</th>
-                    <th style={{ textAlign: "left", padding: 6, borderBottom: "2px solid #ddd" }}>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {hiddenCols.length === 0 ? (
-                    <tr>
-                      <td colSpan={2} style={{ textAlign: "center", padding: 16 }}>
-                        No additional details
-                      </td>
-                    </tr>
-                  ) : (
-                    hiddenCols.map(([key, val]) => (
-                      <tr key={key}>
-                        <td style={{ fontWeight: 600, padding: "6px 8px", borderBottom: "1px solid #eee" }}>
-                          {renameKey(key)}
-                        </td>
-                        <td style={{ padding: "6px 8px", borderBottom: "1px solid #eee" }}>{val ?? "-"}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
+            {Object.entries(selectedRow)
+              .filter(
+                ([key]) =>
+                  key !== "DisplayAmount" &&
+                  key !== "PropertyLatitude" &&
+                  key !== "PropertyLongitude" &&
+                  key !== "ProjectOrderID"
+              )
+              .sort(([a], [b]) => {
+                if (a === "PropertyState" || a === "PropertyZipcode") return 1;
+                if (b === "PropertyState" || b === "PropertyZipcode") return -1;
+                return 0;
+              })
+              .map(([key, value]) => (
+                <p key={key} style={{ fontSize: "1.05rem", margin: "6px 0", lineHeight: "1.6" }}>
+                  <strong>{key === "PropertyMainEntranceFacing" ? "Facing" : formatKeyName(key)}:</strong>{" "}
+                  {key === "AmountWithUnit" && value ? `₹ ${value}` : value || "-"}
+                </p>
+              ))}
+          </div>
         )}
       </div>
     </div>

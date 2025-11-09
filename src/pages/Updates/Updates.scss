@@ -393,5 +393,203 @@
   background-color: #e5d099;
   border-color: #b8860b;
 }
+/* ============================
+   Filter dropdown & checkbox fixes
+   (Append to your Updates.scss)
+   ============================ */
+
+/* Target dropdowns created with class names (preferred) */
+.filter-dropdown,
+.filter-dropdown-inner,
+.filter-options,
+.filter-dropdown * {
+  box-sizing: border-box;
+  font-family: "Outfit", sans-serif;
+}
+
+/* Fallback: try to capture inline dropdowns (common pattern) */
+.updates-table th > div > div[style*="position: absolute"],
+.updates-table th div[style*="position: absolute"],
+.updates-table th div[style*="box-shadow"] {
+  /* mark the element so it is easier to inspect */
+  z-index: 5000;
+  will-change: transform, opacity;
+}
+
+/* MAIN DROPDOWN CARD appearance */
+.filter-dropdown,
+.updates-table th > div > div[style*="position: absolute"] {
+  width: 260px !important;           /* wider like screenshot */
+  max-width: 320px !important;
+  background: #ffffff !important;
+  border-radius: 8px !important;
+  border: 1px solid #e6eef8 !important;
+  box-shadow: 0 8px 30px rgba(16,24,40,0.12) !important;
+  padding: 10px !important;
+  color: #0f1724 !important;
+  right: 0 !important;
+  top: calc(100% + 6px) !important;
+}
+
+/* Search input inside dropdown */
+.filter-dropdown input[type="text"],
+.updates-table th > div > div[style*="position: absolute"] input[type="text"] {
+  width: 100% !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e6eef8 !important;
+  font-size: 13px !important;
+  margin-bottom: 8px !important;
+}
+
+/* Select/Clear row */
+.filter-dropdown .filter-actions-row,
+.updates-table th > div > div[style*="position: absolute"] .filter-actions-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-bottom: 6px !important;
+}
+
+/* Options list */
+.filter-dropdown .filter-options,
+.updates-table th > div > div[style*="position: absolute"] .filter-options,
+.updates-table th > div > div[style*="position: absolute"] > div {
+  max-height: 220px !important;
+  overflow-y: auto !important;
+  padding-right: 6px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+/* Improve scroll appearance (webkit browsers) */
+.filter-dropdown .filter-options::-webkit-scrollbar,
+.updates-table th > div > div[style*="position: absolute"] .filter-options::-webkit-scrollbar {
+  width: 8px;
+}
+.filter-dropdown .filter-options::-webkit-scrollbar-thumb,
+.updates-table th > div > div[style*="position: absolute"] .filter-options::-webkit-scrollbar-thumb {
+  background: rgba(31,111,235,0.12);
+  border-radius: 6px;
+}
+
+/* Each option: align checkbox and label nicely */
+.filter-dropdown .filter-option,
+.updates-table th > div > div[style*="position: absolute"] label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 6px 6px !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+}
+
+/* Hover state for options */
+.filter-dropdown .filter-option:hover,
+.updates-table th > div > div[style*="position: absolute"] label:hover {
+  background: #fbfdff !important;
+}
+
+/* Checkbox size + visual */
+.filter-dropdown .filter-option input[type="checkbox"],
+.updates-table th > div > div[style*="position: absolute"] input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  accent-color: #1f6feb !important; /* modern browsers */
+  vertical-align: middle !important;
+}
+
+/* Label text overflow handling */
+.filter-dropdown .opt-label,
+.updates-table th > div > div[style*="position: absolute"] span,
+.filter-dropdown label span {
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: inline-block !important;
+  max-width: 190px !important; /* keeps labels on one line with ellipsis */
+}
+
+/* Footer - Apply / Cancel buttons */
+.filter-dropdown .filter-dropdown-footer,
+.updates-table th > div > div[style*="position: absolute"] .filter-dropdown-footer {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  margin-top: 6px !important;
+}
+
+/* Primary Apply button */
+.filter-dropdown .btn-apply,
+.updates-table th > div > div[style*="position: absolute"] .btn-apply {
+  background: #172554 !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  border: none !important;
+  font-weight: 700 !important;
+}
+
+/* Cancel button */
+.filter-dropdown .btn-cancel,
+.updates-table th > div > div[style*="position: absolute"] .btn-cancel {
+  background: #fff !important;
+  border: 1px solid #e6eef8 !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+}
+
+/* Active filter small dot */
+.updates-table th .filter-btn.active::after,
+.updates-table th button[aria-pressed="true"]::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 6px !important;
+  right: 12px !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 999px !important;
+  background: #1f6feb !important;
+  box-shadow: 0 0 0 3px rgba(31,111,235,0.12) !important;
+}
+
+/* Make sure the filter icon has enough clickable area */
+.updates-table th button.filter-btn,
+.updates-table th button[title^="Filter"] {
+  padding: 6px !important;
+  border-radius: 6px !important;
+}
+
+/* If dropdown markup uses class names from previous helper code */
+.filter-dropdown .no-values,
+.updates-table th > div > div[style*="position: absolute"] .no-values {
+  color: #64748b !important;
+  padding: 8px 6px !important;
+  font-size: 13px !important;
+}
+
+/* Accessibility: ensure focus ring visible on keyboard navigation */
+.filter-dropdown input[type="text"]:focus,
+.updates-table th input[type="text"]:focus,
+.filter-dropdown button:focus,
+.updates-table th button:focus {
+  outline: 2px solid rgba(31,111,235,0.2) !important;
+  outline-offset: 2px !important;
+}
+
+/* Small responsive tweak for tiny screens */
+@media (max-width: 520px) {
+  .filter-dropdown,
+  .updates-table th > div > div[style*="position: absolute"] {
+    width: calc(100vw - 32px) !important;
+    left: 16px !important;
+    right: 16px !important;
+  }
+}
+
 
 

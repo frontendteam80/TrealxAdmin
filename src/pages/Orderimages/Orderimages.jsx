@@ -1,8 +1,8 @@
- import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
-import { useApi } from "../../API/Api.js";
-import Table from "../../Utils/Table.jsx";
 import { useNavigate } from "react-router-dom";
+import { useApi } from "../../API/Api.js";
+import Table, { Pagination } from "../../Utils/Table.jsx";
 import {
   DndContext,
   closestCenter,
@@ -13,10 +13,11 @@ import {
 import {
   arrayMove,
   SortableContext,
-  useSortable,
   rectSortingStrategy,
+  useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Eye, X } from "lucide-react";
 
 // ---------- Sortable Image ----------
 function SortableImage({ img, id, index, total }) {
@@ -64,7 +65,7 @@ function SortableImage({ img, id, index, total }) {
       <span
         style={{
           marginTop: 8,
-          fontSize: "0.95em",
+          fontSize: "0.9em",
           color: "#333",
           fontWeight: 600,
         }}
@@ -77,26 +78,34 @@ function SortableImage({ img, id, index, total }) {
 
 // ---------- Main Component ----------
 export default function OrderImages() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const { fetchData, postData } = useApi();
-  const [showModal, setShowModal] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [editableImages, setEditableImages] = useState([]);
-  const [modified, setModified] = useState(false);
-
-  const [pageIndex, setPageIndex] = useState(0);
-  const rowsPerPage = 15;
-
   const navigate = useNavigate();
 
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [filters, setFilters] = useState({});
+  const [openFilter, setOpenFilter] = useState(null);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 15;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [showModal, setShowModal] = useState(false);
+  const [editableImages, setEditableImages] = useState([]);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [modified, setModified] = useState(false);
+
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  // ✅ Fetch Order Image Data
   useEffect(() => {
-    async function load() {
+    async function loadData() {
       try {
-        const data = await fetchData("OrderImage");
+        setLoading(true);
+        const result = await fetchData("OrderImage");
+
         const grouped = {};
-        (data || []).forEach((img) => {
+        (result || []).forEach((img) => {
           if (!grouped[img.ProjectID]) {
             grouped[img.ProjectID] = {
               id: img.ProjectID,
@@ -110,69 +119,40 @@ export default function OrderImages() {
           }
           grouped[img.ProjectID].images.push(img);
         });
-        setProjects(Object.values(grouped));
+
+        const arr = Object.values(grouped);
+        setData(arr);
+        setFilteredData(arr);
       } catch (err) {
         setError(err.message || "Error loading images");
       } finally {
         setLoading(false);
-        setPageIndex(0);
       }
     }
-    load();
+    loadData();
   }, [fetchData]);
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  // ✅ Filter logic
+  useEffect(() => {
+    let result = [...data];
+    Object.keys(filters).forEach((key) => {
+      const selected = filters[key];
+      if (selected && selected.length > 0 && !selected.includes("All")) {
+        result = result.filter((row) => selected.includes(row[key]));
+      }
+    });
+    setFilteredData(result);
+    setPage(1);
+  }, [filters, data]);
 
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    if (active.id !== over.id) {
-      const oldIndex = editableImages.findIndex(
-        (img, idx) => (img.DisplayOrderID != null ? img.DisplayOrderID : idx + 1).toString() === active.id
-      );
-      const newIndex = editableImages.findIndex(
-        (img, idx) => (img.DisplayOrderID != null ? img.DisplayOrderID : idx + 1).toString() === over.id
-      );
-
-      const newArr = arrayMove(editableImages, oldIndex, newIndex).map((img, idx) => ({
-        ...img,
-        DisplayOrderID: idx + 1,
-      }));
-
-      setEditableImages(newArr);
-      setModified(true);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      if (!editableImages.length) return;
-
-      await postData("OrderImage/UpdateOrder", editableImages);
-
-      setSelectedProject((prev) => ({ ...prev, images: editableImages }));
-      setProjects((prev) =>
-        prev.map((p) => (p.ProjectID === selectedProject.ProjectID ? { ...p, images: editableImages } : p))
-      );
-
-      setShowModal(false);
-      setModified(false);
-      alert("✅ Image order saved successfully!");
-    } catch (err) {
-      console.error("Error saving order:", err);
-      alert("❌ Failed to save order. Please check server/API.");
-    }
-  };
-
-  const handleClose = () => {
-    setShowModal(false);
-    setModified(false);
-    setEditableImages(selectedProject ? selectedProject.images : []);
-  };
-
+  // ✅ Columns (serial now reflects pagination)
   const columns = [
-    { label: "S.No", key: "serial", render: (_, __, index) => index + 1 + pageIndex * rowsPerPage },
+    {
+      label: "S.No",
+      key: "serialNo",
+      render: (_, __, idx) => (page - 1) * rowsPerPage + (idx + 1),
+      canFilter: false,
+    },
     { label: "Project ID", key: "ProjectID" },
     { label: "Project Name", key: "ProjectName" },
     { label: "Locality", key: "Locality" },
@@ -181,148 +161,210 @@ export default function OrderImages() {
     {
       label: "Image Count",
       key: "images",
-      render: (images) => (Array.isArray(images) ? images.length : 0),
+      render: (imgs) => (Array.isArray(imgs) ? imgs.length : 0),
     },
     {
       label: "Action",
       key: "action",
+      canFilter: false,
       render: (_, row) => (
         <button
-          style={{
-            background: "#121212",
-            cursor: "pointer",
-            color: "#fff",
-            padding: "3px 8px",
-            borderRadius: "6px",
-            fontWeight: 600,
-            fontSize: "0.95em",
-            border: "none",
-          }}
           onClick={() => {
-            const sortedImgs = [...row.images].sort(
-              (a, b) => (a.DisplayOrderID || 0) - (b.DisplayOrderID || 0)
-            );
-            setSelectedProject(row);
+            const sortedImgs = [...row.images]
+              .sort((a, b) => (a.DisplayOrderID || 0) - (b.DisplayOrderID || 0))
+              .map((img, idx) => {
+                const sortableId = img.ImageID
+                  ? String(img.ImageID)
+                  : `temp-${Date.now()}-${idx}`;
+                return {
+                  ...img,
+                  sortableId,
+                  DisplayOrderID: img.DisplayOrderID ?? idx + 1,
+                };
+              });
+
+            setSelectedRow(row);
             setEditableImages(sortedImgs);
             setShowModal(true);
             setModified(false);
           }}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+          }}
+          title="View Images"
         >
-          Edit
+          <Eye size={16} color="#111" />
         </button>
       ),
     },
   ];
 
-  const paginatedProjects = projects.slice(pageIndex * rowsPerPage, (pageIndex + 1) * rowsPerPage);
+  // ✅ Paginated data
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return filteredData.slice(start, start + rowsPerPage);
+  }, [filteredData, page]);
 
-  const navButtonStyle = {
-    padding: "5px 10px",
-    margin: "0 5px",
-    borderRadius: 6,
-    border: "1px solid #ccc",
-    backgroundColor: "#fff",
-    color: "#725fe9",
-    fontWeight: "bold",
-    cursor: "pointer",
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+
+  const toggleFilter = (key) =>
+    setOpenFilter((prev) => (prev === key ? null : key));
+
+  const handleCheckboxChange = (key, value) => {
+    setFilters((prev) => {
+      const existing = prev[key] || [];
+      return existing.includes(value)
+        ? { ...prev, [key]: existing.filter((v) => v !== value) }
+        : { ...prev, [key]: [...existing, value] };
+    });
   };
 
-  const pageButtonStyle = {
-    padding: "6px 12px",
-    margin: "0 4px",
-    borderRadius: 6,
-    outline: "none",
-    cursor: "pointer",
+  const uniqueValues = (key) => [
+    ...new Set(data.map((d) => d[key]).filter(Boolean)),
+  ];
+
+  const clearFilter = (key) => {
+    setFilters((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
+    setOpenFilter(null);
   };
 
-  function renderPagination() {
-    const totalPages = Math.ceil(projects.length / rowsPerPage);
-    const buttons = [];
-    buttons.push(0);
-    let left = Math.max(1, pageIndex - 2);
-    let right = Math.min(totalPages - 2, pageIndex + 2);
+  const hasActiveFilter = (key) => filters[key]?.length > 0;
 
-    if (left > 1) buttons.push("left-ellipsis");
-    for (let i = left; i <= right; i++) buttons.push(i);
-    if (right < totalPages - 2) buttons.push("right-ellipsis");
-    if (totalPages > 1) buttons.push(totalPages - 1);
+  // ✅ Drag end logic
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    return (
-      <div style={{ textAlign: "center", marginTop: 20 }}>
-        <button onClick={() => setPageIndex(0)} disabled={pageIndex === 0} style={navButtonStyle}>««</button>
-        <button onClick={() => setPageIndex(Math.max(pageIndex - 1, 0))} disabled={pageIndex === 0} style={navButtonStyle}>‹</button>
-
-        {buttons.map((b, idx) => {
-          if (typeof b === "string") return <span key={b + idx} style={{ padding: "0 6px" }}>...</span>;
-          return (
-            <button
-              key={b}
-              onClick={() => setPageIndex(b)}
-              style={{
-                ...pageButtonStyle,
-                backgroundColor: b === pageIndex ? "#725fe9" : "#fff",
-                color: b === pageIndex ? "#fff" : "#222",
-                border: b === pageIndex ? "2px solid #725fe9" : "1px solid #ccc",
-                fontWeight: b === pageIndex ? 700 : 400,
-              }}
-            >
-              {b + 1}
-            </button>
-          );
-        })}
-
-        <button onClick={() => setPageIndex(Math.min(pageIndex + 1, totalPages - 1))} disabled={pageIndex === totalPages - 1} style={navButtonStyle}>›</button>
-        <button onClick={() => setPageIndex(totalPages - 1)} disabled={pageIndex === totalPages - 1} style={navButtonStyle}>»»</button>
-      </div>
+    const oldIndex = editableImages.findIndex(
+      (img) => String(img.sortableId) === String(active.id)
     );
-  }
+    const newIndex = editableImages.findIndex(
+      (img) => String(img.sortableId) === String(over.id)
+    );
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newArr = arrayMove(editableImages, oldIndex, newIndex).map(
+      (img, idx) => ({
+        ...img,
+        DisplayOrderID: idx + 1,
+      })
+    );
+
+    setEditableImages(newArr);
+    setModified(true);
+  };
+
+  // ✅ Save order payload
+  const handleSave = async () => {
+    try {
+      const payload = editableImages.map((img) => ({
+        ImageID: img.ImageID ?? null,
+        ProjectID: img.ProjectID ?? selectedRow?.ProjectID,
+        ImageUrl: img.ImageUrl,
+        DisplayOrderID: img.DisplayOrderID,
+      }));
+
+      await postData("OrderImage/UpdateOrder", payload);
+
+      alert("✅ Image order saved successfully!");
+      setModified(false);
+      setShowModal(false);
+
+      const refreshed = await fetchData("OrderImage");
+      const grouped = {};
+      (refreshed || []).forEach((img) => {
+        if (!grouped[img.ProjectID]) {
+          grouped[img.ProjectID] = {
+            id: img.ProjectID,
+            ProjectID: img.ProjectID,
+            ProjectName: img.ProjectName,
+            Locality: img.Locality,
+            City: img.City,
+            Zipcode: img.Zipcode,
+            images: [],
+          };
+        }
+        grouped[img.ProjectID].images.push(img);
+      });
+      const arr = Object.values(grouped);
+      setData(arr);
+      setFilteredData(arr);
+    } catch (err) {
+      console.error("Save failed", err);
+      alert("❌ Failed to save order. Check API / console.");
+    }
+  };
 
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <>
-      <div className="dashboard-container" style={{ display: "flex" }}>
-        <Sidebar />
-        <div className="buyers-content" style={{ flex: 1, position: "relative", minHeight: "100vh", padding: 24 }}>
-          {/* Back button */}
-          <button
-            onClick={() => navigate("/dashboard")}
-            style={{
-              marginBottom: 12,
-              padding: "6px 14px",
-              backgroundColor: "#5259d4",
-              border: "none",
-              borderRadius: 6,
-              color: "#fff",
-              fontWeight: "bold",
-              cursor: "pointer",
-            }}
-          >
-            ← Back
-          </button>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
+      <Sidebar />
 
-          <h2 style={{ marginBottom: 16 }}>Project Image Display Order</h2>
+      <div style={{ flex: 1, padding: 20, marginLeft: "180px" }}>
+        <button
+          onClick={() => navigate("/dashboard")}
+          style={{
+            background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: 8,
+            padding: "5px 14px",
+            cursor: "pointer",
+            fontSize: "0.85rem",
+            color: "#121212",
+            marginBottom: 6,
+          }}
+        >
+          Back
+        </button>
 
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <>
-              <Table
-                columns={columns}
-                data={paginatedProjects}
-                rowsPerPage={rowsPerPage}
-                rowHeight={25}
-              />
-              {renderPagination()}
-            </>
-          )}
-        </div>
+        <h2
+          style={{
+            marginBottom: 14,
+            color: "#222",
+            fontSize: "1.05rem",
+            fontWeight: "600",
+          }}
+        >
+          Project Image Display Order
+        </h2>
+
+        {loading ? (
+          <div style={{ textAlign: "center", marginTop: 50 }}>Loading...</div>
+        ) : (
+          <>
+            <Table
+              columns={columns}
+              paginatedData={paginatedData}
+              filters={filters}
+              openFilter={openFilter}
+              toggleFilter={toggleFilter}
+              handleCheckboxChange={handleCheckboxChange}
+              uniqueValues={uniqueValues}
+              clearFilter={clearFilter}
+              hasActiveFilter={hasActiveFilter}
+              applyFilter={() => setOpenFilter(null)}
+              rowKey={(row, idx) => row.id ?? row.ProjectID ?? `row-${idx}`}
+            />
+
+            {totalPages > 1 && (
+              <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+            )}
+          </>
+        )}
       </div>
 
-      {/* Modal for image reorder */}
-      {showModal && selectedProject && (
+      {/* Modal */}
+      {showModal && selectedRow && (
         <div
-          className="modal-backdrop"
+          onClick={() => setShowModal(false)}
           style={{
             position: "fixed",
             inset: 0,
@@ -332,40 +374,49 @@ export default function OrderImages() {
             justifyContent: "center",
             alignItems: "center",
           }}
-          onClick={handleClose}
         >
           <div
-            className="modal"
             onClick={(e) => e.stopPropagation()}
             style={{
               background: "#fff",
-              padding: 32,
+              padding: 30,
               borderRadius: 14,
               width:
                 editableImages.length <= 3
-                  ? Math.max(editableImages.length * 180, 300) + "px"
+                  ? Math.max(editableImages.length * 180, 300)
                   : "95%",
               maxWidth: "1500px",
               maxHeight: "90vh",
               overflowY: editableImages.length > 6 ? "auto" : "hidden",
               boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+              position: "relative",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <h3 style={{ fontWeight: 600, fontSize: "1.15rem" }}>
-                {selectedProject.ProjectName} Images
-              </h3>
-              <button
-                style={{ background: "transparent", border: "none", fontSize: "1.5rem", cursor: "pointer", fontWeight: "bold", lineHeight: 1 }}
-                onClick={handleClose}
-              >
-                &times;
-              </button>
-            </div>
+            {/* Close Icon */}
+            <button
+              onClick={() => setShowModal(false)}
+              style={{
+                position: "absolute",
+                top: 12,
+                right: 12,
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+              }}
+              title="Close"
+            >
+              <X size={22} color="#222" />
+            </button>
 
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <h3 style={{ marginBottom: 10 }}>{selectedRow.ProjectName}</h3>
+
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
               <SortableContext
-                items={editableImages.map((img, idx) => (img.DisplayOrderID != null ? img.DisplayOrderID : idx + 1).toString())}
+                items={editableImages.map((img) => String(img.sortableId))}
                 strategy={rectSortingStrategy}
               >
                 <div
@@ -377,35 +428,34 @@ export default function OrderImages() {
                         : `repeat(auto-fit, minmax(180px, 1fr))`,
                     gap: 18,
                     justifyItems: "center",
-                    marginTop: 6,
                   }}
                 >
                   {editableImages.map((imgObj, index) => (
-                    <SortableImage
-                      key={imgObj.DisplayOrderID != null ? imgObj.DisplayOrderID : index + 1}
-                      img={imgObj}
-                      id={(imgObj.DisplayOrderID != null ? imgObj.DisplayOrderID : index + 1).toString()}
-                      index={index}
-                      total={editableImages.length}
-                    />
+                    <div key={String(imgObj.sortableId)}>
+                      <SortableImage
+                        img={imgObj}
+                        id={String(imgObj.sortableId)}
+                        index={index}
+                        total={editableImages.length}
+                      />
+                    </div>
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
 
             {modified && (
-              <div style={{ marginTop: 20, textAlign: "right" }}>
+              <div style={{ textAlign: "right", marginTop: 20 }}>
                 <button
+                  onClick={handleSave}
                   style={{
                     background: "#121212",
                     color: "#fff",
                     padding: "8px 24px",
                     borderRadius: 6,
                     fontWeight: 600,
-                    fontSize: "1.03em",
                     border: "none",
                   }}
-                  onClick={handleSave}
                 >
                   Save
                 </button>
@@ -414,6 +464,6 @@ export default function OrderImages() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
