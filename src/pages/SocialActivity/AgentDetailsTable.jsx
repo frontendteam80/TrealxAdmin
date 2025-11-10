@@ -1,6 +1,6 @@
  
 import React from "react";
-import Table from "../../Utils/Table.jsx";
+import Table,{Pagination} from "../../Utils/Table.jsx";
 
 export default function AgentDetailsTable({ agents = [], shareUnit, onClose }) {
   const columns = [

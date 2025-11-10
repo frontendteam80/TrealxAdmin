@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "../../API/Api.js";
-import DataTable, { Pagination } from "../../Utils/Table.jsx";
+import DataTable,{Pagination} from "../../Utils/Table.jsx";
 import { Eye } from "lucide-react";
 
 const show = (val) => (val === null || val === undefined || val === "" ? "-" : val);
@@ -299,9 +299,6 @@ export default function Approval() {
         >
           Waiting For Approval
         </h2>
-
-        <h2 style={{ marginBottom: 20, color: "#222",fontweight:400 }}>Waiting For Approval</h2>
-
 
         {loading ? (
           <Spinner />

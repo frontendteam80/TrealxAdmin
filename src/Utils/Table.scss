@@ -18,16 +18,16 @@
   border-left: 5px solid #d4af37;
 }
  
-.table-wrapper {
-  overflow-x: auto; /* Horizontal scroll for small screens */
-  width: 100%;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
-  scrollbar-width: none; /* Firefox */
-}
+// .table-wrapper {
+//   //overflow-x: auto; /* Horizontal scroll for small screens */
+//   width: 100%;
+//   //-webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+//   scrollbar-width: none; /* Firefox */
+// }
  
-.table-wrapper::-webkit-scrollbar {
-  display: none; /* Chrome, Safari */
-}
+// .table-wrapper::-webkit-scrollbar {
+//   display: none; /* Chrome, Safari */
+// }
  
 .custom-table {
   width: 100%;
@@ -116,4 +116,8 @@
 }
  
  
+}
+.dashboard-container{
+  height: 100vh;
+  overflow: hidden;
 }

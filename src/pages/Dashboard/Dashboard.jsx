@@ -72,10 +72,6 @@ export default function Dashboard() {
           propertyData: Number(data.PropertyData || 0).toLocaleString(),
         });
 
-<<<<<<< HEAD
-        setAgentData(Array.isArray(agentOverview) ? agentOverview : []);
-        setFeedbackData(Array.isArray(userFeedback) ? userFeedback : []);
-=======
         setAgentData(
           Array.isArray(agentOverview)
             ? agentOverview.map((a, i) => ({ serialNo: i + 1, ...a }))
@@ -86,7 +82,6 @@ export default function Dashboard() {
             ? userFeedback.map((f, i) => ({ serialNo: i + 1, ...f }))
             : []
         );
->>>>>>> 575ef5d (newupdate)
       } catch (err) {
         console.error("Dashboard data fetch failed:", err);
       }
@@ -112,67 +107,6 @@ export default function Dashboard() {
   };
   const handleCardClick = (route, state = {}) => navigate(route, { state });
 
-<<<<<<< HEAD
-  const handleCardClick = (route, state = {}) => {
-    navigate(route, { state });
-  };
-
-  const renderTable = (data) => {
-    if (!Array.isArray(data) || data.length === 0) {
-      return <p>No data available.</p>;
-    }
-
-    const headers = Object.keys(data[0] || {});
-    return (
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginTop: "10px",
-          fontSize: "13px",
-        }}
-      >
-        <thead>
-          <tr style={{ backgroundColor: "#f4f4f4" }}>
-            {headers.map((key) => (
-              <th
-                key={key}
-                style={{
-                  border: "1px solid #ddd",
-                  padding: "6px 8px",
-                  textAlign: "left",
-                  fontWeight: "600",
-                }}
-              >
-                {key}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, i) => (
-            <tr key={i}>
-              {headers.map((key, j) => (
-                <td
-                  key={j}
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "6px 8px",
-                    textAlign: "left",
-                    fontSize: "13px",
-                  }}
-                >
-                  {row[key] !== null && row[key] !== undefined && row[key] !== ""
-                    ? row[key].toString()
-                    : "-"}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-=======
   // ---------- Table Helpers ----------
   const toggleFilter = (key) =>
     setOpenFilter((prev) => (prev === key ? null : key));
@@ -184,7 +118,6 @@ export default function Dashboard() {
         ? { ...prev, [columnKey]: existing.filter((v) => v !== value) }
         : { ...prev, [columnKey]: [...existing, value] };
     });
->>>>>>> 575ef5d (newupdate)
   };
 
   const clearFilter = (key) => {
@@ -232,30 +165,18 @@ export default function Dashboard() {
 
   return (
     <div className={`dashboard-container ${theme}`}>
+      {/* <div className="dashboard-container"/> */}
       <div className="dashboard">
-<<<<<<< HEAD
-        <Sidebar />
-        
-        <main
-        style={{
-          flex: 1,
-          padding: "20px 30px",
-          marginLeft: "180px",
-          overflowX: "hidden",
-          transition: "all 0.3s ease",
-        }}
-      >
-=======
         <Sidebar theme={theme} />
         <main
           style={{
             flex: 1,
             padding: "20px 30px",
-            marginLeft: "180px",
-            overflowX: "hidden",
+            // marginLeft: "180px",
+            height:"100vh",
+           overflow: "hidden",
           }}
         >
->>>>>>> 575ef5d (newupdate)
           <Navbar />
 
           {/* Theme + Logout */}
@@ -349,11 +270,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-<<<<<<< HEAD
-          {/* 🟢 Stats Cards */}
-=======
           {/* Stats Cards */}
->>>>>>> 575ef5d (newupdate)
           <section className="stats-grid">
             <div onClick={() => handleCardClick("/activelistings")}>
               <StatsCard
@@ -425,9 +342,6 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #ff9a9e, #fad0c4)"
               />
             </div>
-<<<<<<< HEAD
-            <div onClick={() => handleCardClick("/Projectmanagement")}>
-=======
             <div
               onClick={() =>
                 handleCardClick("/Projectmanagement", {
@@ -436,7 +350,6 @@ export default function Dashboard() {
                 })
               }
             >
->>>>>>> 575ef5d (newupdate)
               <StatsCard
                 title="Project Data"
                 value={stats.projectData || 0}
@@ -447,22 +360,13 @@ export default function Dashboard() {
             </div>
           </section>
 
-<<<<<<< HEAD
-          {/* 🧩 Tabs Section (Updated Inline Design) */}
-=======
           {/* Tabs */}
->>>>>>> 575ef5d (newupdate)
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: 2,
-<<<<<<< HEAD
-              padding: "0 0 15px 0",
-              background: "transparent",
-=======
               paddingBottom: 15,
->>>>>>> 575ef5d (newupdate)
               marginBottom: 20,
               marginTop: 10,
             }}
@@ -475,41 +379,21 @@ export default function Dashboard() {
               return (
                 <button
                   key={tab.id}
-<<<<<<< HEAD
-                  onClick={() => setActiveTab(tab.id)}
-                  onMouseEnter={(e) => {
-                    if (!isActive) e.target.style.color = "#000";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) e.target.style.color = "#666";
-=======
                   onClick={() => {
                     setActiveTab(tab.id);
                     setPage(1);
->>>>>>> 575ef5d (newupdate)
                   }}
                   style={{
                     backgroundColor: isActive ? "#fff" : "#f0f0f0",
                     color: isActive ? "#2c3e50" : "#666",
                     border: "none",
-<<<<<<< HEAD
-                    outline: "none",
                     cursor: "pointer",
                     padding: "10px 14px",
-                    marginLeft: "1px",
-=======
-                    cursor: "pointer",
-                    padding: "10px 14px",
->>>>>>> 575ef5d (newupdate)
                     fontSize: "13px",
                     fontWeight: isActive ? 600 : 500,
                     borderBottom: isActive
                       ? "3px solid #2c3e50"
                       : "3px solid transparent",
-<<<<<<< HEAD
-                    transition: "background-color 0.3s ease, color 0.3s ease",
-=======
->>>>>>> 575ef5d (newupdate)
                     borderTopLeftRadius: 6,
                     borderTopRightRadius: 6,
                   }}
@@ -520,22 +404,6 @@ export default function Dashboard() {
             })}
           </div>
 
-<<<<<<< HEAD
-          {/* 🗂️ Tab Content */}
-          <div className="tab-content">
-            {activeTab === "AgentOverview" && (
-              <div>
-                {/* <h2>Agent Overview</h2> */}
-                {renderTable(agentData)}
-              </div>
-            )}
-
-            {activeTab === "UserFeedback" && (
-              <div>
-                {/* <h2>User Feedback</h2> */}
-                {renderTable(feedbackData)}
-              </div>
-=======
           {/* Table Section (Agent + Feedback use same component) */}
           <div
             style={{
@@ -560,7 +428,6 @@ export default function Dashboard() {
 
             {totalPages > 1 && (
               <Pagination page={page} setPage={setPage} totalPages={totalPages} />
->>>>>>> 575ef5d (newupdate)
             )}
           </div>
         </main>

@@ -1,6 +1,6 @@
  import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
-import Table, { Pagination } from "../../Utils/Table.jsx"; // your table component
+import Table,{Pagination} from "../../Utils/Table.jsx"; // your table component
 import { useApi } from "../../API/Api.js";
  
 export default function NewListings() {
@@ -139,9 +139,6 @@ export default function NewListings() {
         >
           New Listings
         </h2>
-
-        <h2 style={{ marginBottom: "20px", color: "#333",fontweight:400 }}>New Listings</h2>
-
  
         {/* Data Table */}
         {loading ? (

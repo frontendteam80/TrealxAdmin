@@ -1,14 +1,10 @@
- import React, { useEffect, useState, useMemo } from "react";
+ // src/pages/Updates/Updates.jsx
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
 import DataTable, { Pagination } from "../../Utils/Table.jsx";
-<<<<<<< HEAD
-import { Search, ArrowLeft } from "lucide-react";
-=======
-//import { Search, ArrowLeft } from "lucide-react";
-import { Search, Filter, Eye, X } from "lucide-react";
->>>>>>> 575ef5d (newupdate)
+import { Search, Eye } from "lucide-react";
 import "./Updates.scss";
 
 function formatDate(dateString) {
@@ -105,17 +101,44 @@ export default function Updates() {
     {
       key: "action",
       label: "Action",
-      render: (_, row) => (
-        <button
-          className="action-button"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/price-history/${row.ProjectID}`);
-          }}
-        >
-           <Eye size={15} style={{ marginRight: 2 }} /> 
-        </button>
-      ),
+      render: (_, row) => {
+        const projectId = row?.ProjectID;
+        return (
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!projectId && !row?.ProjectID) {
+                // defensive: if no ProjectID, do nothing (or show toast)
+                console.warn("Missing ProjectID for row", row);
+                return;
+              }
+              // navigate to price-history with encoded project id
+              navigate(`/price-history/${encodeURIComponent(projectId)}`);
+            }}
+            role="button"
+            aria-label="View price history"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                if (row?.ProjectID) navigate(`/price-history/${encodeURIComponent(row.ProjectID)}`);
+              }
+            }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              padding: 4,
+              margin: 0,
+              lineHeight: 0,
+              color: "#1b2337",
+            }}
+          >
+            <Eye size={16} />
+          </span>
+        );
+      },
     },
   ];
 
@@ -177,9 +200,7 @@ export default function Updates() {
   return (
     <div className="dashboard-container" style={{ display: "flex" }}>
       <Sidebar />
-      <main className="main-content" style={{ flex: 1, padding: 24,marginLeft: "180px" }}>
-        
-        {/* ✅ Back Button */}
+      <main className="main-content" style={{ flex: 1, padding: 24, marginLeft: "180px" }}>
         <button
           onClick={() => navigate("/dashboard")}
           style={{
@@ -196,34 +217,27 @@ export default function Updates() {
          Back
         </button>
 
-        {/* Heading and Search Bar Row */}
-<<<<<<< HEAD
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16}}>
-          <h2 style={{ margin: 0, color: "#222",fontweight:400 }}>Updates</h2>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              background: "#fff",
-              border: "1px solid #ccc",
-              borderRadius: 6,
-              padding: "4px 8px",
-              width: 260,
-            }}
-          >
-            <Search size={18} color="#555" style={{ marginRight: 4 }} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 }}>
+          <h2 style={{ color: "#222", margin: 0 }}>Price Updates</h2>
+          <div style={{ position: "relative", width: 200 }}>
+            <Search
+              size={18}
+              color="#adb1bd"
+              style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)" }}
+            />
             <input
               type="text"
-              placeholder="Search..."
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Search"
               style={{
-                flex: 1,
-                border: "none",
-                outline: "none",
-                fontSize: "0.9rem",
-                background: "transparent",
+                padding: "8px 12px 8px 34px",
+                borderRadius: 8,
+                border: "1px solid #e5e7eb",
+                background: "#f7fafd",
+                fontSize: 14,
+                color: "#1a2230",
+                width: "170px",
               }}
             />
           </div>
@@ -252,70 +266,6 @@ export default function Updates() {
             />
             <Pagination page={page} setPage={setPage} totalPages={totalPages} />
           </div>
-=======
-        {/* Header and Search */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 15,
-                  }}
-                >
-                  <h2 style={{ color: "#222", margin: 0 }}>Price Updates</h2>
-                  <div style={{ position: "relative", width: 200 }}>
-                    <Search
-                      size={18}
-                      color="#adb1bd"
-                      style={{
-                        position: "absolute",
-                        left: 8,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                      }}
-                    />
-                    <input
-                      type="text"
-                      value={searchValue}
-                      onChange={(e) => setSearchValue(e.target.value)}
-                      placeholder="Search"
-                      style={{
-                        padding: "8px 12px 8px 34px",
-                        borderRadius: 8,
-                        border:  "1px solid #e5e7eb",
-                        background: "#f7fafd",
-                        fontSize: 14,
-                        color: "#1a2230",
-                        width: "170px",
-                      }}
-                    />
-                  </div>
-        </div>
-
-        {loading ? (
-          <Spinner />
-        ) : error ? (
-          <p style={{ color: "red" }}>{error}</p>
-        ) : (
-          <div style={{ borderRadius: 8, overflow: "hidden", background: "#fff" }}>
-            <DataTable
-              columns={columns}
-              data={data}
-              paginatedData={paginatedData}
-              openFilter={openFilter}
-              toggleFilter={toggleFilter}
-              filters={filters}
-              handleCheckboxChange={handleCheckboxChange}
-              searchValue={searchValue}
-              setSearchValue={setSearchValue}
-              uniqueValues={uniqueValues}
-              clearFilter={clearFilter}
-              applyFilter={applyFilter}
-              onRowClick={setSelectedRow}
-            />
-            <Pagination page={page} setPage={setPage} totalPages={totalPages} />
-          </div>
->>>>>>> 575ef5d (newupdate)
         )}
       </main>
     </div>
