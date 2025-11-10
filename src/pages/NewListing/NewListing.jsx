@@ -1,6 +1,6 @@
  import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
-import Table from "../../Utils/Table.jsx"; // your table component
+import Table,{Pagination} from "../../Utils/Table.jsx"; // your table component
 import { useApi } from "../../API/Api.js";
  
 export default function NewListings() {

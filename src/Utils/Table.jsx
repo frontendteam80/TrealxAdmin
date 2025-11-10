@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
+import "./Table.scss";
 
 /* ---------- Small filled funnel SVG ---------- */
 function FilledFunnel({ active = false, size = 16 }) {
@@ -190,6 +191,7 @@ export default function Table({
   const [searchTerm, setSearchTerm] = useState("");
   const [tempFilters, setTempFilters] = useState({});
   const [dropdownPos, setDropdownPos] = useState(null);
+
   const priceKeys = new Set([
     "AmountWithUnit",
     "Price",
@@ -202,18 +204,25 @@ export default function Table({
   const totalPages = Math.ceil(totalCount / rowsPerPage);
   const startIndex = Math.max(0, (Number(page) - 1) * Number(rowsPerPage));
 
+  // showOnlyApplied[colKey] === true means: show only applied (parent) values for that column
+  const [showOnlyApplied, setShowOnlyApplied] = useState({});
+
   /* ---------- lifecycle: close dropdown when clicking outside ---------- */
   useEffect(() => {
     function onDoc(e) {
       if (!containerRef.current) return;
       if (!containerRef.current.contains(e.target) && openFilter) {
+        // When clicking outside and closing dropdown, just remove temporary state for that column.
         setTempFilters((prev) => {
           const copy = { ...prev };
           delete copy[openFilter];
           return copy;
         });
+
+        // keep showOnlyApplied intact — applied state persists until parent filters change
         toggleFilter(null);
         setDropdownPos(null);
+        setSearchTerm("");
       }
     }
     document.addEventListener("mousedown", onDoc);
@@ -226,6 +235,22 @@ export default function Table({
     document.body.style.overflow = openFilter ? "hidden" : prev || "auto";
     return () => (document.body.style.overflow = prev || "auto");
   }, [openFilter]);
+
+  /* ---------- sync showOnlyApplied with parent filters ----------
+     If parent filters for a column become empty, remove "show only applied" flag
+     so next open shows full option list automatically.
+  */
+  useEffect(() => {
+    setShowOnlyApplied((prev) => {
+      const copy = { ...prev };
+      Object.keys(prev).forEach((k) => {
+        if (!Array.isArray(filters[k]) || filters[k].length === 0) {
+          delete copy[k];
+        }
+      });
+      return copy;
+    });
+  }, [filters]);
 
   /* ---------- helpers ---------- */
   const shouldShowFilter = (label = "") => {
@@ -261,11 +286,13 @@ export default function Table({
       ? [...filters[colKey]]
       : [];
 
-  const initTempFromParent = (colKey) =>
+  // When user opens dropdown, initialize temp from parent filters
+  const initTempFromParent = (colKey) => {
     setTempFilters((p) => ({
       ...p,
       [colKey]: Array.isArray(filters[colKey]) ? [...filters[colKey]] : [],
     }));
+  };
 
   const toggleTempValue = (colKey, val) => {
     setTempFilters((prev) => {
@@ -283,8 +310,10 @@ export default function Table({
   const selectAllVisibleTemp = (colKey, visibleList) =>
     setTempFilters((prev) => ({ ...prev, [colKey]: [...visibleList] }));
 
-  const clearTempAll = (colKey) =>
+  // Clear temp selections only (user must click Apply to affect parent filters)
+  const clearTempAll = (colKey) => {
     setTempFilters((prev) => ({ ...prev, [colKey]: [] }));
+  };
 
   const cancelFor = (colKey) => {
     setTempFilters((prev) => {
@@ -292,6 +321,8 @@ export default function Table({
       delete copy[colKey];
       return copy;
     });
+
+    // Do not clear showOnlyApplied here — keep applied view until parent clears filters
     toggleFilter(null);
     setSearchTerm("");
     setDropdownPos(null);
@@ -305,27 +336,58 @@ export default function Table({
         ? filters[colKey]
         : [];
     const existing = Array.isArray(filters[colKey]) ? filters[colKey] : [];
+
+    // sync: call handleCheckboxChange to toggle differences
     final.forEach((v) => {
       if (!existing.includes(v)) handleCheckboxChange(colKey, v);
     });
     existing.forEach((v) => {
       if (!final.includes(v)) handleCheckboxChange(colKey, v);
     });
+
     if (typeof applyFilter === "function") applyFilter();
+
+    // cleanup temp
     setTempFilters((prev) => {
       const copy = { ...prev };
       delete copy[colKey];
       return copy;
     });
+
+    // if we applied non-empty filters, show only applied values in future opens
+    if (Array.isArray(final) && final.length > 0) {
+      setShowOnlyApplied((prev) => ({ ...prev, [colKey]: true }));
+    } else {
+      // if apply resulted in empty parent filters, remove the flag
+      setShowOnlyApplied((prev) => {
+        const copy = { ...prev };
+        delete copy[colKey];
+        return copy;
+      });
+    }
+
     toggleFilter(null);
     setSearchTerm("");
     setDropdownPos(null);
   };
 
+  // Clear filters from parent (external) -> also clear showOnlyApplied immediately
   const clearAllParent = (colKey) => {
-    if (typeof clearFilter === "function") clearFilter(colKey);
-    else (filters[colKey] || []).slice().forEach((v) => handleCheckboxChange(colKey, v));
+    if (typeof clearFilter === "function") {
+      clearFilter(colKey);
+    } else {
+      (filters[colKey] || []).slice().forEach((v) => handleCheckboxChange(colKey, v));
+    }
+
+    // remove any temporary UI state for this column
     setTempFilters((prev) => {
+      const copy = { ...prev };
+      delete copy[colKey];
+      return copy;
+    });
+
+    // IMPORTANT: remove the "show only applied" flag so the dropdown will show all options
+    setShowOnlyApplied((prev) => {
       const copy = { ...prev };
       delete copy[colKey];
       return copy;
@@ -382,10 +444,10 @@ export default function Table({
     <div
       ref={containerRef}
       style={{
-        background: "#fff",
-        borderRadius: 8,
-        padding: 8,
-        boxShadow: "0 6px 18px rgba(15,23,42,0.04)",
+        // background: "#fff",
+        // borderRadius: 8,
+        // padding: 8,
+        // boxShadow: "0 6px 18px rgba(15,23,42,0.04)",
       }}
     >
       <table
@@ -431,11 +493,12 @@ export default function Table({
                       {col.label}
                     </span>
 
-                    {col.canFilter !== false && shouldShowFilter(col.label) && (
+                    {col.canFilter !== false && shouldShowFilter(col.label) && resolveUnique(col.key).length > 0 && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           if (openFilter === col.key) {
+                            // close dropdown
                             setTempFilters((p) => {
                               const c = { ...p };
                               delete c[col.key];
@@ -490,64 +553,62 @@ export default function Table({
                         />
                       </div>
 
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          padding: "0 8px 6px 8px",
-                        }}
-                      >
-                        <button
-                          onClick={() => {
-                            const visible = resolveUnique(col.key).filter((v) =>
-                              String(v).toLowerCase().includes(searchTerm.toLowerCase())
-                            );
-                            selectAllVisibleTemp(col.key, visible);
-                          }}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "#2563eb",
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            fontSize: 13,
-                          }}
-                        >
-                          Select All
-                        </button>
-                        <button
-                          onClick={() => clearTempAll(col.key)}
-                          style={{ background: "transparent", border: "none", color: "#2563eb", cursor: "pointer", fontSize: 13 }}
-                        >
-                          Clear All
-                        </button>
-                      </div>
+                      {(() => {
+                        // If showOnlyApplied[col.key] is true, show tempFor (initialized from parent filters)
+                        // Otherwise show full resolveUnique list.
+                        const sourceList = showOnlyApplied[col.key] ? tempFor(col.key) : resolveUnique(col.key);
+                        const allOptions = sourceList.filter((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase()));
+                        const allChecked = allOptions.length > 0 && tempFor(col.key).length > 0 && tempFor(col.key).length === allOptions.length;
+
+                        return (
+                          <div style={{ display: "flex", justifyContent: "space-between", padding: "0 8px 6px 8px" }}>
+                            <button
+                              onClick={() => selectAllVisibleTemp(col.key, allOptions)}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                color: "#2563eb",
+                                fontWeight: allChecked ? 700 : 600,
+                                cursor: "pointer",
+                                fontSize: 13,
+                              }}
+                            >
+                              Select All
+                            </button>
+                            <button
+                              onClick={() => clearTempAll(col.key)}
+                              style={{ background: "transparent", border: "none", color: "#2563eb", cursor: "pointer", fontSize: 13 }}
+                            >
+                              Clear All
+                            </button>
+                          </div>
+                        );
+                      })()}
 
                       <div className="tutils-options-scroll" style={{ padding: "6px 8px 64px 8px" }}>
-                        {resolveUnique(col.key)
-                          .filter((v) => String(v).toLowerCase().includes(searchTerm.toLowerCase()))
-                          .map((val, i) => {
-                            const checked = tempFor(col.key).includes(val);
-                            return (
-                              <label
-                                key={i}
-                                style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 6px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  onChange={() => toggleTempValue(col.key, val)}
-                                  style={{ width: 16, height: 16, accentColor: "#2563eb" }}
-                                />
-                                <span className="tutils-ellipsis" style={{ maxWidth: 160 }}>
-                                  {String(val)}
-                                </span>
-                              </label>
-                            );
-                          })}
-
-                        {resolveUnique(col.key).filter((v) => String(v).toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
-                          <div style={{ padding: 8, color: "#64748b", fontSize: 13 }}>No options</div>
+                        {(showOnlyApplied[col.key] ? tempFor(col.key) : resolveUnique(col.key))
+                          .filter((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase()))
+                          .map((val, i) => (
+                            <label
+                              key={i}
+                              style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 6px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={tempFor(col.key).includes(val)}
+                                onChange={() => toggleTempValue(col.key, val)}
+                                style={{ width: 16, height: 16, accentColor: "#2563eb" }}
+                              />
+                              <span className="tutils-ellipsis" style={{ maxWidth: 160 }}>
+                                {String(val)}
+                              </span>
+                            </label>
+                          ))}
+                        {(showOnlyApplied[col.key] ? tempFor(col.key) : resolveUnique(col.key))
+                          .filter((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                          <div style={{ padding: 8, color: "#64748b", fontSize: 13 }}>
+                            {showOnlyApplied[col.key] ? "No applied filters" : "No options"}
+                          </div>
                         )}
                       </div>
 
@@ -606,7 +667,7 @@ export default function Table({
                         ? globalIndex + 1
                         : renderCellContent(col, row, rIdx);
 
-                    const align = isPrice ? "right" : isNumeric(cellValue) ? "center" : "left";
+                    const align = isNumeric(cellValue) ? "center" : "left";
 
                     return (
                       <td
@@ -615,7 +676,7 @@ export default function Table({
                         style={{
                           textAlign: align,
                           paddingLeft: 12,
-                          paddingRight: align === "right" ? 16 : 12,
+                          paddingRight: 12,
                           verticalAlign: "middle",
                           maxWidth: col.maxWidth || undefined,
                           whiteSpace: col.wrap === false ? "nowrap" : "normal",

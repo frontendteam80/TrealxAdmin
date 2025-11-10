@@ -6,12 +6,18 @@ import Table, { Pagination } from "../../Utils/Table.jsx";
 import { useApi } from "../../API/Api.js";
 import { Eye } from "lucide-react";
 
-// const pageLabels = {
-//   COMPANY: "Companies",
-//   PROJECTS: "Projects",
-//   PROPERTIES: "Properties",
-// };
-// const currentPageLabel =pageLabels[activeTab] ||"";
+function fmtList(value) {
+  if (!value) return "";
+  if (Array.isArray(value)) {
+    return value.join(", ");
+  }
+  // Handle comma-separated strings
+  return String(value)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(", ");
+}
 
 export default function ProjectsDetails() {
   const { fetchData } = useApi();
@@ -22,6 +28,7 @@ export default function ProjectsDetails() {
   PROJECTS: "Projects",
   PROPERTIES: "Properties",
 };
+
 const currentPageLabel =pageLabels[activeTab] ||"";
 
   const [companyData, setCompanyData] = useState([]);
@@ -248,15 +255,28 @@ const currentPageLabel =pageLabels[activeTab] ||"";
       currentPage = companyPage;
       setCurrentPage = setCompanyPage;
   }
+//   function fmtList(value) {
+//   if (!value) return "";
+//   if (Array.isArray(value)) {
+//     return value.join(", ");
+//   }
+//   // Handle comma-separated strings
+//   return String(value)
+//     .split(",")
+//     .map((s) => s.trim())
+//     .filter(Boolean)
+//     .join(", ");
+// }
+
 
   // Paginate current data
   const currentPaginated = currentData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
   const totalPageCount = Math.ceil(currentData.length / rowsPerPage);
 
   return (
-    <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff", height: "100vh", overflow: "hidden" }}>
+    <div className="dashboard-container" style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Sidebar />
-      <div style={{ flex: 1, position: "relative", maxHeight: "100vh", padding: 24, boxSizing: "border-box", marginLeft: "180px" }}>
+      <div style={{ flex: 1, position: "relative", maxHeight: "100vh", padding: 24, boxSizing: "border-box"}}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h2 style={{ margin: 0, fontWeight: 600,fontSize:"1.05rem" }}>Listing Data</h2>
           <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#d4af37" }}>Kiran Reddy Pallaki</div>
@@ -336,21 +356,196 @@ const currentPageLabel =pageLabels[activeTab] ||"";
 function CompanyDetailsSidebar({ open, onClose, company }) {
   if (!open) return null;
   return (
-    <div style={{ position: "fixed", right: 0, top: 0, width: 360, height: "100vh", background: "#fff", boxShadow: "-2px 0 10px rgba(0,0,0,0.1)", padding: 20 }}>
-      <button onClick={onClose}>Close</button>
-      <h3>{company.CompanyName}</h3>
-      {/* render details */}
-    </div>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        right: 0,
+        width: 380,
+        maxWidth: "92vw",
+        height: "100vh",
+        backgroundColor: "white",
+        boxShadow: "-2px 0 12px rgba(0,0,0,0.12)",
+        padding: 20,
+        zIndex: 10000,
+        overflowY: "auto",
+        transition: "transform 0.25s ease",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+        <h2 style={{ margin: 0, flex: 1 }}>{company.CompanyName || "No Company Name"}</h2>
+        <div
+  onClick={(e) => {
+    e.stopPropagation();  // Prevent event bubbling if needed
+    onClose();            // Call the close handler passed as a prop
+  }}
+  style={{
+    position: "absolute",
+    right: 10,
+    top: 10,
+    fontSize: 26,
+    color: "#121212",
+    cursor: "pointer",
+    backgroundColor: "transparent",
+    userSelect: "none"
+  }}
+  aria-label="Close sidebar"
+>
+  ✖
+</div>
+              
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div style={{ fontWeight: 600 }}>Company ID</div>
+        <div>{company.CompanyID || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Short Name</div>
+        <div>{company.CompanyShortName || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>RERA No</div>
+        <div>{company.ReraNumber || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Tier</div>
+        <div>{company.Tier || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Total Projects</div>
+        <div>{company.TotalProjects ?? "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Operating Since</div>
+        <div>{company.OperatingSince ? fmtDate(company.OperatingSince) : company.OperatingYear || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Operating Cities</div>
+        <div>{company.OperatingCities ? fmtList(company.OperatingCities).toString() : "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Address 1</div>
+        <div>{company.Address1 || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Address 2</div>
+        <div>{company.Address2 || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Locality</div>
+        <div>{company.Locality || "N/A"}</div>
+
+        {/* <div style={{ fontWeight: 600 }}>City</div>
+        <div>{company.City || "N/A"}</div> */}
+
+        {/* <div style={{ fontWeight: 600 }}>State</div>
+        <div>{company.State || "N/A"}</div> */}
+
+        {/* <div style={{ fontWeight: 600 }}>Country</div>
+        <div>{company.Country || "N/A"}</div> */}
+
+        {/* <div style={{ fontWeight: 600 }}>Contact Person</div>
+        <div>{company.ContactPerson || "N/A"}</div> */}
+
+        {/* <div style={{ fontWeight: 600 }}>Contact Number</div>
+        <div>{company.ContactNumber || company.Phone || "N/A"}</div> */}
+
+        {/* <div style={{ fontWeight: 600 }}>Email</div>
+        <div>{company.Email || "N/A"}</div> */}
+
+        {/* <div style={{ fontWeight: 600 }}>Website</div>
+        <div>{company.Website || "N/A"}</div> */}
+
+        <div style={{ fontWeight: 600 }}>Ready To Move</div>
+        <div>{company.ReadyToMove ?? "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Under Construction</div>
+        <div>{company.UnderConstruction ?? "N/A"}</div>
+      </div>
+      </div>
   );
 }
 
 function ProjectDetailsSidebar({ open, onClose, project }) {
   if (!open) return null;
   return (
-    <div style={{ position: "fixed", right: 0, top: 0, width: 460, height: "100vh", background: "#fff", boxShadow: "-2px 0 10px rgba(0,0,0,0.1)", padding: 20 }}>
-      <button onClick={onClose}>Close</button>
-      <h3>{project.ProjectName}</h3>
-      {/* render details */}
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        right: 0,
+        width: 460,
+        maxWidth: "96vw",
+        height: "100vh",
+        backgroundColor: "white",
+        boxShadow: "-2px 0 12px rgba(0,0,0,0.12)",
+        padding: 20,
+        zIndex: 10000,
+        overflowY: "auto",
+        transition: "transform 0.25s ease",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+        <h2 style={{ margin: 0, color: "#d4af37", flex: 1 }}>{project.ProjectName || "No Project Name"}</h2>
+        <div
+  onClick={(e) => {
+    e.stopPropagation();  // Prevent event bubbling if needed
+    onClose();            // Call the close handler passed as a prop
+  }}
+  style={{
+    position: "absolute",
+    right: 10,
+    top: 10,
+    fontSize: 26,
+    color: "#121212",
+    cursor: "pointer",
+    backgroundColor: "transparent",
+    userSelect: "none"
+  }}
+  aria-label="Close sidebar"
+>
+  ✖
+</div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div style={{ fontWeight: 600 }}>Project ID</div>
+        <div>{project.ProjectID || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Company Name</div>
+        <div>{project.CompanyName || project.Developer || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>RERA No</div>
+        <div>{project.ReraNumber || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Project Status</div>
+        <div>{project.ProjectStatus || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Custom Project Types</div>
+        <div>{project.CustomProjectTypes || project.ProjectType || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Locality</div>
+        <div>{project.Locality || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>City</div>
+        <div>{project.city || "N/A"}</div>
+
+        {/* <div style={{ fontWeight: 600 }}>Start Date</div>
+        <div>{project.StartDate ? fmtDate(project.StartDate) : project.LaunchDate || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Completion Date</div>
+        <div>{project.CompletionDate ? fmtDate(project.CompletionDate) : project.ExpectedCompletion || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Total Towers</div>
+        <div>{project.Towers ?? project.TotalTowers ?? "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Total Units</div>
+        <div>{project.TotalUnits ?? project.Units ?? "N/A"}</div>*/}
+
+        <div style={{ fontWeight: 600 }}>Properties For Sale</div>
+        <div>{project.PropertiesForSale ?? "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Properties For Development</div>
+        <div>{project.PropertiesForDevelopment?? "N/A"}</div> 
+
+        <div style={{ fontWeight: 600 }}>Amenities</div>
+        <div>{project.Amenities ? fmtList(project.Amenities) : project.Features || "N/A"}</div>
+
+        <div style={{ fontWeight: 600 }}>Description</div>
+        <div>{project.Description || project.Notes || "N/A"}</div>
+      </div>
     </div>
   );
 }

@@ -165,14 +165,16 @@ export default function Dashboard() {
 
   return (
     <div className={`dashboard-container ${theme}`}>
+      {/* <div className="dashboard-container"/> */}
       <div className="dashboard">
         <Sidebar theme={theme} />
         <main
           style={{
             flex: 1,
             padding: "20px 30px",
-            marginLeft: "180px",
-           // overflowX: "hidden",
+            // marginLeft: "180px",
+            height:"100vh",
+           overflow: "hidden",
           }}
         >
           <Navbar />

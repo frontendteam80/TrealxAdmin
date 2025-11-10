@@ -8,6 +8,8 @@ import { useApi } from "../../API/Api.js";
 import { LoadScript } from "@react-google-maps/api";
 import Table from "../../Utils/Table.jsx";
 import { Filter } from "lucide-react";
+import { Eye } from "lucide-react";
+
 
 const SIDEBAR_WIDTH = 220;
 const PAGE_PADDING = 20;
@@ -239,12 +241,32 @@ export default function SocialActivity() {
       { label: "ProjectID", key: "ProjectID" },
       { label: "PropertyID", key: "PropertyID" },
       {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <button className="details-btn" onClick={() => handleDetailsClick(row)}>Details</button>
-        ),
-      },
+  label: "Action",
+  key: "action",
+  render: (_, row) => (
+    <button
+      onClick={() => handleDetailsClick(row)}
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 32,
+        height: 32,
+        borderRadius: 6,
+        transition: "background-color 0.2s ease",
+      }}
+      title="View Details"
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+    >
+      <Eye size={18} color="#374151" />
+    </button>
+  ),
+},
+
     ],
     "Request Info": [
       { label: "Message", key: "Message" },
@@ -253,12 +275,32 @@ export default function SocialActivity() {
       { label: "ProjectID", key: "ProjectID" },
       { label: "PropertyID", key: "PropertyID" },
       {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <button className="details-btn" onClick={() => handleDetailsClick(row)}>Details</button>
-        ),
-      },
+  label: "Action",
+  key: "action",
+  render: (_, row) => (
+    <button
+      onClick={() => handleDetailsClick(row)}
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 32,
+        height: 32,
+        borderRadius: 6,
+        transition: "background-color 0.2s ease",
+      }}
+      title="View Details"
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+    >
+      <Eye size={18} color="#374151" />
+    </button>
+  ),
+},
+
     ],
     "Shared Properties": [
       { label: "Name", key: "Name" },
@@ -268,23 +310,43 @@ export default function SocialActivity() {
       { label: "Channel", key: "Channel" },
       { label: "ProjectID", key: "ProjectID" },
       { label: "PropertyID", key: "PropertyID" },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <button className="details-btn" onClick={() => handleDetailsClick(row)}>Details</button>
-        ),
-      },
+     {
+  label: "Action",
+  key: "action",
+  render: (_, row) => (
+    <button
+      onClick={() => handleDetailsClick(row)}
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 32,
+        height: 32,
+        borderRadius: 6,
+        transition: "background-color 0.2s ease",
+      }}
+      title="View Details"
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+    >
+      <Eye size={18} color="#374151" />
+    </button>
+  ),
+},
+
     ],
   };
 
   return (
     <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
-      <div className="dashboard-container" style={{ display: "flex", marginLeft: 180 }}>
+      <div className="dashboard-container" style={{ display: "flex", marginLeft: 180,height:"100vh",overflow:"hidden" }}>
         <Sidebar />
         <div
           className="buyers-content"
-          style={{ flex: 1, position: "relative", minHeight: "100vh", overflowX: "hidden", padding: 24 }}
+          style={{ flex: 1, position: "relative", padding: 24 }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
             <h2 style={{ margin: 0, fontWeight: 600,fontSize:"1.05rem"}}>Social Activity</h2>

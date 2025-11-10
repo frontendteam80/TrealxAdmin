@@ -86,7 +86,7 @@ function CreateAlert() {
   };
 
   return (
-    <div style={{ display: "flex" }}>
+    <div style={{ display: "flex",marginLeft:"190px" }}>
       <Sidebar />
       <div className="alerts-container" style={{ flex: 1 }}>
         {/* Header with Back Button */}
@@ -98,7 +98,7 @@ function CreateAlert() {
           >
             &larr; Back
           </button>
-          <h1 className="alerts-header">Create Alert</h1>
+          <h2 className="alerts-header">Create Alert</h2>
         </div>
 
         <form className="create-alert-form" onSubmit={handleSubmit}>

@@ -161,7 +161,7 @@ export default function Buyers() {
         display: "flex",
         height: "100vh",
         overflow: "hidden", // 🚫 No page scroll
-        backgroundColor: "#fff",
+        // backgroundColor: "#fff",
       }}
     >
       <Sidebar />
@@ -170,9 +170,9 @@ export default function Buyers() {
         style={{
           flex: 1,
           padding: "20px 24px",
-          marginLeft: "180px",
+         
           boxSizing: "border-box",
-          overflow: "hidden", // 🚫 No inner scroll
+          // 🚫 No inner scroll
           display: "flex",
           flexDirection: "column",
         }}
@@ -196,12 +196,15 @@ export default function Buyers() {
           >
             Buyers
           </h2>
-
+           <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#d4af37" }}>Kiran Reddy Pallaki</div>
+          </div>
+<div style={{display:"flex",justifyContent:"flex-end"}}>
           <input
             placeholder="Search buyers..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             style={{
+              
               padding: "8px 12px",
               borderRadius: 8,
               border: "1px solid #e5e7eb",
@@ -210,7 +213,7 @@ export default function Buyers() {
               fontSize: 14,
             }}
           />
-        </div>
+         </div> 
 
         {/* ✅ Static Table (no scroll) */}
         <div

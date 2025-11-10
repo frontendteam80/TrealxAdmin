@@ -162,7 +162,8 @@ export default function ActiveListings() {
   const hasActiveFilter = (key) => filters[key]?.length > 0;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
+    <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff", height: "100vh", overflow: "hidden" }}>
+    <div style={{ display: "flex", minHeight: "100vh", }}>
       <div style={{ flexShrink: 0 }}>
         <Sidebar />
       </div>
@@ -291,6 +292,7 @@ export default function ActiveListings() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

@@ -184,7 +184,15 @@ export default function Sellers() {
       key: "IslegalOwner",
       render: (val) => (val ? "yes" : "no"),
     },
-    { label: "Contact Number", key: "ContactNumber" },
+    {
+  label: "Contact Number",
+  key: "ContactNumber",
+  render: (val) => (
+    <div style={{ textAlign: "center", width: "100%" }}>
+      {val || "-"}
+    </div>
+  ),
+},
     { label: "Email", key: "Email" },
   ], [page]);
 
@@ -201,7 +209,7 @@ export default function Sellers() {
           flex: 1,
           minHeight: "100vh",
           padding: 24,
-          marginLeft: "180px",
+          
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
@@ -225,6 +233,9 @@ export default function Sellers() {
           >
             Sellers
           </h2>
+          <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#d4af37" }}>Kiran Reddy Pallaki</div>
+          </div>
+<div style={{display:"flex",justifyContent:"flex-end"}}>
 
           <input
             type="text"
