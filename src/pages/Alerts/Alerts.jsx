@@ -27,7 +27,7 @@ export default function Alerts() {
   const [error, setError] = useState(null);
 
   const [page, setPage] = useState(1);
-  const rowsPerPage = 15;
+  const rowsPerPage = 10;
 
   // filter states (used by Table)
   const [openFilter, setOpenFilter] = useState(null);
