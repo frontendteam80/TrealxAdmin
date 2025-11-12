@@ -1,47 +1,53 @@
- import React, { useEffect, useState } from "react";
+ // src/pages/NewListings/NewListings.jsx
+import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
-import Table,{Pagination} from "../../Utils/Table.jsx"; // your table component
+import Table, { Pagination } from "../../Utils/Table.jsx"; // your table component
 import { useApi } from "../../API/Api.js";
- 
+import { Eye } from "lucide-react";
+
 export default function NewListings() {
   const { fetchData } = useApi();
- 
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null); // for detail slide panel
-  const [panelOpen, setPanelOpen] = useState(false);
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
- 
-  // Fetch data on load
+
+  // Fetch data on mount
   useEffect(() => {
+    let mounted = true;
     async function loadData() {
       try {
         const res = await fetchData("PropertyAdded");
+        if (!mounted) return;
         setData(res || []);
       } catch (err) {
         console.error("Error fetching data:", err);
-        setError(err.message);
+        if (!mounted) return;
+        setError(err?.message || "Failed to load data");
       } finally {
+        if (!mounted) return;
         setLoading(false);
       }
     }
     loadData();
+    return () => {
+      mounted = false;
+    };
   }, [fetchData]);
- 
-  // Triggered on clicking "View" button
+
+  // Open detail panel
   const handleView = (row) => {
     setSelectedRow(row);
-    setPanelOpen(true);
   };
- 
+
   const handleClosePanel = () => {
-    setPanelOpen(false);
     setSelectedRow(null);
   };
- 
-  // Table columns including the View button
+
+  // Table columns including Eye icon action
   const columns = [
     { label: "S.No", key: "sno", render: (_, __, idx) => idx + 1 },
     { label: "Property ID", key: "propertyID" },
@@ -63,45 +69,51 @@ export default function NewListings() {
     {
       label: "View",
       key: "view",
+      canFilter: false,
       render: (_, row) => (
         <button
-          onClick={() => handleView(row)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleView(row);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleView(row);
+            }
+          }}
+          title="View details"
+          aria-label={`View details for ${row.PropertyName || row.propertyID || "item"}`}
           style={{
-            background: "#8d8181ff",
-            color: "#121212",
+            background: "transparent",
             border: "none",
-            borderRadius: "6px",
-            padding: "6px 14px",
+            padding: 6,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             cursor: "pointer",
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background =
-              "linear-gradient(90deg, #0056b3, #007bff)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background =
-              "linear-gradient(90deg, #007bff, #0056b3)";
+            borderRadius: 6,
+            color: "#111",
           }}
         >
-          View
+          <Eye size={18} />
         </button>
       ),
     },
   ];
- 
-  // Table data for pagination
+
+  // Paginate
   const paginatedData = React.useMemo(() => {
     const startIdx = (page - 1) * rowsPerPage;
     return data.slice(startIdx, startIdx + rowsPerPage);
   }, [data, page]);
- 
-  const totalPages = Math.ceil(data.length / rowsPerPage);
- 
+
+  const totalPages = Math.max(1, Math.ceil((data?.length || 0) / rowsPerPage));
+
   return (
     <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff", overflow: "hidden" }}>
       <Sidebar />
-      <div style={{ flex: 1, padding: "24px", minHeight: "100vh", overflowX: "auto", position: "relative" ,marginLeft: "180px"}}>
+      <div style={{ flex: 1, padding: "24px", minHeight: "100vh", overflowX: "auto", position: "relative" }}>
         {/* Back Button */}
         <div style={{ marginBottom: "10px" }}>
           <button
@@ -117,45 +129,25 @@ export default function NewListings() {
               boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
               transition: "background 0.3s ease",
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "linear-gradient(90deg, #0056b3, #007bff)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "linear-gradient(90deg, #007bff, #0056b3)";
-            }}
           >
             Back
           </button>
         </div>
- 
+
         {/* Heading */}
-         <h2
-          style={{
-            marginBottom: 14,
-            color: "#222",
-            fontSize: "1.05rem",
-            fontWeight: "600",
-          }}
-        >
-          New Listings
-        </h2>
- 
+        <h2 style={{ marginBottom: 14, color: "#222", fontSize: "1.05rem", fontWeight: "600" }}>New Listings</h2>
+
         {/* Data Table */}
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
           <p style={{ color: "red" }}>Error: {error}</p>
         ) : (
-          <Table
-            columns={columns}
-            paginatedData={paginatedData}
-            rowsPerPage={rowsPerPage}
-            onRowClick={null} // optional: you could add row click here
-          />
+          <Table columns={columns} paginatedData={paginatedData} rowsPerPage={rowsPerPage} onRowClick={null} />
         )}
- 
+
         <Pagination page={page} setPage={setPage} totalPages={totalPages} />
- 
+
         {/* Slide-over Panel for Property Details */}
         {selectedRow && (
           <>
@@ -186,7 +178,6 @@ export default function NewListings() {
                 overflowY: "auto",
                 zIndex: 999,
                 transition: "transform 0.4s ease",
-                display: "block",
               }}
             >
               {/* Close Button */}
@@ -203,16 +194,16 @@ export default function NewListings() {
                   top: 10,
                   right: 20,
                 }}
+                aria-label="Close details"
               >
                 ✕
               </button>
- 
+
               {/* Property Details Content */}
               <h3 style={{ marginTop: 40, marginBottom: 20 }}>Property Details</h3>
               <div style={{ lineHeight: "1.8" }}>
                 <p>
-                  <strong>Country Code:</strong>{" "}
-                  {selectedRow.PropertyCountryCode ?? "–"}
+                  <strong>Country Code:</strong> {selectedRow.PropertyCountryCode ?? "–"}
                 </p>
                 <p>
                   <strong>Zip Code:</strong> {selectedRow.PropertyZipCode ?? "–"}
@@ -237,5 +228,3 @@ export default function NewListings() {
     </div>
   );
 }
- 
- 

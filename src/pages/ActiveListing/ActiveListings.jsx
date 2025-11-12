@@ -1,16 +1,19 @@
- import React, { useEffect, useState, useMemo } from "react";
+ // src/pages/ActiveListings/ActiveListings.jsx
+import React, { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "../../API/Api.js";
-import { Search, Eye, X } from "lucide-react";
-import Table,{Pagination}from "../../Utils/Table.jsx";
+import Table from "../../Utils/Table.jsx";
+import SearchBar from "../../Utils/SearchBar.jsx";
+import BackButton from "../../Utils/Backbutton.jsx"; // ensure file name matches in your repo
+import { Eye, X } from "lucide-react";
 
 export default function ActiveListings() {
   const { fetchData } = useApi();
   const navigate = useNavigate();
 
-  const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
+  const [data, setData] = useState([]); // full dataset from API (cleaned)
+  const [filteredData, setFilteredData] = useState([]); // after parent-level filters & search
   const [filters, setFilters] = useState({});
   const [openFilter, setOpenFilter] = useState(null);
   const [searchValue, setSearchValue] = useState("");
@@ -18,14 +21,16 @@ export default function ActiveListings() {
   const [selectedRow, setSelectedRow] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const rowsPerPage = 15;
+  const rowsPerPage = 10;
 
   useEffect(() => {
+    let mounted = true;
     async function loadData() {
       try {
         setLoading(true);
         const response = await fetchData("ActiveListingDataInfo");
-        const arr = Array.isArray(response) ? response : response.data || [];
+        const arr = Array.isArray(response) ? response : response?.data || [];
+        // remove heavy fields
         const cleanedData = arr.map(
           ({
             PropertyLatitude,
@@ -37,21 +42,30 @@ export default function ActiveListings() {
             ...rest
           }) => rest
         );
+        if (!mounted) return;
         setData(cleanedData);
         setFilteredData(cleanedData);
       } catch (err) {
         console.error(err);
+        if (!mounted) return;
+        setData([]);
+        setFilteredData([]);
       } finally {
+        if (!mounted) return;
         setLoading(false);
       }
     }
     loadData();
+    return () => {
+      mounted = false;
+    };
   }, [fetchData]);
 
-  // Filtering logic (global search + column filters)
+  // Filtering + global search (parent applies filters -> filteredData)
   useEffect(() => {
     let result = [...data];
 
+    // apply column filters first
     Object.keys(filters).forEach((key) => {
       const selected = filters[key];
       if (selected && selected.length > 0) {
@@ -59,12 +73,11 @@ export default function ActiveListings() {
       }
     });
 
-    if (searchValue.trim()) {
+    // then global search across all fields
+    if (searchValue && searchValue.trim()) {
       const lower = searchValue.toLowerCase();
       result = result.filter((row) =>
-        Object.values(row).some(
-          (val) => val && val.toString().toLowerCase().includes(lower)
-        )
+        Object.values(row).some((val) => val && String(val).toLowerCase().includes(lower))
       );
     }
 
@@ -72,8 +85,10 @@ export default function ActiveListings() {
     setPage(1);
   }, [filters, data, searchValue]);
 
+  // IMPORTANT: compute unique values based on the *currently filtered dataset* (filteredData)
+  // so filter dropdowns for other columns are constrained to the active filters.
   const getUniqueValues = (key) =>
-    [...new Set(data.map((item) => item[key]).filter(Boolean))];
+    Array.from(new Set(filteredData.map((item) => item[key]).filter(Boolean)));
 
   const handleCheckboxChange = (columnKey, value) => {
     setFilters((prev) => {
@@ -84,13 +99,11 @@ export default function ActiveListings() {
     });
   };
 
-  // toggleFilter adapter for Table component
   const toggleFilter = (columnKey) => {
     setOpenFilter((prev) => (prev === columnKey ? null : columnKey));
   };
 
   const columns = [
-    // Table computes serial using page + rowsPerPage if passed
     { label: "S.No", key: "serialNo", canFilter: false },
     { label: "Property ID", key: "PropertyID" },
     { label: "Property Name", key: "PropertyName" },
@@ -100,10 +113,8 @@ export default function ActiveListings() {
     {
       label: "Price",
       key: "AmountWithUnit",
-      render: (val) =>
-        val ? (val.toString().includes("₹") ? val : `₹ ${val}`) : "-",
-      // align right if your Table supports `align` (Table.jsx treats `align` if present)
-      align: "right",
+      render: (val) => (val ? (String(val).includes("₹") ? val : `₹ ${val}`) : "-"),
+      align: "center",
     },
     { label: "Locality", key: "Locality" },
     { label: "Bedrooms", key: "Bedrooms" },
@@ -112,7 +123,6 @@ export default function ActiveListings() {
       key: "action",
       canFilter: false,
       render: (_, row) => (
-        // Eye icon only (no surrounding button box)
         <span
           onClick={(e) => {
             e.stopPropagation();
@@ -144,7 +154,7 @@ export default function ActiveListings() {
     },
   ];
 
-  // Paginate filtered data
+  // paginated data for table rendering
   const paginatedData = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
@@ -158,95 +168,59 @@ export default function ActiveListings() {
     return name.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
   };
 
-  // helper used by Table to indicate active filters (optional for your UI)
-  const hasActiveFilter = (key) => filters[key]?.length > 0;
+  const hasActiveFilter = (key) => Array.isArray(filters[key]) && filters[key].length > 0;
+
+  // total pages (Table will use totalCount prop)
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   return (
-    <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff", height: "100vh", overflow: "hidden" }}>
-    <div style={{ display: "flex", minHeight: "100vh", }}>
-      <div style={{ flexShrink: 0 }}>
-        <Sidebar />
-      </div>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
+      <Sidebar />
 
-      <div style={{ flex: 1, padding: 20, marginLeft: "180px", position: "relative" }}>
-        {/* reduced gap: marginBottom lowered */}
-        <button
-          onClick={() => navigate("/dashboard")}
-          style={{
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 8,
-            padding: "6px 14px",
-            cursor: "pointer",
-            fontSize: "0.8rem",
-            color: "#121212",
-            marginBottom: 1,
-          }}
-        >
-          Back
-        </button>
+      <main style={{ flex: 1, padding: 20, marginLeft: "180px", boxSizing: "border-box" }}>
+        {/* Back button above heading (text-only) */}
+        <div style={{ marginBottom: 10 }}>
+          <BackButton onClick={() => navigate("/dashboard")} label="Back" />
+        </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-          <h2
-            style={{
-              marginBottom: 3,
-              color: "#222",
-              fontSize: "1.05rem",
-              fontWeight: "600",
-            }}
-          >
-            Active Listings
-          </h2>
+        {/* Heading and Search on same row */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <h2 style={{ margin: 0, color: "#222", fontSize: "1.05rem", fontWeight: 600 }}>Active Listings</h2>
 
-          <div style={{ position: "relative", width: 200 }}>
-            <Search
-              size={17}
-              color="#adb1bd"
-              style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)" }}
-            />
-            <input
-              type="text"
+          <div style={{ width: 320, maxWidth: "40%" }}>
+            <SearchBar
               value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search"
-              style={{
-                padding: "8px 12px 8px 34px",
-                borderRadius: 8,
-                border: "1px solid #e5e7eb",
-                background: "#f7fafd",
-                fontSize: 14,
-                color: "#1a2230",
-                width: "170px",
-              }}
+              onChange={(v) => setSearchValue(v)}
+              onSubmit={() => setPage(1)}
+              pageLabel="Active Listings"
             />
           </div>
         </div>
 
         <div style={{ borderRadius: 8, background: "#fff", padding: 10 }}>
-          {/* Reusable Table component */}
+          {/* Pass the filteredData as `data` so the Table's dropdowns are constrained to current filters */}
           <Table
             columns={columns}
+            data={filteredData} // <- uses filtered data to compute dropdown options
             paginatedData={paginatedData}
             filters={filters}
             openFilter={openFilter}
             toggleFilter={toggleFilter}
             handleCheckboxChange={handleCheckboxChange}
-            uniqueValues={getUniqueValues}
+            uniqueValues={getUniqueValues} // this now uses filteredData internally
             hasActiveFilter={hasActiveFilter}
             page={page}
+            setPage={setPage}
             rowsPerPage={rowsPerPage}
+            totalCount={filteredData.length}
             clearFilter={(colKey) => setFilters((prev) => ({ ...prev, [colKey]: [] }))}
             applyFilter={() => {}}
             onRowClick={(row) => setSelectedRow(row)}
           />
-
-          <Pagination
-            page={page}
-            setPage={setPage}
-            totalPages={Math.ceil(filteredData.length / rowsPerPage)}
-          />
+          {/* Table renders its own Pagination internally — don't render another one here */}
         </div>
 
+        {/* Right-side details drawer */}
         {selectedRow && (
           <div
             style={{
@@ -256,10 +230,10 @@ export default function ActiveListings() {
               width: "400px",
               height: "100%",
               background: "#fff",
-              boxShadow: "-2px 0 8px rgba(0,0,0,0.2)",
+              boxShadow: "-2px 0 8px rgba(0,0,0,0.12)",
               zIndex: 1500,
-             // overflowY: "auto",
               padding: 20,
+              overflowY: "auto",
             }}
           >
             <X
@@ -271,13 +245,7 @@ export default function ActiveListings() {
             <h3 style={{ fontSize: "1.4rem", marginBottom: 10 }}>Property Details</h3>
 
             {Object.entries(selectedRow)
-              .filter(
-                ([key]) =>
-                  key !== "DisplayAmount" &&
-                  key !== "PropertyLatitude" &&
-                  key !== "PropertyLongitude" &&
-                  key !== "ProjectOrderID"
-              )
+              .filter(([key]) => !["DisplayAmount", "PropertyLatitude", "PropertyLongitude", "ProjectOrderID"].includes(key))
               .sort(([a], [b]) => {
                 if (a === "PropertyState" || a === "PropertyZipcode") return 1;
                 if (b === "PropertyState" || b === "PropertyZipcode") return -1;
@@ -291,7 +259,7 @@ export default function ActiveListings() {
               ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
     </div>
   );

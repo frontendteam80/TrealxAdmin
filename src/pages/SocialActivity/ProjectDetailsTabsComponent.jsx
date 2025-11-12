@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+ import React, { useState } from "react";
 import {MdApartment,MdCheckCircle,MdBedroomParent,MdOutlineViewDay,MdStraighten,MdOutlineWc,MdOutlineWaves,MdLocationOn,MdShare,MdFavorite,MdFavoriteBorder,} from "react-icons/md";
 import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from "@react-google-maps/api";
 import formatAmount from "../../Utils/formatAmount.js";
 import Table from "../../Utils/Table.jsx";
-
-
+ 
+ 
 const detailTabs = ["Details", "Facts & Features", "Amenities", "Highlights", "Location", "More"];
 const GOOGLE_MAPS_API_KEY = "AIzaSyAlgntKS8paPrbLphDLlpNUW0W0j0NzslY";
-
-
+ 
+ 
 export default function ProjectDetailsTabsComponent({
   data,
   initialTab = "Details",
@@ -17,26 +17,26 @@ export default function ProjectDetailsTabsComponent({
   currentPropertyId,
 }) {
   if (!data || !data.units) return <div>loading...</div>;
-
+ 
   const [activeTab, setActiveTab] = useState(initialTab);
   const selectedUnit = data.units.find((unit) => unit.id === currentPropertyId);
   const [selectedAmenity, setSelectedAmenity] = useState(null);
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY });
   const [favorites, setFavorites] = useState([]);
-
+ 
   const priceArray = data?.allPricesOfProject ?? [];
   const minPrice = priceArray.length ? Math.min(...priceArray) : 0;
   const maxPrice = priceArray.length ? Math.max(...priceArray) : 0;
   const priceRange = `${formatAmount(minPrice)} - ${formatAmount(maxPrice)}`;
   const remainingUnits = data.units.filter((unit) => unit.id !== currentPropertyId);
-
+ 
   const toggleFavorite = (unitId) =>
     setFavorites((prev) =>
       prev.includes(unitId) ? prev.filter((id) => id !== unitId) : [...prev, unitId]
     );
-
+ 
   if (!isLoaded) return <div>Loading map...</div>;
-
+ 
   // Common table styles for reusable rendering
   const commonActionButtons = (row) => (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -53,7 +53,7 @@ export default function ProjectDetailsTabsComponent({
       >
         <MdShare />
       </button>
-
+ 
       <button
         style={{
           background: "none",
@@ -69,7 +69,7 @@ export default function ProjectDetailsTabsComponent({
       </button>
     </div>
   );
-
+ 
   const detailsColumns = selectedUnit
     ? [
         { label: "Property Type", key: "type" },
@@ -94,7 +94,7 @@ export default function ProjectDetailsTabsComponent({
         },
       ]
     : [];
-
+ 
   const moreColumns = [
     { label: "Property Type", key: "type" },
     {
@@ -116,10 +116,10 @@ export default function ProjectDetailsTabsComponent({
       render: (_, row) => commonActionButtons(row),
     },
   ];
-
+ 
   const containerStyle = { width: "100%", height: "350px" };
   const center = { lat: data.latitude, lng: data.longitude };
-
+ 
   return (
     <div>
       <button
@@ -135,7 +135,7 @@ export default function ProjectDetailsTabsComponent({
       >
         &times;
       </button>
-
+ 
       <h2>{data.details.name}</h2>
       <div style={{ color: "#666", display: "flex", alignItems: "center", gap: "6px" }}>
         <MdLocationOn style={{ color: "#777" }} />
@@ -144,7 +144,7 @@ export default function ProjectDetailsTabsComponent({
           {data.details.ZipCode && data.details.ZipCode !== "N/A" ? `,${data.details.ZipCode}` : ""}
         </span>
       </div>
-
+ 
       {/* Description Section + Price Range */}
       <div
         style={{
@@ -164,7 +164,7 @@ export default function ProjectDetailsTabsComponent({
             </a>
           </div>
         </div>
-
+ 
         {/* RIGHT SIDE PRICE RANGE DISPLAY */}
         <div
           style={{
@@ -179,7 +179,7 @@ export default function ProjectDetailsTabsComponent({
           <span style={{ fontSize: 20, color: "#1B5E20" }}>{priceRange} Cr</span>
         </div>
       </div>
-
+ 
       {/* Tabs Section */}
       <div style={{ display: "flex", marginTop: 32, marginBottom: 24 ,gap:2}}>
         {detailTabs.map((tab) => (
@@ -203,12 +203,12 @@ export default function ProjectDetailsTabsComponent({
           </button>
         ))}
       </div>
-
+ 
       <div style={{ marginTop: 16}}>
         {activeTab === "Details" && selectedUnit && (
           <Table columns={detailsColumns} paginatedData={[selectedUnit]} rowsPerPage={5} />
         )}
-
+ 
         {activeTab === "Facts & Features" && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "22px" }}>
             <Card label="Project ID" value={data.facts.projectId} icon={<MdApartment />} />
@@ -221,13 +221,13 @@ export default function ProjectDetailsTabsComponent({
             <Card label="Number Of Units" value={data.facts.unitCount} icon={<MdApartment />} />
           </div>
         )}
-
+ 
         {activeTab === "Location" && (
           <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={15}>
             <Marker position={center} />
           </GoogleMap>
         )}
-
+ 
         {activeTab === "More" && (
           remainingUnits.length > 0 ? (
             <Table columns={moreColumns} paginatedData={remainingUnits} rowsPerPage={10} />
@@ -241,7 +241,7 @@ export default function ProjectDetailsTabsComponent({
     </div>
   );
 }
-
+ 
 function Card({ label, value, icon }) {
   return (
     <div

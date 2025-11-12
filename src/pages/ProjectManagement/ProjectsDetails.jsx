@@ -1,5 +1,5 @@
-
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar.jsx";
 import SearchBar from "../../Utils/SearchBar.jsx";
 import Table, { Pagination } from "../../Utils/Table.jsx";
@@ -22,14 +22,19 @@ function fmtList(value) {
 export default function ProjectsDetails() {
   const { fetchData } = useApi();
 
-  const [activeTab, setActiveTab] = useState("COMPANY");
-  const pageLabels = {
-  COMPANY: "Companies",
-  PROJECTS: "Projects",
-  PROPERTIES: "Properties",
-};
+  // <-- ADDED: accept navigation state (defaultTab) from Dashboard
+  const location = useLocation();
+  const navigate = useNavigate();
 
-const currentPageLabel =pageLabels[activeTab] ||"";
+  const [activeTab, setActiveTab] = useState(location?.state?.defaultTab?.toUpperCase?.() || "COMPANY");
+
+  const pageLabels = {
+    COMPANY: "Companies",
+    PROJECTS: "Projects",
+    PROPERTIES: "Properties",
+  };
+
+  const currentPageLabel = pageLabels[activeTab] || "";
 
   const [companyData, setCompanyData] = useState([]);
   const [projectsData, setProjectsData] = useState([]);
@@ -276,9 +281,37 @@ const currentPageLabel =pageLabels[activeTab] ||"";
   return (
     <div className="dashboard-container" style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Sidebar />
-      <div style={{ flex: 1, position: "relative", maxHeight: "100vh", padding: 24, boxSizing: "border-box"}}>
+      <div style={{ flex: 1, position: "relative", maxHeight: "100vh", padding: 24, boxSizing: "border-box" }}>
+
+        {/* Back button to Dashboard (minimal, as requested) */}
+         <div style={{ marginBottom: "10px" }}>
+          <button
+            onClick={() => (window.location.href = "/dashboard")}
+            style={{
+              background: "#fff",
+              color: "#121212",
+              border: "none",
+              padding: "8px 18px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "600",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+              transition: "background 0.3s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#fff";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "linear-gradient(90deg, #fff, #fff)";
+            }}
+          >
+            Back
+          </button>
+        </div>
+ 
+
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 style={{ margin: 0, fontWeight: 600,fontSize:"1.05rem" }}>Listing Data</h2>
+          <h2 style={{ margin: 0, fontWeight: 600, fontSize: "1.05rem" }}>Listing Data</h2>
           <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#d4af37" }}>Kiran Reddy Pallaki</div>
         </div>
 
@@ -310,7 +343,7 @@ const currentPageLabel =pageLabels[activeTab] ||"";
           </div>
 
           <div style={{ minWidth: 150, flex: "0 1 auto" }}>
-            <SearchBar value={searchQuery} onChange={setSearchQuery} onSubmit={() => { }}pageLabel={currentPageLabel} />
+            <SearchBar value={searchQuery} onChange={setSearchQuery} onSubmit={() => { }} pageLabel={currentPageLabel} />
           </div>
         </div>
 
@@ -339,7 +372,6 @@ const currentPageLabel =pageLabels[activeTab] ||"";
         )}
 
         {/* Sidebars for details */}
-        {/* Placeholder for your sidebar components - provide these if needed */}
         {companySidebarOpen && selectedCompany && (
           <CompanyDetailsSidebar open={companySidebarOpen} onClose={() => setCompanySidebarOpen(false)} company={selectedCompany} />
         )}
@@ -427,27 +459,6 @@ function CompanyDetailsSidebar({ open, onClose, company }) {
         <div style={{ fontWeight: 600 }}>Locality</div>
         <div>{company.Locality || "N/A"}</div>
 
-        {/* <div style={{ fontWeight: 600 }}>City</div>
-        <div>{company.City || "N/A"}</div> */}
-
-        {/* <div style={{ fontWeight: 600 }}>State</div>
-        <div>{company.State || "N/A"}</div> */}
-
-        {/* <div style={{ fontWeight: 600 }}>Country</div>
-        <div>{company.Country || "N/A"}</div> */}
-
-        {/* <div style={{ fontWeight: 600 }}>Contact Person</div>
-        <div>{company.ContactPerson || "N/A"}</div> */}
-
-        {/* <div style={{ fontWeight: 600 }}>Contact Number</div>
-        <div>{company.ContactNumber || company.Phone || "N/A"}</div> */}
-
-        {/* <div style={{ fontWeight: 600 }}>Email</div>
-        <div>{company.Email || "N/A"}</div> */}
-
-        {/* <div style={{ fontWeight: 600 }}>Website</div>
-        <div>{company.Website || "N/A"}</div> */}
-
         <div style={{ fontWeight: 600 }}>Ready To Move</div>
         <div>{company.ReadyToMove ?? "N/A"}</div>
 
@@ -479,25 +490,19 @@ function ProjectDetailsSidebar({ open, onClose, project }) {
     >
       <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
         <h2 style={{ margin: 0, color: "#d4af37", flex: 1 }}>{project.ProjectName || "No Project Name"}</h2>
-        <div
-  onClick={(e) => {
-    e.stopPropagation();  // Prevent event bubbling if needed
-    onClose();            // Call the close handler passed as a prop
-  }}
-  style={{
-    position: "absolute",
-    right: 10,
-    top: 10,
-    fontSize: 26,
-    color: "#121212",
-    cursor: "pointer",
-    backgroundColor: "transparent",
-    userSelect: "none"
-  }}
-  aria-label="Close sidebar"
->
-  ✖
-</div>
+        <button
+          onClick={onClose}
+          style={{
+            backgroundColor: "#d4af37",
+            color: "white",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 10px",
+            cursor: "pointer",
+          }}
+        >
+          Close
+        </button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -521,18 +526,6 @@ function ProjectDetailsSidebar({ open, onClose, project }) {
 
         <div style={{ fontWeight: 600 }}>City</div>
         <div>{project.city || "N/A"}</div>
-
-        {/* <div style={{ fontWeight: 600 }}>Start Date</div>
-        <div>{project.StartDate ? fmtDate(project.StartDate) : project.LaunchDate || "N/A"}</div>
-
-        <div style={{ fontWeight: 600 }}>Completion Date</div>
-        <div>{project.CompletionDate ? fmtDate(project.CompletionDate) : project.ExpectedCompletion || "N/A"}</div>
-
-        <div style={{ fontWeight: 600 }}>Total Towers</div>
-        <div>{project.Towers ?? project.TotalTowers ?? "N/A"}</div>
-
-        <div style={{ fontWeight: 600 }}>Total Units</div>
-        <div>{project.TotalUnits ?? project.Units ?? "N/A"}</div>*/}
 
         <div style={{ fontWeight: 600 }}>Properties For Sale</div>
         <div>{project.PropertiesForSale ?? "N/A"}</div>

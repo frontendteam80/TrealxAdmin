@@ -28,6 +28,7 @@ import ProjectManagement from "./pages/ProjectManagement/ProjectsDetails.jsx";
 // import SettingsPage from "./components/Profile/SettingsPage.jsx";
 // import UserRoleManager from "./components/Profile/UserRoleManager.jsx";
 
+
 function App() {
   const { bearerToken, loading } = useAuth();
 

@@ -1,7 +1,6 @@
- 
-import React from "react";
+ import React from "react";
 import Table,{Pagination} from "../../Utils/Table.jsx";
-
+ 
 export default function AgentDetailsTable({ agents = [], shareUnit, onClose }) {
   const columns = [
     { key: "AssociateName", label: "Associate Name" },
@@ -34,7 +33,7 @@ export default function AgentDetailsTable({ agents = [], shareUnit, onClose }) {
       )
     }
   ];
-
+ 
   return (
     <div>
       <div
@@ -60,12 +59,13 @@ export default function AgentDetailsTable({ agents = [], shareUnit, onClose }) {
           &times;
         </button>
       </div>
-
+ 
       <div style={{ marginBottom: 12 }}>
         <strong>Property:</strong> {shareUnit?.type} (ID: {shareUnit?.id})
       </div>
-
+ 
       <Table  columns={columns} paginatedData={agents} rowsPerPage={7} />
     </div>
   );
 }
+ 
