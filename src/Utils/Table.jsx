@@ -1,5 +1,6 @@
-
+ // src/Utils/Table.jsx
 import React, { useEffect, useRef, useState } from "react";
+import "./Table.scss";
 
 /* ---------- Small filled funnel SVG ---------- */
 function FilledFunnel({ active = false, size = 16 }) {
@@ -16,114 +17,104 @@ function FilledFunnel({ active = false, size = 16 }) {
   );
 }
 
-/* ---------- Pagination component ---------- */
+/* ---------- Pagination component (Trealx-like) ---------- */
 function Pagination({ page, setPage, totalPages = 0 }) {
   if (!totalPages || totalPages <= 1) return null;
 
-  const clamp = (n) => Math.max(1, Math.min(totalPages, Math.floor(n)));
-
-  const pages = (() => {
+  const createPages = () => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const arr = [1];
-    if (page > 3) arr.push("left-ellipsis");
+    if (page > 3) arr.push("...");
     const start = Math.max(2, page - 1);
     const end = Math.min(totalPages - 1, page + 1);
     for (let i = start; i <= end; i++) arr.push(i);
-    if (page < totalPages - 2) arr.push("right-ellipsis");
+    if (page < totalPages - 2) arr.push("...");
     arr.push(totalPages);
     return arr;
-  })();
+  };
 
-  const smallBtn = (disabled = false) => ({
-    minWidth: 34,
-    height: 34,
-    borderRadius: 8,
+  const pages = createPages();
+
+  const baseStyle = {
     border: "1px solid #e8eef6",
-    background: disabled ? "#fbfdff" : "#fff",
-    color: disabled ? "#c6d0db" : "#333",
-    cursor: disabled ? "not-allowed" : "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 0,
-    fontSize: 14,
-  });
-
-  const pageBtn = {
+    background: "#fff",
+    color: "#1f2937",
+    borderRadius: 8,
+    padding: "6px 10px",
     minWidth: 34,
     height: 34,
-    borderRadius: 8,
-    border: "1px solid #f1f5f9",
-    background: "#fff",
-    color: "#333",
+    fontSize: 13,
     cursor: "pointer",
-    fontSize: 14,
-    padding: "0 8px",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
   };
 
-  const activeBtn = {
-    ...pageBtn,
-    background: "#fff",
-    border: "2px solid #f3c44b",
-    color: "#111",
+  const activeStyle = {
+    ...baseStyle,
+    background: "#f0f4ff",
+    border: "1px solid #6b46c1",
+    color: "#6b46c1",
     fontWeight: 700,
-    boxShadow: "0 1px 0 rgba(0,0,0,0.02)",
   };
 
-  const [inputPage, setInputPage] = useState(String(page));
-  useEffect(() => setInputPage(String(page)), [page]);
-
-  const applyInput = () => {
-    const v = Number(inputPage);
-    if (!Number.isFinite(v)) {
-      setInputPage(String(page));
-      return;
-    }
-    setPage(clamp(v));
+  const disabledStyle = {
+    ...baseStyle,
+    color: "#9ca3af",
+    background: "#fafbfd",
+    cursor: "not-allowed",
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 12px" }}>
-      <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} style={smallBtn(page === 1)} aria-label="Previous">‹</button>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        padding: "8px 12px",
+        borderTop: "1px solid #f1f5f9",
+        marginTop: 8,
+        flexWrap: "wrap",
+      }}
+    >
+      <button
+        onClick={() => setPage(Math.max(1, page - 1))}
+        disabled={page === 1}
+        style={page === 1 ? disabledStyle : baseStyle}
+        aria-label="Previous"
+      >
+        ‹
+      </button>
 
       {pages.map((p, i) =>
-        p === "left-ellipsis" || p === "right-ellipsis" ? (
-          <div key={p + i} style={{ minWidth: 28, textAlign: "center", color: "#8897a6" }}>...</div>
+        p === "..." ? (
+          <span key={String(p) + i} style={{ padding: "6px 10px", color: "#9ca3af" }}>
+            …
+          </span>
         ) : (
-          <button key={p} onClick={() => setPage(p)} style={p === page ? activeBtn : pageBtn} aria-current={p === page ? "page" : undefined}>
+          <button
+            key={p}
+            onClick={() => setPage(p)}
+            style={p === page ? activeStyle : baseStyle}
+            aria-current={p === page ? "page" : undefined}
+          >
             {p}
           </button>
         )
       )}
 
-      <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} style={smallBtn(page === totalPages)} aria-label="Next">›</button>
+      <button
+        onClick={() => setPage(Math.min(totalPages, page + 1))}
+        disabled={page === totalPages}
+        style={page === totalPages ? disabledStyle : baseStyle}
+        aria-label="Next"
+      >
+        ›
+      </button>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 12 }}>
-        <div style={{ color: "#6b7280", fontSize: 13 }}>Page</div>
-        <input
-          value={inputPage}
-          onChange={(e) => setInputPage(e.target.value.replace(/[^\d]/g, ""))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") applyInput();
-            if (e.key === "ArrowUp") setInputPage(String(clamp(Number(inputPage || 1) + 1)));
-            if (e.key === "ArrowDown") setInputPage(String(clamp(Number(inputPage || 1) - 1)));
-          }}
-          onBlur={applyInput}
-          style={{
-            width: 54,
-            height: 32,
-            padding: "4px 8px",
-            borderRadius: 6,
-            border: "1px solid #e6eef8",
-            textAlign: "center",
-            fontSize: 13,
-            background: "#fff",
-          }}
-        />
-        <div style={{ color: "#6b7280", fontSize: 13 }}>of {totalPages}</div>
+      <div style={{ marginLeft: 8, color: "#4b5563", fontSize: 13 }}>
+        Page <strong style={{ margin: "0 6px" }}>{page}</strong> of {totalPages}
       </div>
     </div>
   );
@@ -135,7 +126,7 @@ function injectHelpers() {
   const css = `
     .tutils-td { padding: 8px 10px !important; font-size: 13px; vertical-align: middle; }
     .tutils-th { padding: 10px 12px !important; font-size: 13px; vertical-align: middle; }
-    .tutils-options-scroll { max-height: 140px; overflow-y: auto; padding-right: 6px; }
+    .tutils-options-scroll { max-height: 160px; overflow-y: auto; padding-right: 6px; }
     .tutils-options-scroll::-webkit-scrollbar { width: 8px; }
     .tutils-options-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 6px; }
     .tutils-ellipsis { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; }
@@ -155,19 +146,19 @@ function rupeeFormat(v) {
   return `₹ ${s}`;
 }
 
-// Utility to detect numeric value for alignment
-function isNumeric(value) {
-  return (
-    typeof value === "number" ||
-    (typeof value === "string" &&
-      value.trim() !== "" &&
-      /^[\d,\.\-\s₹]+$/.test(value) &&
-      !/[a-zA-Z]/.test(value))
-  );
+/* ---------- detect numeric-ish values ---------- */
+function isNumericLike(value) {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "number") return true;
+  const s = String(value).trim();
+  if (s === "") return false;
+  return /^[\d\.,\-\s₹]+$/.test(s) && !/[a-zA-Z]/.test(s);
 }
 
 /* ---------- Main Table component ---------- */
 export default function Table({
+  // new: accept `data` which should be the parent-side filtered dataset (preferred source for dropdown options)
+  data = [],
   columns = [],
   paginatedData = [],
   filters = {},
@@ -190,6 +181,8 @@ export default function Table({
   const [searchTerm, setSearchTerm] = useState("");
   const [tempFilters, setTempFilters] = useState({});
   const [dropdownPos, setDropdownPos] = useState(null);
+
+  // keys treated as price
   const priceKeys = new Set([
     "AmountWithUnit",
     "Price",
@@ -199,14 +192,17 @@ export default function Table({
     "DisplayPriceRange",
   ]);
 
-  const totalPages = Math.ceil(totalCount / rowsPerPage);
+  // use totalCount when parent handles pagination, else fallback to data.length
+  const computedTotal = totalCount || (data && data.length) || paginatedData.length || 0;
+  const totalPages = rowsPerPage > 0 ? Math.max(1, Math.ceil(computedTotal / rowsPerPage)) : 1;
   const startIndex = Math.max(0, (Number(page) - 1) * Number(rowsPerPage));
 
-  /* ---------- lifecycle: close dropdown when clicking outside ---------- */
+  // close dropdown when click outside
   useEffect(() => {
     function onDoc(e) {
       if (!containerRef.current) return;
       if (!containerRef.current.contains(e.target) && openFilter) {
+        // when clicking outside, cancel the open filter's temp changes
         setTempFilters((prev) => {
           const copy = { ...prev };
           delete copy[openFilter];
@@ -220,7 +216,7 @@ export default function Table({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [openFilter, toggleFilter]);
 
-  // lock body scroll when filter open
+  // lock body scroll when filter open (keeps dropdown visible)
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = openFilter ? "hidden" : prev || "auto";
@@ -235,88 +231,61 @@ export default function Table({
     return true;
   };
 
+  // IMPORTANT: use 'data' (parent filtered dataset) as the source for unique values when present.
   const resolveUnique = (colKey) => {
+    // if parent gave a custom uniqueValues() function, use it first (keeps backward compatibility)
     if (typeof uniqueValues === "function") {
       const out = uniqueValues(colKey);
       if (Array.isArray(out) && out.length) return out;
     }
-    const list = (paginatedData || [])
-      .map((r) => (r ? r[colKey] : undefined))
-      .filter((v) => v !== undefined && v !== null && String(v).trim() !== "");
+
+    // prefer `data` (which should already be filtered by parent) otherwise fallback to paginatedData
+    const source = Array.isArray(data) && data.length ? data : (paginatedData || []);
+    const list = source.map((r) => (r ? r[colKey] : undefined)).filter((v) => v !== undefined && v !== null && String(v).trim() !== "");
     const uniq = Array.from(new Set(list));
-    const numeric = uniq.every((u) => !isNaN(Number(String(u).replace(/[,₹\sCrcr]/g, ""))));
+
+    // numeric-aware sorting
+    const numeric = uniq.every((u) => !isNaN(Number(String(u).toString().replace(/[,₹\sCrcr]/g, ""))));
     if (numeric) {
       return uniq
-        .map((u) => ({ raw: u, n: Number(String(u).replace(/[,₹\sCrcr]/g, "")) }))
+        .map((u) => ({ raw: u, n: Number(String(u).toString().replace(/[,₹\sCrcr]/g, "")) }))
         .sort((a, b) => a.n - b.n)
         .map((x) => x.raw);
     }
     return uniq.sort((a, b) => String(a).localeCompare(String(b)));
   };
 
-  const tempFor = (colKey) =>
-    tempFilters[colKey] !== undefined
-      ? tempFilters[colKey]
-      : Array.isArray(filters[colKey])
-      ? [...filters[colKey]]
-      : [];
+  const tempFor = (colKey) => (tempFilters[colKey] !== undefined ? tempFilters[colKey] : (Array.isArray(filters[colKey]) ? [...filters[colKey]] : []));
 
-  const initTempFromParent = (colKey) =>
-    setTempFilters((p) => ({
-      ...p,
-      [colKey]: Array.isArray(filters[colKey]) ? [...filters[colKey]] : [],
-    }));
+  const initTempFromParent = (colKey) => setTempFilters((p) => ({ ...p, [colKey]: Array.isArray(filters[colKey]) ? [...filters[colKey]] : [] }));
 
   const toggleTempValue = (colKey, val) => {
     setTempFilters((prev) => {
-      const cur =
-        prev[colKey] !== undefined
-          ? [...prev[colKey]]
-          : Array.isArray(filters[colKey])
-          ? [...filters[colKey]]
-          : [];
+      const cur = prev[colKey] !== undefined ? [...prev[colKey]] : (Array.isArray(filters[colKey]) ? [...filters[colKey]] : []);
       const next = cur.includes(val) ? cur.filter((x) => x !== val) : [...cur, val];
       return { ...prev, [colKey]: next };
     });
   };
 
-  const selectAllVisibleTemp = (colKey, visibleList) =>
-    setTempFilters((prev) => ({ ...prev, [colKey]: [...visibleList] }));
+  const selectAllVisibleTemp = (colKey, visibleList) => setTempFilters((prev) => ({ ...prev, [colKey]: [...visibleList] }));
 
-  const clearTempAll = (colKey) =>
-    setTempFilters((prev) => ({ ...prev, [colKey]: [] }));
+  const clearTempAll = (colKey) => setTempFilters((prev) => ({ ...prev, [colKey]: [] }));
 
   const cancelFor = (colKey) => {
-    setTempFilters((prev) => {
-      const copy = { ...prev };
-      delete copy[colKey];
-      return copy;
-    });
+    setTempFilters((prev) => { const copy = { ...prev }; delete copy[colKey]; return copy; });
     toggleFilter(null);
     setSearchTerm("");
     setDropdownPos(null);
   };
 
   const applyFor = (colKey) => {
-    const final =
-      tempFilters[colKey] !== undefined
-        ? tempFilters[colKey]
-        : Array.isArray(filters[colKey])
-        ? filters[colKey]
-        : [];
+    const final = tempFilters[colKey] !== undefined ? tempFilters[colKey] : (Array.isArray(filters[colKey]) ? filters[colKey] : []);
     const existing = Array.isArray(filters[colKey]) ? filters[colKey] : [];
-    final.forEach((v) => {
-      if (!existing.includes(v)) handleCheckboxChange(colKey, v);
-    });
-    existing.forEach((v) => {
-      if (!final.includes(v)) handleCheckboxChange(colKey, v);
-    });
+    // call parent's handler for differences
+    final.forEach((v) => { if (!existing.includes(v)) handleCheckboxChange(colKey, v); });
+    existing.forEach((v) => { if (!final.includes(v)) handleCheckboxChange(colKey, v); });
     if (typeof applyFilter === "function") applyFilter();
-    setTempFilters((prev) => {
-      const copy = { ...prev };
-      delete copy[colKey];
-      return copy;
-    });
+    setTempFilters((prev) => { const copy = { ...prev }; delete copy[colKey]; return copy; });
     toggleFilter(null);
     setSearchTerm("");
     setDropdownPos(null);
@@ -325,21 +294,14 @@ export default function Table({
   const clearAllParent = (colKey) => {
     if (typeof clearFilter === "function") clearFilter(colKey);
     else (filters[colKey] || []).slice().forEach((v) => handleCheckboxChange(colKey, v));
-    setTempFilters((prev) => {
-      const copy = { ...prev };
-      delete copy[colKey];
-      return copy;
-    });
+    setTempFilters((prev) => { const copy = { ...prev }; delete copy[colKey]; return copy; });
   };
 
   const isActive = (colKey) => Array.isArray(filters[colKey]) && filters[colKey].length > 0;
 
   const computeFixedPos = (colKey, dropdownWidth = 200) => {
     const th = thRefs.current[colKey];
-    if (!th) {
-      setDropdownPos(null);
-      return;
-    }
+    if (!th) { setDropdownPos(null); return; }
     const r = th.getBoundingClientRect();
     let left = r.left + r.width / 2 - dropdownWidth / 2;
     left = Math.min(Math.max(left, 8), window.innerWidth - dropdownWidth - 8);
@@ -347,56 +309,34 @@ export default function Table({
     const spaceAbove = r.top;
     const openUp = spaceBelow < 200 && spaceAbove > spaceBelow;
     const top = openUp ? undefined : Math.min(window.innerHeight - 8 - 40, r.bottom + 8);
-    const bottom = openUp
-      ? Math.min(window.innerHeight - 8 - 40, window.innerHeight - r.top + 8)
-      : undefined;
+    const bottom = openUp ? Math.min(window.innerHeight - 8 - 40, window.innerHeight - r.top + 8) : undefined;
     setDropdownPos({ left, top, bottom, width: dropdownWidth, openUp });
   };
 
-  /* ---------- single render helper ---------- */
+  /* ---------- single render cell helper ---------- */
   function renderCellContent(col, row, rIdx) {
     if (typeof col.render === "function") {
       const res = col.render(row[col.key], row, rIdx);
       if (typeof res === "string" || typeof res === "number") {
-        if (
-          priceKeys.has(col.key) ||
-          (col.label && String(col.label).toLowerCase().includes("price"))
-        )
-          return rupeeFormat(res);
+        if (priceKeys.has(col.key) || (col.label && String(col.label).toLowerCase().includes("price"))) return rupeeFormat(res);
         return String(res);
       }
       return res;
     }
     const raw = row[col.key];
     if (raw === null || raw === undefined || raw === "") return "-";
-    if (
-      priceKeys.has(col.key) ||
-      (col.label && String(col.label).toLowerCase().includes("price"))
-    )
-      return rupeeFormat(raw);
+    if (priceKeys.has(col.key) || (col.label && String(col.label).toLowerCase().includes("price"))) return rupeeFormat(raw);
     return String(raw);
   }
 
   /* ---------- UI ---------- */
   return (
-    <div
-      ref={containerRef}
-      style={{
-        background: "#fff",
-        borderRadius: 8,
-        padding: 8,
-        boxShadow: "0 6px 18px rgba(15,23,42,0.04)",
-      }}
-    >
-      <table
-        style={{ width: "100%", borderCollapse: "collapse", fontFamily: "Outfit, sans-serif" }}
-      >
+    <div ref={containerRef} style={{ background: "#fff", borderRadius: 8, padding: 8, boxShadow: "0 6px 18px rgba(15,23,42,0.04)" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial" }}>
         <thead>
           <tr style={{ background: "#fafbfd", height: 44 }}>
             {columns.map((col) => {
-              const isPrice =
-                priceKeys.has(col.key) ||
-                (col.label && String(col.label).toLowerCase().includes("price"));
+              const isPrice = priceKeys.has(col.key) || (col.label && String(col.label).toLowerCase().includes("price"));
               return (
                 <th
                   key={col.key}
@@ -405,49 +345,29 @@ export default function Table({
                   style={{
                     borderBottom: "1px solid #eef2f6",
                     fontWeight: 600,
-                    textAlign: isPrice ? "right" : "left",
+                    textAlign: isPrice ? "center" : "left",
                     position: "relative",
-                    paddingRight: isPrice ? 16 : 12,
-                    paddingLeft: 12,
+                    padding: "10px 12px",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      justifyContent: isPrice ? "flex-end" : "flex-start",
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: "inline-block",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        maxWidth: 220,
-                      }}
-                    >
-                      {col.label}
-                    </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: isPrice ? "center" : "flex-start" }}>
+                    <span style={{ display: "inline-block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 220 }}>{col.label}</span>
 
                     {col.canFilter !== false && shouldShowFilter(col.label) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           if (openFilter === col.key) {
-                            setTempFilters((p) => {
-                              const c = { ...p };
-                              delete c[col.key];
-                              return c;
-                            });
+                            setTempFilters((p) => { const c = { ...p }; delete c[col.key]; return c; });
                             toggleFilter(null);
                             setSearchTerm("");
                             setDropdownPos(null);
                           } else {
+                            // initialize temp from parent filters
                             initTempFromParent(col.key);
                             toggleFilter(col.key);
-                            setTimeout(() => computeFixedPos(col.key, 200), 0);
+                            setTimeout(() => computeFixedPos(col.key, 240), 0);
                           }
                         }}
                         style={{ background: "transparent", border: "none", padding: 6, cursor: "pointer" }}
@@ -458,6 +378,7 @@ export default function Table({
                     )}
                   </div>
 
+                  {/* fixed dropdown */}
                   {openFilter === col.key && shouldShowFilter(col.label) && dropdownPos && (
                     <div
                       style={{
@@ -476,98 +397,34 @@ export default function Table({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div style={{ padding: 8 }}>
-                        <input
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          placeholder="Search..."
-                          style={{
-                            width: "90%",
-                            padding: "7px 10px",
-                            borderRadius: 6,
-                            border: "1px solid #e6eef8",
-                            fontSize: 13,
-                          }}
-                        />
+                        <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search..." style={{ width: "90%", padding: "7px 10px", borderRadius: 6, border: "1px solid #e6eef8", fontSize: 13 }} />
                       </div>
 
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          padding: "0 8px 6px 8px",
-                        }}
-                      >
-                        <button
-                          onClick={() => {
-                            const visible = resolveUnique(col.key).filter((v) =>
-                              String(v).toLowerCase().includes(searchTerm.toLowerCase())
-                            );
-                            selectAllVisibleTemp(col.key, visible);
-                          }}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "#2563eb",
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            fontSize: 13,
-                          }}
-                        >
-                          Select All
-                        </button>
-                        <button
-                          onClick={() => clearTempAll(col.key)}
-                          style={{ background: "transparent", border: "none", color: "#2563eb", cursor: "pointer", fontSize: 13 }}
-                        >
-                          Clear All
-                        </button>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "0 8px 6px 8px" }}>
+                        <button onClick={() => { const visible = resolveUnique(col.key).filter((v) => String(v).toLowerCase().includes(searchTerm.toLowerCase())); selectAllVisibleTemp(col.key, visible); }} style={{ background: "transparent", border: "none", color: "#2563eb", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>Select All</button>
+                        <button onClick={() => clearTempAll(col.key)} style={{ background: "transparent", border: "none", color: "#2563eb", cursor: "pointer", fontSize: 13 }}>Clear All</button>
                       </div>
 
                       <div className="tutils-options-scroll" style={{ padding: "6px 8px 64px 8px" }}>
-                        {resolveUnique(col.key)
-                          .filter((v) => String(v).toLowerCase().includes(searchTerm.toLowerCase()))
-                          .map((val, i) => {
-                            const checked = tempFor(col.key).includes(val);
-                            return (
-                              <label
-                                key={i}
-                                style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 6px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  onChange={() => toggleTempValue(col.key, val)}
-                                  style={{ width: 16, height: 16, accentColor: "#2563eb" }}
-                                />
-                                <span className="tutils-ellipsis" style={{ maxWidth: 160 }}>
-                                  {String(val)}
-                                </span>
-                              </label>
-                            );
-                          })}
+                        {resolveUnique(col.key).filter((v) => String(v).toLowerCase().includes(searchTerm.toLowerCase())).map((val, i) => {
+                          const checked = tempFor(col.key).includes(val);
+                          return (
+                            <label key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 6px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}>
+                              <input type="checkbox" checked={checked} onChange={() => toggleTempValue(col.key, val)} style={{ width: 16, height: 16, accentColor: "#2563eb" }} />
+                              <span className="tutils-ellipsis" style={{ maxWidth: 160 }}>{String(val)}</span>
+                            </label>
+                          );
+                        })}
 
                         {resolveUnique(col.key).filter((v) => String(v).toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
                           <div style={{ padding: 8, color: "#64748b", fontSize: 13 }}>No options</div>
                         )}
                       </div>
 
-                      <div
-                        className="tutils-dropdown-footer"
-                        style={{ borderTop: "1px solid #eef2f6", padding: 8, background: "#fff" }}
-                      >
+                      <div className="tutils-dropdown-footer" style={{ borderTop: "1px solid #eef2f6", padding: 8, background: "#fff" }}>
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                          <button
-                            onClick={() => cancelFor(col.key)}
-                            style={{ padding: "7px 10px", borderRadius: 6, border: "1px solid #e6eef8", background: "#fff", cursor: "pointer", fontSize: 13 }}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={() => applyFor(col.key)}
-                            style={{ padding: "7px 12px", borderRadius: 6, border: "none", background: "#2563eb", color: "#fff", cursor: "pointer", fontSize: 13 }}
-                          >
-                            Apply
-                          </button>
+                          <button onClick={() => cancelFor(col.key)} style={{ padding: "7px 10px", borderRadius: 6, border: "1px solid #e6eef8", background: "#fff", cursor: "pointer", fontSize: 13 }}>Cancel</button>
+                          <button onClick={() => applyFor(col.key)} style={{ padding: "7px 12px", borderRadius: 6, border: "none", background: "#2563eb", color: "#fff", cursor: "pointer", fontSize: 13 }}>Apply</button>
                         </div>
                       </div>
                     </div>
@@ -580,47 +437,19 @@ export default function Table({
 
         <tbody>
           {(paginatedData || []).length === 0 ? (
-            <tr>
-              <td colSpan={columns.length} className="tutils-td" style={{ textAlign: "center", padding: 18, color: "#64748b" }}>
-                No records found
-              </td>
-            </tr>
+            <tr><td colSpan={columns.length} className="tutils-td" style={{ textAlign: "center", padding: 18, color: "#64748b" }}>No records found</td></tr>
           ) : (
             (paginatedData || []).map((row, rIdx) => {
               const globalIndex = startIndex + rIdx;
               return (
-                <tr
-                  key={rIdx}
-                  style={{
-                    height: 44,
-                    background: rIdx % 2 === 0 ? "#fff" : "#fbfdff",
-                    borderBottom: "1px solid #f1f5f9",
-                    cursor: onRowClick ? "pointer" : "default",
-                  }}
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
-                >
+                <tr key={rIdx} style={{ height: 44, background: rIdx % 2 === 0 ? "#fff" : "#fbfdff", borderBottom: "1px solid #f1f5f9", cursor: onRowClick ? "pointer" : "default" }} onClick={onRowClick ? () => onRowClick(row) : undefined}>
                   {columns.map((col, cIdx) => {
                     const isPrice = priceKeys.has(col.key) || (col.label && String(col.label).toLowerCase().includes("price"));
-                    const cellValue =
-                      col.key === "serialNo" || col.key === "serial" || String(col.label || "").toLowerCase().includes("s.no")
-                        ? globalIndex + 1
-                        : renderCellContent(col, row, rIdx);
-
-                    const align = isPrice ? "right" : isNumeric(cellValue) ? "center" : "left";
+                    const cellValue = (col.key === "serialNo" || col.key === "serial" || String(col.label || "").toLowerCase().includes("s.no")) ? (globalIndex + 1) : renderCellContent(col, row, rIdx);
+                    const align = isPrice ? "center" : (isNumericLike(cellValue) ? "center" : "left");
 
                     return (
-                      <td
-                        key={cIdx}
-                        className="tutils-td"
-                        style={{
-                          textAlign: align,
-                          paddingLeft: 12,
-                          paddingRight: align === "right" ? 16 : 12,
-                          verticalAlign: "middle",
-                          maxWidth: col.maxWidth || undefined,
-                          whiteSpace: col.wrap === false ? "nowrap" : "normal",
-                        }}
-                      >
+                      <td key={cIdx} className="tutils-td" style={{ textAlign: align, paddingLeft: 12, paddingRight: align === "center" ? 12 : 12, verticalAlign: "middle", maxWidth: col.maxWidth || undefined, whiteSpace: col.wrap === false ? "nowrap" : "normal" }}>
                         {cellValue}
                       </td>
                     );
@@ -632,7 +461,7 @@ export default function Table({
         </tbody>
       </table>
 
-      {/* Pagination below table */}
+      {/* Pagination at bottom (driven by computedTotal) */}
       <Pagination page={page} setPage={setPage} totalPages={totalPages} />
     </div>
   );

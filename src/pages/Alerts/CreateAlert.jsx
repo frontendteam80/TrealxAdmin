@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+ import React, { useState } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import "./Alerts.scss";
-
+ 
 function CreateAlert() {
   const { fetchData } = useApi();
   const navigate = useNavigate();
   const { user } = useAuth();
-
+ 
   const [form, setForm] = useState({
     alertType: "buyer",
     location: "",
@@ -19,11 +19,11 @@ function CreateAlert() {
     price: "",
     notes: "",
   });
-
+ 
   // Handle input changes
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-
+ 
   // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,10 +31,10 @@ function CreateAlert() {
       alert("User not logged in!");
       return;
     }
-
+ 
     const requestType =
       form.alertType === "buyer" ? "CreateBuyerAlert" : "CreateSellerAlert";
-
+ 
     const payload =
       form.alertType === "buyer"
         ? {
@@ -54,10 +54,10 @@ function CreateAlert() {
             AdditionalNotes: form.notes,
             AlertDate: new Date().toISOString(),
           };
-
+ 
     try {
       const res = await fetchData(requestType, payload);
-
+ 
       if (res) {
         // Extract ID from response if available
         const newAlert = {
@@ -66,7 +66,7 @@ function CreateAlert() {
           BuyerAlertID: res.BuyerAlertID || null,
           SellerAlertID: res.SellerAlertID || null,
         };
-
+ 
         if (!newAlert.BuyerAlertID && !newAlert.SellerAlertID) {
           alert(
             "Alert created, but backend did not return ID. Please refresh to see it."
@@ -74,7 +74,7 @@ function CreateAlert() {
         } else {
           alert("Alert created successfully!");
         }
-
+ 
         navigate("/alerts", { state: { newAlert } });
       } else {
         alert("Failed to create alert. Please try again.");
@@ -84,9 +84,9 @@ function CreateAlert() {
       alert("Something went wrong while creating alert.");
     }
   };
-
+ 
   return (
-    <div style={{ display: "flex" }}>
+    <div style={{ display: "flex",marginLeft:"190px" }}>
       <Sidebar />
       <div className="alerts-container" style={{ flex: 1 }}>
         {/* Header with Back Button */}
@@ -98,9 +98,9 @@ function CreateAlert() {
           >
             &larr; Back
           </button>
-          <h1 className="alerts-header">Create Alert</h1>
+          <h2 className="alerts-header">Create Alert</h2>
         </div>
-
+ 
         <form className="create-alert-form" onSubmit={handleSubmit}>
           {/* Alert Type */}
           <div className="form-group">
@@ -114,7 +114,7 @@ function CreateAlert() {
               <option value="seller">Seller</option>
             </select>
           </div>
-
+ 
           {/* Location */}
           <div className="form-group">
             <label>Location</label>
@@ -126,7 +126,7 @@ function CreateAlert() {
               required
             />
           </div>
-
+ 
           {/* Property Type */}
           <div className="form-group property-type-group">
             <label>Property Type</label>
@@ -148,7 +148,7 @@ function CreateAlert() {
               <option value="Farm Lands">Farm Land</option>
             </select>
           </div>
-
+ 
           {/* Price Fields */}
           {form.alertType === "buyer" ? (
             <div className="price-range-container">
@@ -185,7 +185,7 @@ function CreateAlert() {
               />
             </div>
           )}
-
+ 
           {/* Additional Notes */}
           <div className="form-group">
             <label>Additional Notes</label>
@@ -196,7 +196,7 @@ function CreateAlert() {
               rows="3"
             />
           </div>
-
+ 
           {/* Submit Button */}
           <button type="submit" className="submit-btn">
             Save Alert
@@ -206,5 +206,5 @@ function CreateAlert() {
     </div>
   );
 }
-
+ 
 export default CreateAlert;

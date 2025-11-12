@@ -1,6 +1,8 @@
- import React, { useEffect, useState, useMemo } from "react";
+ // src/pages/Buyers/Buyers.jsx
+import React, { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
-import DataTable,{Pagination} from "../../Utils/Table.jsx";
+import DataTable, { Pagination } from "../../Utils/Table.jsx";
+import SearchBar from "../../Utils/SearchBar.jsx";
 import formatAmount from "../../Utils/formatAmount.js";
 import { useApi } from "../../API/Api.js";
 
@@ -49,13 +51,13 @@ export default function Buyers() {
         const arr = Array.isArray(data) ? data : data?.data || [];
         if (!canceled) setBuyers(arr);
       } catch (err) {
-        if (!canceled) setError(err.message || "Error loading buyers");
+        if (!canceled) setError(err?.message || "Error loading buyers");
       } finally {
         if (!canceled) setLoading(false);
       }
     }
     load();
-    return () => (canceled = true);
+    return () => { canceled = true; };
   }, [fetchData]);
 
   const handleCheckboxChange = (columnKey, value) => {
@@ -68,6 +70,7 @@ export default function Buyers() {
   };
 
   const toggleFilter = (key) => setOpenFilter((p) => (p === key ? null : key));
+
   const clearFilter = (key) => {
     setFilters((prev) => {
       const copy = { ...prev };
@@ -76,7 +79,9 @@ export default function Buyers() {
     });
     setOpenFilter(null);
   };
+
   const applyFilter = () => setOpenFilter(null);
+
   const uniqueValues = (key) =>
     Array.from(new Set(buyers.map((b) => b[key]).filter(Boolean)));
 
@@ -160,7 +165,7 @@ export default function Buyers() {
       style={{
         display: "flex",
         height: "100vh",
-        overflow: "hidden", // 🚫 No page scroll
+        overflow: "hidden", // prevent outer page scroll
         backgroundColor: "#fff",
       }}
     >
@@ -170,14 +175,14 @@ export default function Buyers() {
         style={{
           flex: 1,
           padding: "20px 24px",
-          marginLeft: "180px",
+         // marginLeft: "180px",
           boxSizing: "border-box",
-          overflow: "hidden", // 🚫 No inner scroll
+          overflow: "hidden", // prevent inner scroll
           display: "flex",
           flexDirection: "column",
         }}
       >
-        {/* ✅ Heading + Search in same row */}
+        {/* Heading + Search in same row (search uses your reusable SearchBar) */}
         <div
           style={{
             display: "flex",
@@ -197,22 +202,17 @@ export default function Buyers() {
             Buyers
           </h2>
 
-          <input
-            placeholder="Search buyers..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: "1px solid #e5e7eb",
-              width: 240,
-              background: "#f7fafd",
-              fontSize: 14,
-            }}
-          />
+          <div style={{ width: 260 }}>
+            <SearchBar
+              value={searchValue}
+              onChange={(v) => { setSearchValue(v); }}
+              onSubmit={() => setPage(1)}
+              pageLabel="Buyers"
+            />
+          </div>
         </div>
 
-        {/* ✅ Static Table (no scroll) */}
+        {/* Table area (no outer scroll) */}
         <div
           style={{
             flex: 1,
@@ -242,15 +242,15 @@ export default function Buyers() {
                   clearFilter={clearFilter}
                   applyFilter={applyFilter}
                   page={page}
+                  setPage={setPage}
                   rowsPerPage={rowsPerPage}
+                  // totalCount ensures pagination component inside Table (if used) can reflect full length
+                  totalCount={filteredList.length}
                 />
               </div>
+
               <div style={{ padding: "10px 0" }}>
-                <Pagination
-                  page={page}
-                  setPage={setPage}
-                  totalPages={totalPages}
-                />
+                <Pagination page={page} setPage={setPage} totalPages={totalPages} />
               </div>
             </>
           )}

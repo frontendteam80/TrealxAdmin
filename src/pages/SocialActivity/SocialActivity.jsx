@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Sidebar from "../../components/Sidebar.jsx";
 import ProjectDetailsTabsComponent from "./ProjectDetailsTabsComponent.jsx";
@@ -8,11 +7,13 @@ import { useApi } from "../../API/Api.js";
 import { LoadScript } from "@react-google-maps/api";
 import Table from "../../Utils/Table.jsx";
 import { Filter } from "lucide-react";
-
+import { Eye } from "lucide-react";
+ 
+ 
 const SIDEBAR_WIDTH = 220;
 const PAGE_PADDING = 20;
 const GOOGLE_MAPS_API_KEY = "AIzaSyAGGzyx5AhGJIfBbzbz9ZeWWyjdGu7Elf0";
-
+ 
 // Modal component
 function Modal({ children, open, onClose }) {
   if (!open) return null;
@@ -55,13 +56,13 @@ function Modal({ children, open, onClose }) {
     document.body
   );
 }
-
+ 
 export default function SocialActivity() {
   const [activeTab, setActiveTab] = useState("Tours");
   const [displayData, setDisplayData] = useState([]);
   const [loading, setLoading] = useState(false);
   const { fetchData } = useApi();
-
+ 
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 12;
   const [selectedRow, setSelectedRow] = useState(null);
@@ -69,28 +70,28 @@ export default function SocialActivity() {
   const [agentList, setAgentList] = useState([]);
   const [shareUnit, setShareUnit] = useState(null);
   const [agentsOpen, setAgentsOpen] = useState(false);
-
+ 
   const [openFilter, setOpenFilter] = useState(null);
   const [filters, setFilters] = useState({});
   const [filterSearchValue, setFilterSearchValue] = useState("");
-
+ 
   const listParamTypes = {
     Tours: "ToursDetails",
     "Request Info": "RequestinfoDetails",
     "Shared Properties": "SharePropertyDetails",
   };
-
+ 
   const projectInfoParamTypes = {
     Tours: "ToursPropertyDetails",
     "Request Info": "RequestInfoPropertyDetails",
     "Shared Properties": "SharedPropertyDetails",
   };
-
+ 
   function getId(obj, keys) {
     for (const key of keys) if (obj[key] !== undefined) return obj[key];
     return null;
   }
-
+ 
   useEffect(() => {
     async function loadData() {
       setLoading(true);
@@ -109,31 +110,31 @@ export default function SocialActivity() {
     }
     loadData();
   }, [activeTab, fetchData]);
-
+ 
   const handleDetailsClick = async (row) => {
     setSelectedRow(row);
     setProjectDetail(null);
     setAgentsOpen(false);
-
+ 
     const projectId = getId(row, ["ProjectID", "ProjectId", "projectId", "projectid"]);
     const propertyId = getId(row, ["PropertyID", "PropertyId", "propertyId", "propertyid"]);
     if (!projectId || !propertyId) return;
-
+ 
     try {
       const paramtype = projectInfoParamTypes[activeTab];
       if (!paramtype) return;
       const allUnits = await fetchData(paramtype);
-
+ 
       const currentProjectUnits = allUnits.filter(
         (item) => String(getId(item, ["ProjectID", "ProjectId", "projectId", "projectid"])) === String(projectId)
       );
       if (currentProjectUnits.length === 0) return;
-
+ 
       const specificUnit = currentProjectUnits.find(
         (unit) => String(getId(unit, ["PropertyID", "PropertyId", "propertyId", "propertyid"])) === String(propertyId)
       );
       if (!specificUnit) return;
-
+ 
       setProjectDetail({
         details: {
           name: currentProjectUnits[0]?.ProjectName || `Project #${projectId}`,
@@ -174,12 +175,12 @@ export default function SocialActivity() {
       setProjectDetail(null);
     }
   };
-
+ 
   const toggleFilterHandler = (key) => {
     setOpenFilter(openFilter === key ? null : key);
     setFilterSearchValue("");
   };
-
+ 
   const handleCheckboxChange = (key, value) => {
     setFilters((prev) => {
       const prevVals = prev[key] || [];
@@ -191,7 +192,7 @@ export default function SocialActivity() {
       };
     });
   };
-
+ 
   const clearFilterHandler = (key) => {
     setFilters((prev) => {
       const copy = { ...prev };
@@ -200,12 +201,12 @@ export default function SocialActivity() {
     });
     setOpenFilter(null);
   };
-
+ 
   const applyFilterHandler = () => {
     setOpenFilter(null);
     setCurrentPage(1);
   };
-
+ 
   const uniqueValues = (key) => {
     return Array.from(
       new Set(
@@ -215,7 +216,7 @@ export default function SocialActivity() {
       )
     ).sort((a, b) => a.toString().localeCompare(b.toString()));
   };
-
+ 
   const filterByColumns = (data) => {
     if (!Object.keys(filters).length) return data;
     return data.filter((item) =>
@@ -226,9 +227,9 @@ export default function SocialActivity() {
       })
     );
   };
-
+ 
   // You can add filter UI in table headers by creating renderHeaderWithFilter, omitted for brevity here
-
+ 
   const columnsConfig = {
     Tours: [
       { label: "FullName", key: "FullName" },
@@ -239,12 +240,32 @@ export default function SocialActivity() {
       { label: "ProjectID", key: "ProjectID" },
       { label: "PropertyID", key: "PropertyID" },
       {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <button className="details-btn" onClick={() => handleDetailsClick(row)}>Details</button>
-        ),
-      },
+  label: "Action",
+  key: "action",
+  render: (_, row) => (
+    <button
+      onClick={() => handleDetailsClick(row)}
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 32,
+        height: 32,
+        borderRadius: 6,
+        transition: "background-color 0.2s ease",
+      }}
+      title="View Details"
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+    >
+      <Eye size={18} color="#374151" />
+    </button>
+  ),
+},
+ 
     ],
     "Request Info": [
       { label: "Message", key: "Message" },
@@ -253,12 +274,32 @@ export default function SocialActivity() {
       { label: "ProjectID", key: "ProjectID" },
       { label: "PropertyID", key: "PropertyID" },
       {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <button className="details-btn" onClick={() => handleDetailsClick(row)}>Details</button>
-        ),
-      },
+  label: "Action",
+  key: "action",
+  render: (_, row) => (
+    <button
+      onClick={() => handleDetailsClick(row)}
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 32,
+        height: 32,
+        borderRadius: 6,
+        transition: "background-color 0.2s ease",
+      }}
+      title="View Details"
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+    >
+      <Eye size={18} color="#374151" />
+    </button>
+  ),
+},
+ 
     ],
     "Shared Properties": [
       { label: "Name", key: "Name" },
@@ -268,29 +309,49 @@ export default function SocialActivity() {
       { label: "Channel", key: "Channel" },
       { label: "ProjectID", key: "ProjectID" },
       { label: "PropertyID", key: "PropertyID" },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <button className="details-btn" onClick={() => handleDetailsClick(row)}>Details</button>
-        ),
-      },
+     {
+  label: "Action",
+  key: "action",
+  render: (_, row) => (
+    <button
+      onClick={() => handleDetailsClick(row)}
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 32,
+        height: 32,
+        borderRadius: 6,
+        transition: "background-color 0.2s ease",
+      }}
+      title="View Details"
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+    >
+      <Eye size={18} color="#374151" />
+    </button>
+  ),
+},
+ 
     ],
   };
-
+ 
   return (
     <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
-      <div className="dashboard-container" style={{ display: "flex", marginLeft: 180 }}>
+      <div className="dashboard-container" style={{ display: "flex",height:"100vh",overflow:"hidden" }}>
         <Sidebar />
         <div
           className="buyers-content"
-          style={{ flex: 1, position: "relative", minHeight: "100vh", overflowX: "hidden", padding: 24 }}
+          style={{ flex: 1, position: "relative", padding: 24 }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
             <h2 style={{ margin: 0, fontWeight: 600,fontSize:"1.05rem"}}>Social Activity</h2>
             <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#d4af37" }}>Kiran Reddy Pallaki</div>
           </div>
-
+ 
           <div style={{ marginBottom: 16, gap: "2px", display: "flex" }}>
             {Object.keys(listParamTypes).map((tab) => (
               <button
@@ -312,7 +373,7 @@ export default function SocialActivity() {
               </button>
             ))}
           </div>
-
+ 
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -332,7 +393,7 @@ export default function SocialActivity() {
               onRowClick={handleDetailsClick}
             />
           )}
-
+ 
           <Modal
             open={!!selectedRow}
             onClose={() => {
@@ -372,7 +433,7 @@ export default function SocialActivity() {
                   currentPropertyId={selectedRow?.PropertyID ?? selectedRow?.propertyId}
                 />
               </div>
-
+ 
               {agentsOpen && (
                 <div
                   style={{

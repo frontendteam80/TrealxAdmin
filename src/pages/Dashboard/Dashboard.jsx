@@ -40,6 +40,11 @@ export default function Dashboard() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
+  // Listing menu states (NEW, inline only)
+  const [showListingMenu, setShowListingMenu] = useState(false);
+  const listingMenuRef = useRef(null);
+  const [previewIndex, setPreviewIndex] = useState(null); // null = not previewing
+
   // Theme
   useEffect(() => {
     document.body.classList.toggle("dark-theme", theme === "dark");
@@ -89,7 +94,7 @@ export default function Dashboard() {
     loadDashboardData();
   }, [fetchData]);
 
-  // Popup click outside
+  // Popup click outside (signout)
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (popupRef.current && !popupRef.current.contains(e.target)) {
@@ -100,12 +105,71 @@ export default function Dashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSignOutPopup]);
 
+  // Click-outside handler for listing menu
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (listingMenuRef.current && !listingMenuRef.current.contains(e.target)) {
+        setShowListingMenu(false);
+        setPreviewIndex(null);
+      }
+    };
+    if (showListingMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showListingMenu]);
+
   const toggleTheme = () => setTheme((p) => (p === "dark" ? "light" : "dark"));
   const handleSignOut = () => {
     logout();
     navigate("/login");
   };
   const handleCardClick = (route, state = {}) => navigate(route, { state });
+
+  // Listing options (keeps your routes unchanged)
+  const listingOptions = [
+    {
+      id: "active",
+      label: "Active Listings",
+      desc: "View all currently active listings",
+      route: "/activelistings",
+    },
+    {
+      id: "new",
+      label: "New Listings",
+      desc: "Recently added properties this week",
+      route: "/newlistings",
+    },
+    {
+      id: "total",
+      label: "Total Listings",
+      desc: "All listings (projects & properties)",
+      route: "/ProjectsDetails",
+      state: { defaultTab: "PROPERTIES", fromDashboard: true }, // <-- changed to PROPERTIES (uppercase)
+    },
+    {
+      id: "project",
+      label: "Project Data",
+      desc: "Project-specific listings & details",
+      route: "/ProjectsDetails", // <-- changed to open ProjectsDetails since you said Projectmanagement.jsx doesn't exist
+      state: { defaultTab: "PROJECTS", fromDashboard: true }, // <-- set PROJECTS
+    },
+  ];
+
+  const openListingRoute = (opt) => {
+    setShowListingMenu(false);
+    setPreviewIndex(null);
+    if (opt.state) navigate(opt.route, { state: opt.state });
+    else navigate(opt.route);
+  };
+
+  // Preview controls: next / previous
+  const previewNext = () => {
+    if (previewIndex === null) setPreviewIndex(0);
+    else setPreviewIndex((i) => (i + 1) % listingOptions.length);
+  };
+  const previewPrev = () => {
+    if (previewIndex === null) setPreviewIndex(0);
+    else setPreviewIndex((i) => (i - 1 + listingOptions.length) % listingOptions.length);
+  };
 
   // ---------- Table Helpers ----------
   const toggleFilter = (key) =>
@@ -171,7 +235,7 @@ export default function Dashboard() {
           style={{
             flex: 1,
             padding: "20px 30px",
-            marginLeft: "180px",
+          //  marginLeft: "180px",
            // overflowX: "hidden",
           }}
         >
@@ -269,25 +333,175 @@ export default function Dashboard() {
           </div>
 
           {/* Stats Cards */}
-          <section className="stats-grid">
-            <div onClick={() => handleCardClick("/activelistings")}>
+          <section className="stats-grid" style={{ position: "relative" }}>
+            {/* Single Listings Card (replaces Active/New/Total/Project cards) */}
+            <div
+              style={{ position: "relative", cursor: "pointer", width: "100%" }}
+              onClick={() => {
+                setShowListingMenu((s) => !s);
+                setPreviewIndex(null);
+              }}
+            >
               <StatsCard
-                title="Active Listings"
-                value={stats.activeListings}
-                change="+12% this month"
-                icon={MdHome}
-                gradient="linear-gradient(90deg, #5e72e4, #825ee4)"
+                title="Listings"
+                value={stats.totalListings}
+                change="+ aggregated"
+                icon={MdListAlt}
+                gradient="linear-gradient(90deg, #6c757d, #adb5bd)"
               />
+
+              {/* Dropdown Panel anchored to the Listings card */}
+              {showListingMenu && (
+                <div
+                  ref={listingMenuRef}
+                  style={{
+                    position: "absolute",
+                    top: "110px",
+                    left: 0,
+                    minWidth: 300,
+                    maxWidth: 420,
+                    background: theme === "dark" ? "#1a1a1a" : "#fff",
+                    color: theme === "dark" ? "#eee" : "#111",
+                    borderRadius: 12,
+                    boxShadow: "0 8px 30px rgba(2,6,23,0.2)",
+                    padding: 16,
+                    zIndex: 9999,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: 15 }}>Listing Options</div>
+                    <div style={{ fontSize: 13, color: theme === "dark" ? "#bbb" : "#666" }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setPreviewIndex(0); }}
+                        style={{
+                          background: "transparent",
+                          border: "1px solid rgba(0,0,0,0.06)",
+                          padding: "6px 10px",
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          fontSize: 13,
+                        }}
+                      >
+                        Preview
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Menu content: either list of options or preview box */}
+                  {previewIndex === null ? (
+                    <div style={{ display: "grid", gap: 8 }}>
+                      {listingOptions.map((opt) => (
+                        <div
+                          key={opt.id}
+                          onClick={() => openListingRoute(opt)}
+                          style={{
+                            padding: "10px 12px",
+                            borderRadius: 10,
+                            display: "flex",
+                            flexDirection: "column",
+                            cursor: "pointer",
+                            background: theme === "dark" ? "#171717" : "#fbfbfb",
+                            border: theme === "dark" ? "1px solid #222" : "1px solid #f0f0f0",
+                          }}
+                        >
+                          <div style={{ fontWeight: 700 }}>{opt.label}</div>
+                          <div style={{ fontSize: 13, color: theme === "dark" ? "#bfbfbf" : "#666" }}>{opt.desc}</div>
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShowListingMenu(false); }}
+                          style={{
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            color: theme === "dark" ? "#ddd" : "#444"
+                          }}
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Preview card (one-by-one flow)
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700 }}>
+                        {listingOptions[previewIndex].label}
+                      </div>
+                      <div style={{ color: theme === "dark" ? "#ccc" : "#666" }}>
+                        {listingOptions[previewIndex].desc}
+                      </div>
+
+                      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openListingRoute(listingOptions[previewIndex]); }}
+                          style={{
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            cursor: "pointer",
+                            border: "none",
+                            background: "linear-gradient(90deg,#5e72e4,#825ee4)",
+                            color: "#fff",
+                            fontWeight: 700,
+                            flex: 1,
+                          }}
+                        >
+                          Open
+                        </button>
+
+                        <button
+                          onClick={(e) => { e.stopPropagation(); previewPrev(); }}
+                          style={{
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            cursor: "pointer",
+                            border: "1px solid rgba(0,0,0,0.08)",
+                            background: "transparent",
+                            flex: 1,
+                          }}
+                        >
+                          Previous
+                        </button>
+
+                        <button
+                          onClick={(e) => { e.stopPropagation(); previewNext(); }}
+                          style={{
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            cursor: "pointer",
+                            border: "1px solid rgba(0,0,0,0.08)",
+                            background: "transparent",
+                            flex: 1,
+                          }}
+                        >
+                          Next
+                        </button>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setPreviewIndex(null); }}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: 8,
+                            border: "none",
+                            background: "transparent",
+                            cursor: "pointer",
+                            color: theme === "dark" ? "#ddd" : "#444",
+                          }}
+                        >
+                          Back to list
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <div onClick={() => handleCardClick("/newlistings")}>
-              <StatsCard
-                title="New Listings"
-                value={stats.newListings}
-                change="+2 this week"
-                icon={MdNewReleases}
-                gradient="linear-gradient(90deg, #2dce89, #11cdef)"
-              />
-            </div>
+
+            {/* Remaining stat cards (unchanged) */}
             <div onClick={() => handleCardClick("/approval")}>
               <StatsCard
                 title="Waiting For Approval"
@@ -297,6 +511,7 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #f5365c, #fb6340)"
               />
             </div>
+
             <div onClick={() => handleCardClick("/updates")}>
               <StatsCard
                 title="Price Updates"
@@ -306,22 +521,7 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #344767, #6c757d)"
               />
             </div>
-            <div
-              onClick={() =>
-                handleCardClick("/ProjectsDetails", {
-                  defaultTab: "properties",
-                  fromDashboard: true,
-                })
-              }
-            >
-              <StatsCard
-                title="Total Listings"
-                value={stats.totalListings}
-                change="+6% overall"
-                icon={MdListAlt}
-                gradient="linear-gradient(90deg, #6c757d, #adb5bd)"
-              />
-            </div>
+
             <div onClick={() => handleCardClick("/orderimages")}>
               <StatsCard
                 title="Order Images"
@@ -331,6 +531,7 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #00c6ff, #0072ff)"
               />
             </div>
+
             <div onClick={() => handleCardClick("/crmdata")}>
               <StatsCard
                 title="CRM Data"
@@ -338,22 +539,6 @@ export default function Dashboard() {
                 change="+2 this week"
                 icon={MdBusiness}
                 gradient="linear-gradient(90deg, #ff9a9e, #fad0c4)"
-              />
-            </div>
-            <div
-              onClick={() =>
-                handleCardClick("/Projectmanagement", {
-                  defaultTab: "projects",
-                  fromDashboard: true,
-                })
-              }
-            >
-              <StatsCard
-                title="Project Data"
-                value={stats.projectData || 0}
-                change="+3 this week"
-                icon={MdBusiness}
-                gradient="linear-gradient(90deg, #bf75ff, #c77eff)"
               />
             </div>
           </section>

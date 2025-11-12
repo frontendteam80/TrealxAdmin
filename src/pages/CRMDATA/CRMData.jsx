@@ -15,7 +15,7 @@ export default function AgentDetails() {
   const [openFilter, setOpenFilter] = useState(null);
   const [searchValue, setSearchValue] = useState("");
   const [page, setPage] = useState(1);
-  const rowsPerPage = 15;
+  const rowsPerPage = 10;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -189,7 +189,7 @@ export default function AgentDetails() {
   return (
     <div className="dashboard-container" style={{ display: "flex" }}>
       <Sidebar />
-      <div style={{ flex: 1, padding: 20,marginLeft: "180px" }}>
+      <div style={{ flex: 1, padding: 20 }}>
         {/* ✅ Back Button */}
         <button
           onClick={() => navigate(-1)} // go back properly

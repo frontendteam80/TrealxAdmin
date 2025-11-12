@@ -1,9 +1,11 @@
  // src/pages/Sellers/Sellers.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
-import Table from "../../Utils/Table.jsx";
+import Table, { Pagination } from "../../Utils/Table.jsx";
+import SearchBar from "../../Utils/SearchBar.jsx";
 import { useApi } from "../../API/Api.js";
 
+/* small helper to show truncated addresses */
 function LocationCell({ value }) {
   const [showAll, setShowAll] = useState(false);
   if (!value || typeof value !== "string") return <>N/A</>;
@@ -88,7 +90,6 @@ export default function Sellers() {
     const vals = sellers
       .map((r) => r?.[key])
       .filter((v) => v !== undefined && v !== null && String(v).trim() !== "");
-    // if CSV strings (addresses etc.), do not split here; keep raw values
     return Array.from(new Set(vals.map((v) => (typeof v === "string" ? v.trim() : v))));
   };
 
@@ -96,7 +97,6 @@ export default function Sellers() {
   const handleCheckboxChange = (key, value) => {
     setFilters((prev) => {
       const prevVals = prev[key] || [];
-      // toggle value
       const next = prevVals.includes(value) ? prevVals.filter((v) => v !== value) : [...prevVals, value];
       return { ...prev, [key]: next };
     });
@@ -116,7 +116,7 @@ export default function Sellers() {
   };
 
   const applyFilter = () => {
-    // parent-level: just close dropdown — the filtering is handled below from `filters`
+    // just close filter, parent already uses `filters` to derive results
     setOpenFilter(null);
   };
 
@@ -130,12 +130,10 @@ export default function Sellers() {
         return Object.entries(filters).every(([colKey, vals]) => {
           if (!Array.isArray(vals) || vals.length === 0) return true;
           const cell = item?.[colKey];
-          // Special-case: boolean-like fields stored as "Y"/"N" or true/false — match string/boolean
           if (typeof cell === "boolean") {
             return vals.includes(cell);
           }
           if (cell === null || cell === undefined || String(cell).trim() === "") return false;
-          // keep match flexible: compare stringified trimmed values
           const cellStr = String(cell).trim().toLowerCase();
           return vals.some((v) => String(v).trim().toLowerCase() === cellStr);
         });
@@ -184,7 +182,15 @@ export default function Sellers() {
       key: "IslegalOwner",
       render: (val) => (val ? "yes" : "no"),
     },
-    { label: "Contact Number", key: "ContactNumber" },
+    {
+  label: "Contact Number",
+  key: "ContactNumber",
+  render: (val) => (
+    <div style={{ textAlign: "center"}}>
+      {val || "-"}
+    </div>
+  ),
+},
     { label: "Email", key: "Email" },
   ], [page]);
 
@@ -201,12 +207,14 @@ export default function Sellers() {
           flex: 1,
           minHeight: "100vh",
           padding: 24,
-          marginLeft: "180px",
+         // marginLeft: "180px",
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden", // prevent page-level scroll
         }}
       >
+        {/* Heading + Search bar in one row (SearchBar is reusable) */}
         <div
           style={{
             display: "flex",
@@ -226,23 +234,14 @@ export default function Sellers() {
             Sellers
           </h2>
 
-          <input
-            type="text"
-            placeholder="Search sellers..."
-            value={searchValue}
-            onChange={(e) => {
-              setSearchValue(e.target.value);
-              setPage(1); // reset page when searching
-            }}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: "1px solid #e5e7eb",
-              width: 240,
-              background: "#f7fafd",
-              fontSize: 14,
-            }}
-          />
+          <div style={{ width: 260 }}>
+            <SearchBar
+              value={searchValue}
+              onChange={(v) => { setSearchValue(v); setPage(1); }}
+              onSubmit={() => setPage(1)}
+              pageLabel="Sellers"
+            />
+          </div>
         </div>
 
         <div style={{ borderRadius: 8, background: "#fff", padding: 6, flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
@@ -256,9 +255,8 @@ export default function Sellers() {
                   paginatedData={paginatedData}
                   rowsPerPage={rowsPerPage}
                   page={page}
-                  // pass full filtered dataset so filter dropdowns derive options from full filtered set
-                  data={filteredSellers}
-                  // filter plumbing
+                  setPage={setPage}
+                  data={filteredSellers} // Table may use this for deriving unique values if needed
                   filters={filters}
                   openFilter={openFilter}
                   toggleFilter={toggleFilter}
@@ -266,6 +264,7 @@ export default function Sellers() {
                   uniqueValues={(k) => uniqueValues(k)}
                   clearFilter={clearFilter}
                   applyFilter={applyFilter}
+                  totalCount={filteredSellers.length}
                 />
               </div>
 

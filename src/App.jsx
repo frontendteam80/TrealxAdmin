@@ -26,6 +26,7 @@ import NewListings from "./pages/NewListing/NewListing.jsx";
 import ProjectManagement from "./pages/ProjectManagement/ProjectsDetails.jsx";
 
 
+
 function App() {
   const { bearerToken, loading } = useAuth();
 

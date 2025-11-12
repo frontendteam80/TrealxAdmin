@@ -213,7 +213,7 @@ export default function PriceHistory() {
       <main
         className="main-content"
         style={{
-          marginLeft: "180px", // adjusted for sidebar
+        //  marginLeft: "180px", // adjusted for sidebar
           maxWidth: "calc(100vw - 260px)",
           overflowX: "auto",
           padding: 20,
