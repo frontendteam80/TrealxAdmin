@@ -1,18 +1,22 @@
- import { useState, useEffect, useRef, useMemo } from "react";
+
+// src/pages/Dashboard/Dashboard.jsx
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import Navbar from "../../components/Navbar.jsx";
 import StatsCard from "../../components/StatsCard.jsx";
+import ProfileIcon from "../../components/Profile/profileIcon.jsx"; // your theme toggle / small icon
+// import ProfileMenu from "../../components/Profile/ProfileMenu.jsx"; // full profile dropdown menu
+
 import {
   MdHome,
   MdNewReleases,
   MdPendingActions,
   MdPriceChange,
   MdListAlt,
-  MdLogout,
   MdImage,
   MdBusiness,
 } from "react-icons/md";
-import { FiSun, FiMoon } from "react-icons/fi";
+
 import { useApi } from "../../API/Api.js";
 import { useAuth } from "../../auth/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
@@ -21,13 +25,12 @@ import "../Dashboard/Dashboard.scss";
 
 export default function Dashboard() {
   const [theme, setTheme] = useState(() =>
-    localStorage.getItem("theme") || "dark"
+    localStorage.getItem("theme") || "light"
   );
   const [activeTab, setActiveTab] = useState("AgentOverview");
   const [stats, setStats] = useState({});
   const [agentData, setAgentData] = useState([]);
   const [feedbackData, setFeedbackData] = useState([]);
-  const [showSignOutPopup, setShowSignOutPopup] = useState(false);
   const popupRef = useRef(null);
   const { fetchData } = useApi();
   const { user, logout } = useAuth();
@@ -64,7 +67,7 @@ export default function Dashboard() {
           fetchData("UserFeedback"),
         ]);
 
-        const data = dashboardSummary?.[0] || {};
+        const data = Array.isArray(dashboardSummary) ? dashboardSummary[0] || {} : {};
         setStats({
           activeListings: Number(data.ActiveListing || 0).toLocaleString(),
           newListings: Number(data.PropertyAddedThisWeek || 0).toLocaleString(),
@@ -118,10 +121,6 @@ export default function Dashboard() {
   }, [showListingMenu]);
 
   const toggleTheme = () => setTheme((p) => (p === "dark" ? "light" : "dark"));
-  const handleSignOut = () => {
-    logout();
-    navigate("/login");
-  };
   const handleCardClick = (route, state = {}) => navigate(route, { state });
 
   // Listing options (keeps your routes unchanged)
@@ -241,95 +240,49 @@ export default function Dashboard() {
         >
           <Navbar />
 
-          {/* Theme + Logout */}
+          {/* Profile Icon + Profile Menu: top-right */}
           <div
             style={{
               position: "fixed",
-              marginLeft: "240px",
               top: 20,
               right: 25,
               zIndex: 9999,
               display: "flex",
               alignItems: "center",
-              gap: "15px",
+              gap: "12px",
             }}
           >
-            <button
-              onClick={toggleTheme}
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-              style={{
-                fontSize: "1.8rem",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                color: "inherit",
+            {/* existing theme toggle/simple profile icon */}
+             {/* <ProfileIcon currentTheme={theme} onToggleTheme={toggleTheme} />  */}
+
+            {/* full profile menu (User & Role, Property Management, Platform Settings) */}
+            <ProfileIcon
+              user={user || {}}
+              cureentTheme={theme}
+              onToggleTheme={toggleTheme}
+              onNavigate={(path, state) => {
+                // Normalize navigation signature: allow (path) or (path, state)
+                if (state && typeof state === "object" && state.hasOwnProperty("state")) {
+                  navigate(path, state);
+                } else {
+                  navigate(path, { state });
+                }
               }}
-            >
-              {theme === "dark" ? <FiSun /> : <FiMoon />}
-            </button>
-
-            <div style={{ position: "relative" }}>
-              <button
-                onClick={() => setShowSignOutPopup((p) => !p)}
-                aria-label="Sign out"
-                title="Sign Out"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "1.8rem",
-                  color: "inherit",
-                }}
-              >
-                <MdLogout />
-              </button>
-
-              {showSignOutPopup && (
-                <div
-                  ref={popupRef}
-                  style={{
-                    position: "absolute",
-                    top: "45px",
-                    right: "0",
-                    background: theme === "dark" ? "#1f1f1f" : "#fff",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    borderRadius: "12px",
-                    padding: "15px 20px",
-                    width: "250px",
-                    color: theme === "dark" ? "#eee" : "#333",
-                  }}
-                >
-                  <h4 style={{ marginBottom: "8px", fontSize: "1rem" }}>
-                    {user?.firstName || "Unknown User"}
-                  </h4>
-                  <p
-                    style={{
-                      marginBottom: "15px",
-                      fontSize: "0.9rem",
-                      color: theme === "dark" ? "#ccc" : "#555",
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    {user?.email || "No email found"}
-                  </p>
-                  <button
-                    onClick={handleSignOut}
-                    style={{
-                      width: "100%",
-                      padding: "8px 0",
-                      background: "linear-gradient(90deg,#f5365c,#fb6340)",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      fontWeight: "600",
-                    }}
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
+              onOpenSection={(id) => {
+                // Called when a specific section item is clicked
+                // You can replace this with modal toggles or analytics
+                console.log("Profile menu open section:", id);
+              }}
+              onSignOut={() => {
+                // call your existing logout from auth context then route to login
+                try {
+                  logout();
+                } catch (e) {
+                  console.warn("Logout failed:", e);
+                }
+                navigate("/login");
+              }}
+            />
           </div>
 
           {/* Stats Cards */}

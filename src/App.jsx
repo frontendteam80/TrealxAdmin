@@ -19,12 +19,14 @@ import AgentDetailsTable from "./pages/SocialActivity/AgentDetailsTable.jsx";
 import CRMDATA from "./pages/CRMDATA/CRMData.jsx";
 import ProjectDetailsTabComponent from "./pages/SocialActivity/ProjectDetailsTabsComponent.jsx";
 import ProjectDetails from "./pages/ProjectManagement/ProjectsDetails.jsx";
- import TotalListings from "./pages/TotalListings/TotalListings.jsx";
+import TotalListings from "./pages/TotalListings/TotalListings.jsx";
 import ActiveListings from "./pages/ActiveListing/ActiveListings.jsx";
 import Approval from "./pages/Approval/Approval.jsx";
 import NewListings from "./pages/NewListing/NewListing.jsx";
 import ProjectManagement from "./pages/ProjectManagement/ProjectsDetails.jsx";
-
+// import ProfilePage from "./components/Profile/ProfilePage.jsx";
+// import SettingsPage from "./components/Profile/SettingsPage.jsx";
+// import UserRoleManager from "./components/Profile/UserRoleManager.jsx";
 
 
 function App() {
@@ -60,7 +62,9 @@ function App() {
         <Route path="/approval" element={<ProtectedRoute><Approval/></ProtectedRoute>} />
         <Route path="/newlistings" element={<ProtectedRoute><NewListings/></ProtectedRoute>} />
         <Route path="/projectmanagement" element={<ProtectedRoute><ProjectManagement/></ProtectedRoute>} />
-      </Routes>
+        {/* <Route path="/profile" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>} />
+         <Route path="/settings" element={<ProtectedRoute><SettingsPage/></ProtectedRoute>} />*/}
+      </Routes> 
     </ThemeProvider>
   );
 }

@@ -260,13 +260,26 @@ export default function ProjectsDetails() {
       currentPage = companyPage;
       setCurrentPage = setCompanyPage;
   }
+//   function fmtList(value) {
+//   if (!value) return "";
+//   if (Array.isArray(value)) {
+//     return value.join(", ");
+//   }
+//   // Handle comma-separated strings
+//   return String(value)
+//     .split(",")
+//     .map((s) => s.trim())
+//     .filter(Boolean)
+//     .join(", ");
+// }
+
 
   // Paginate current data
   const currentPaginated = currentData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
   const totalPageCount = Math.ceil(currentData.length / rowsPerPage);
 
   return (
-    <div className="dashboard-container" style={{ display: "flex", backgroundColor: "#fff", height: "100vh", overflow: "hidden" }}>
+    <div className="dashboard-container" style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Sidebar />
       <div style={{ flex: 1, position: "relative", maxHeight: "100vh", padding: 24, boxSizing: "border-box" }}>
 

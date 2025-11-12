@@ -182,7 +182,6 @@ export default function Table({
   const [tempFilters, setTempFilters] = useState({});
   const [dropdownPos, setDropdownPos] = useState(null);
 
-  // keys treated as price
   const priceKeys = new Set([
     "AmountWithUnit",
     "Price",
@@ -208,8 +207,11 @@ export default function Table({
           delete copy[openFilter];
           return copy;
         });
+
+        // keep showOnlyApplied intact — applied state persists until parent filters change
         toggleFilter(null);
         setDropdownPos(null);
+        setSearchTerm("");
       }
     }
     document.addEventListener("mousedown", onDoc);
@@ -222,6 +224,22 @@ export default function Table({
     document.body.style.overflow = openFilter ? "hidden" : prev || "auto";
     return () => (document.body.style.overflow = prev || "auto");
   }, [openFilter]);
+
+  /* ---------- sync showOnlyApplied with parent filters ----------
+     If parent filters for a column become empty, remove "show only applied" flag
+     so next open shows full option list automatically.
+  */
+  useEffect(() => {
+    setShowOnlyApplied((prev) => {
+      const copy = { ...prev };
+      Object.keys(prev).forEach((k) => {
+        if (!Array.isArray(filters[k]) || filters[k].length === 0) {
+          delete copy[k];
+        }
+      });
+      return copy;
+    });
+  }, [filters]);
 
   /* ---------- helpers ---------- */
   const shouldShowFilter = (label = "") => {
@@ -291,6 +309,7 @@ export default function Table({
     setDropdownPos(null);
   };
 
+  // Clear filters from parent (external) -> also clear showOnlyApplied immediately
   const clearAllParent = (colKey) => {
     if (typeof clearFilter === "function") clearFilter(colKey);
     else (filters[colKey] || []).slice().forEach((v) => handleCheckboxChange(colKey, v));
@@ -354,7 +373,7 @@ export default function Table({
                   <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: isPrice ? "center" : "flex-start" }}>
                     <span style={{ display: "inline-block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 220 }}>{col.label}</span>
 
-                    {col.canFilter !== false && shouldShowFilter(col.label) && (
+                    {col.canFilter !== false && shouldShowFilter(col.label) && resolveUnique(col.key).length > 0 && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

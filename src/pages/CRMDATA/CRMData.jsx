@@ -187,7 +187,8 @@ export default function AgentDetails() {
     : [];
 
   return (
-    <div className="dashboard-container" style={{ display: "flex" }}>
+    <div className="dashboard-container" style={{ display: "flex",height: "100vh",
+        overflow: "hidden", }}>
       <Sidebar />
       <div style={{ flex: 1, padding: 20 }}>
         {/* ✅ Back Button */}
