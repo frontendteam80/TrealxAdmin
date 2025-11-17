@@ -1,16 +1,16 @@
- import { useState, useEffect, useRef, useMemo } from "react";
+ // src/pages/Dashboard/Dashboard.jsx
+import { useState, useEffect, useRef, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import Navbar from "../../components/Navbar.jsx";
 import StatsCard from "../../components/StatsCard.jsx";
 import {
-  MdHome,
-  MdNewReleases,
   MdPendingActions,
   MdPriceChange,
   MdListAlt,
   MdLogout,
   MdImage,
   MdBusiness,
+  MdClose,
 } from "react-icons/md";
 import { FiSun, FiMoon } from "react-icons/fi";
 import { useApi } from "../../API/Api.js";
@@ -34,16 +34,25 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const calledOnce = useRef(false);
 
-  // Global table states
+  // Table states
   const [filters, setFilters] = useState({});
   const [openFilter, setOpenFilter] = useState(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
-  // Listing menu states (NEW, inline only)
+  // Menus
   const [showListingMenu, setShowListingMenu] = useState(false);
+  const [showCrmMenu, setShowCrmMenu] = useState(false);
   const listingMenuRef = useRef(null);
-  const [previewIndex, setPreviewIndex] = useState(null); // null = not previewing
+  const crmMenuRef = useRef(null);
+
+  // anchor refs to position popups where the card is
+  const listingCardRef = useRef(null);
+  const crmCardRef = useRef(null);
+
+  // dynamic styles for anchored popups
+  const [listingMenuStyle, setListingMenuStyle] = useState({});
+  const [crmMenuStyle, setCrmMenuStyle] = useState({});
 
   // Theme
   useEffect(() => {
@@ -94,28 +103,21 @@ export default function Dashboard() {
     loadDashboardData();
   }, [fetchData]);
 
-  // Popup click outside (signout)
+  // Click outside for popups (closes menus/popups)
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (popupRef.current && !popupRef.current.contains(e.target)) {
+      if (popupRef.current && !popupRef.current.contains(e.target))
         setShowSignOutPopup(false);
-      }
-    };
-    if (showSignOutPopup) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showSignOutPopup]);
-
-  // Click-outside handler for listing menu
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (listingMenuRef.current && !listingMenuRef.current.contains(e.target)) {
+      if (listingMenuRef.current && !listingMenuRef.current.contains(e.target) &&
+          listingCardRef.current && !listingCardRef.current.contains(e.target))
         setShowListingMenu(false);
-        setPreviewIndex(null);
-      }
+      if (crmMenuRef.current && !crmMenuRef.current.contains(e.target) &&
+          crmCardRef.current && !crmCardRef.current.contains(e.target))
+        setShowCrmMenu(false);
     };
-    if (showListingMenu) document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showListingMenu]);
+  }, []);
 
   const toggleTheme = () => setTheme((p) => (p === "dark" ? "light" : "dark"));
   const handleSignOut = () => {
@@ -124,7 +126,7 @@ export default function Dashboard() {
   };
   const handleCardClick = (route, state = {}) => navigate(route, { state });
 
-  // Listing options (keeps your routes unchanged)
+  // Listing options
   const listingOptions = [
     {
       id: "active",
@@ -139,39 +141,91 @@ export default function Dashboard() {
       route: "/newlistings",
     },
     {
+      id: "flagged",
+      label: "Flagged Listings",
+      desc: "Listings flagged for review",
+      route: "/FlaggedListings",
+    },
+    {
       id: "total",
       label: "Total Listings",
       desc: "All listings (projects & properties)",
       route: "/ProjectsDetails",
-      state: { defaultTab: "PROPERTIES", fromDashboard: true }, // <-- changed to PROPERTIES (uppercase)
+      state: { defaultTab: "PROPERTIES", fromDashboard: true },
     },
     {
       id: "project",
       label: "Project Data",
-      desc: "Project-specific listings & details",
-      route: "/ProjectsDetails", // <-- changed to open ProjectsDetails since you said Projectmanagement.jsx doesn't exist
-      state: { defaultTab: "PROJECTS", fromDashboard: true }, // <-- set PROJECTS
+      desc: "Project-specific listings",
+      route: "/ProjectsDetails",
+      state: { defaultTab: "PROJECTS", fromDashboard: true },
     },
   ];
 
   const openListingRoute = (opt) => {
     setShowListingMenu(false);
-    setPreviewIndex(null);
     if (opt.state) navigate(opt.route, { state: opt.state });
     else navigate(opt.route);
   };
 
-  // Preview controls: next / previous
-  const previewNext = () => {
-    if (previewIndex === null) setPreviewIndex(0);
-    else setPreviewIndex((i) => (i + 1) % listingOptions.length);
-  };
-  const previewPrev = () => {
-    if (previewIndex === null) setPreviewIndex(0);
-    else setPreviewIndex((i) => (i - 1 + listingOptions.length) % listingOptions.length);
+  // CRM options (only show CRM Data and Lead Management as requested)
+  const crmOptions = [
+    {
+      id: "crm",
+      label: "CRM Data",
+      desc: "Open CRM Data",
+      route: "/CRMData",
+    },
+    {
+      id: "lead",
+      label: "Lead Management",
+      desc: "Manage CRM leads and performance",
+      route: "/LeadManagement",
+    },
+    {
+      id: "Deals",
+      label: "Deals Management",
+      desc: "Deals Management Module",
+      route: "/DealsManagement",
+    }
+  ];
+
+  const openCrmRoute = (opt) => {
+    setShowCrmMenu(false);
+    navigate(opt.route);
   };
 
-  // ---------- Table Helpers ----------
+  // When opening a menu, compute its anchored position to card
+  const openListingMenuAnchored = () => {
+    if (listingCardRef.current) {
+      const rect = listingCardRef.current.getBoundingClientRect();
+      setListingMenuStyle({
+        position: "absolute",
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
+        width: 280,
+      });
+    }
+    setShowListingMenu((s) => !s);
+  };
+
+  const openCrmMenuAnchored = () => {
+    if (crmCardRef.current) {
+      const rect = crmCardRef.current.getBoundingClientRect();
+      // place popup aligned with the card's right edge if there's space, otherwise left-aligned
+     const preferredLeft = rect.left + window.scrollX;
+      const fallbackLeft = Math.max(16, window.innerWidth - 600); // avoid overflow
+      setCrmMenuStyle({
+        position: "absolute",
+        top: rect.bottom + window.scrollY + 8,
+        left: preferredLeft,
+        width: 200,
+      });
+    }
+    setShowCrmMenu((s) => !s);
+  };
+
+  // Table filter logic
   const toggleFilter = (key) =>
     setOpenFilter((prev) => (prev === key ? null : key));
 
@@ -194,7 +248,6 @@ export default function Dashboard() {
   };
 
   const hasActiveFilter = (key) => filters[key]?.length > 0;
-
   const getUniqueValues = (data, key) =>
     [...new Set(data.map((i) => i[key]).filter(Boolean))];
 
@@ -203,12 +256,10 @@ export default function Dashboard() {
     const start = (page - 1) * rowsPerPage;
     return activeData.slice(start, start + rowsPerPage);
   }, [activeData, page]);
-
   const totalPages = Math.ceil(activeData.length / rowsPerPage);
 
-  // Columns
   const agentColumns = [
-    { label: "S.No", key: "serialNo", canFilter: false },
+    { label: "S.No", key: "serialNo" },
     { label: "Agent Name", key: "AgentName" },
     { label: "Total Listings", key: "TotalListings" },
     { label: "Avg Listing Time", key: "AvgListingTime" },
@@ -231,14 +282,7 @@ export default function Dashboard() {
     <div className={`dashboard-container ${theme}`}>
       <div className="dashboard">
         <Sidebar theme={theme} />
-        <main
-          style={{
-            flex: 1,
-            padding: "20px 30px",
-          //  marginLeft: "180px",
-           // overflowX: "hidden",
-          }}
-        >
+        <main style={{ flex: 1, padding: "20px 30px" }}>
           <Navbar />
 
           {/* Theme + Logout */}
@@ -256,7 +300,6 @@ export default function Dashboard() {
           >
             <button
               onClick={toggleTheme}
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
               style={{
                 fontSize: "1.8rem",
                 background: "transparent",
@@ -271,8 +314,6 @@ export default function Dashboard() {
             <div style={{ position: "relative" }}>
               <button
                 onClick={() => setShowSignOutPopup((p) => !p)}
-                aria-label="Sign out"
-                title="Sign Out"
                 style={{
                   background: "transparent",
                   border: "none",
@@ -294,22 +335,13 @@ export default function Dashboard() {
                     background: theme === "dark" ? "#1f1f1f" : "#fff",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                     borderRadius: "12px",
-                    padding: "15px 20px",
-                    width: "250px",
+                    padding: "10px 15px",
+                    width: "200px",
                     color: theme === "dark" ? "#eee" : "#333",
                   }}
                 >
-                  <h4 style={{ marginBottom: "8px", fontSize: "1rem" }}>
-                    {user?.firstName || "Unknown User"}
-                  </h4>
-                  <p
-                    style={{
-                      marginBottom: "15px",
-                      fontSize: "0.9rem",
-                      color: theme === "dark" ? "#ccc" : "#555",
-                      wordBreak: "break-word",
-                    }}
-                  >
+                  <h4>{user?.firstName || "Unknown User"}</h4>
+                  <p style={{ fontSize: "0.9rem", color: "#777" }}>
                     {user?.email || "No email found"}
                   </p>
                   <button
@@ -333,14 +365,18 @@ export default function Dashboard() {
           </div>
 
           {/* Stats Cards */}
-          <section className="stats-grid" style={{ position: "relative" }}>
-            {/* Single Listings Card (replaces Active/New/Total/Project cards) */}
+          <section className="stats-grid">
+            {/* Listings Card (anchor) */}
             <div
-              style={{ position: "relative", cursor: "pointer", width: "100%" }}
-              onClick={() => {
-                setShowListingMenu((s) => !s);
-                setPreviewIndex(null);
+              ref={listingCardRef}
+              onClick={(e) => {
+                e.stopPropagation();
+                // compute anchored position & toggle
+                openListingMenuAnchored();
+                // ensure CRM menu closed
+                setShowCrmMenu(false);
               }}
+              style={{ cursor: "pointer", position: "relative" }}
             >
               <StatsCard
                 title="Listings"
@@ -349,159 +385,9 @@ export default function Dashboard() {
                 icon={MdListAlt}
                 gradient="linear-gradient(90deg, #6c757d, #adb5bd)"
               />
-
-              {/* Dropdown Panel anchored to the Listings card */}
-              {showListingMenu && (
-                <div
-                  ref={listingMenuRef}
-                  style={{
-                    position: "absolute",
-                    top: "110px",
-                    left: 0,
-                    minWidth: 300,
-                    maxWidth: 420,
-                    background: theme === "dark" ? "#1a1a1a" : "#fff",
-                    color: theme === "dark" ? "#eee" : "#111",
-                    borderRadius: 12,
-                    boxShadow: "0 8px 30px rgba(2,6,23,0.2)",
-                    padding: 16,
-                    zIndex: 9999,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15 }}>Listing Options</div>
-                    <div style={{ fontSize: 13, color: theme === "dark" ? "#bbb" : "#666" }}>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setPreviewIndex(0); }}
-                        style={{
-                          background: "transparent",
-                          border: "1px solid rgba(0,0,0,0.06)",
-                          padding: "6px 10px",
-                          borderRadius: 8,
-                          cursor: "pointer",
-                          fontSize: 13,
-                        }}
-                      >
-                        Preview
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Menu content: either list of options or preview box */}
-                  {previewIndex === null ? (
-                    <div style={{ display: "grid", gap: 8 }}>
-                      {listingOptions.map((opt) => (
-                        <div
-                          key={opt.id}
-                          onClick={() => openListingRoute(opt)}
-                          style={{
-                            padding: "10px 12px",
-                            borderRadius: 10,
-                            display: "flex",
-                            flexDirection: "column",
-                            cursor: "pointer",
-                            background: theme === "dark" ? "#171717" : "#fbfbfb",
-                            border: theme === "dark" ? "1px solid #222" : "1px solid #f0f0f0",
-                          }}
-                        >
-                          <div style={{ fontWeight: 700 }}>{opt.label}</div>
-                          <div style={{ fontSize: 13, color: theme === "dark" ? "#bfbfbf" : "#666" }}>{opt.desc}</div>
-                        </div>
-                      ))}
-                      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setShowListingMenu(false); }}
-                          style={{
-                            padding: "8px 12px",
-                            borderRadius: 8,
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            color: theme === "dark" ? "#ddd" : "#444"
-                          }}
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    // Preview card (one-by-one flow)
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700 }}>
-                        {listingOptions[previewIndex].label}
-                      </div>
-                      <div style={{ color: theme === "dark" ? "#ccc" : "#666" }}>
-                        {listingOptions[previewIndex].desc}
-                      </div>
-
-                      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); openListingRoute(listingOptions[previewIndex]); }}
-                          style={{
-                            padding: "8px 12px",
-                            borderRadius: 8,
-                            cursor: "pointer",
-                            border: "none",
-                            background: "linear-gradient(90deg,#5e72e4,#825ee4)",
-                            color: "#fff",
-                            fontWeight: 700,
-                            flex: 1,
-                          }}
-                        >
-                          Open
-                        </button>
-
-                        <button
-                          onClick={(e) => { e.stopPropagation(); previewPrev(); }}
-                          style={{
-                            padding: "8px 12px",
-                            borderRadius: 8,
-                            cursor: "pointer",
-                            border: "1px solid rgba(0,0,0,0.08)",
-                            background: "transparent",
-                            flex: 1,
-                          }}
-                        >
-                          Previous
-                        </button>
-
-                        <button
-                          onClick={(e) => { e.stopPropagation(); previewNext(); }}
-                          style={{
-                            padding: "8px 12px",
-                            borderRadius: 8,
-                            cursor: "pointer",
-                            border: "1px solid rgba(0,0,0,0.08)",
-                            background: "transparent",
-                            flex: 1,
-                          }}
-                        >
-                          Next
-                        </button>
-                      </div>
-
-                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setPreviewIndex(null); }}
-                          style={{
-                            padding: "6px 10px",
-                            borderRadius: 8,
-                            border: "none",
-                            background: "transparent",
-                            cursor: "pointer",
-                            color: theme === "dark" ? "#ddd" : "#444",
-                          }}
-                        >
-                          Back to list
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
-            {/* Remaining stat cards (unchanged) */}
+            {/* Approval */}
             <div onClick={() => handleCardClick("/approval")}>
               <StatsCard
                 title="Waiting For Approval"
@@ -512,6 +398,7 @@ export default function Dashboard() {
               />
             </div>
 
+            {/* Price Updates */}
             <div onClick={() => handleCardClick("/updates")}>
               <StatsCard
                 title="Price Updates"
@@ -522,6 +409,7 @@ export default function Dashboard() {
               />
             </div>
 
+            {/* Order Images */}
             <div onClick={() => handleCardClick("/orderimages")}>
               <StatsCard
                 title="Order Images"
@@ -532,7 +420,17 @@ export default function Dashboard() {
               />
             </div>
 
-            <div onClick={() => handleCardClick("/crmdata")}>
+            {/* CRM Data Card (anchor) */}
+            <div
+              ref={crmCardRef}
+              onClick={(e) => {
+                e.stopPropagation();
+                openCrmMenuAnchored();
+                // ensure listing menu closed
+                setShowListingMenu(false);
+              }}
+              style={{ cursor: "pointer", position: "relative" }}
+            >
               <StatsCard
                 title="CRM Data"
                 value={stats.crmCount}
@@ -541,6 +439,117 @@ export default function Dashboard() {
                 gradient="linear-gradient(90deg, #ff9a9e, #fad0c4)"
               />
             </div>
+
+            {/* Listing popup (anchored) */}
+            {showListingMenu && (
+              <div
+                ref={listingMenuRef}
+                style={{
+                  ...listingMenuStyle,
+                  background: theme === "dark" ? "#1a1a1a" : "#fff",
+                  color: theme === "dark" ? "#eee" : "#111",
+                  borderRadius: 10,
+                  boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+                  padding: 12,
+                  zIndex: 9999,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>
+                    Listing Options
+                  </div>
+                  <MdClose
+                    style={{ cursor: "pointer" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowListingMenu(false);
+                    }}
+                  />
+                </div>
+                {listingOptions.map((opt) => (
+                  <div
+                    key={opt.id}
+                    onClick={() => openListingRoute(opt)}
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      marginBottom: 6,
+                      background: theme === "dark" ? "#171717" : "#fafafa",
+                      border:
+                        theme === "dark"
+                          ? "1px solid #222"
+                          : "1px solid #eee",
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>{opt.label}</div>
+                    <div style={{ fontSize: 12, color: "#777" }}>{opt.desc}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* CRM popup (anchored) */}
+            {showCrmMenu && (
+              <div
+                ref={crmMenuRef}
+                style={{
+                  ...crmMenuStyle,
+                  background: theme === "dark" ? "#1a1a1a" : "#fff",
+                  color: theme === "dark" ? "#eee" : "#111",
+                  borderRadius: 10,
+                  boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+                  padding: 12,
+                  zIndex: 9999,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>CRM Options</div>
+                  <MdClose
+                    style={{ cursor: "pointer" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowCrmMenu(false);
+                    }}
+                  />
+                </div>
+
+                {/* ONLY show CRM Data and Lead Management as you asked */}
+                {crmOptions.map((opt) => (
+                  <div
+                    key={opt.id}
+                    onClick={() => openCrmRoute(opt)}
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      background: theme === "dark" ? "#171717" : "#fafafa",
+                      border: theme === "dark" ? "1px solid #222" : "1px solid #eee",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>{opt.label}</div>
+                    <div style={{ fontSize: 12, color: "#777" }}>{opt.desc}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Tabs */}
@@ -554,40 +563,37 @@ export default function Dashboard() {
               marginTop: 10,
             }}
           >
-            {[
-              { id: "AgentOverview", label: "Agent Overview" },
-              { id: "UserFeedback", label: "User Feedback" },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setPage(1);
-                  }}
-                  style={{
-                    backgroundColor: isActive ? "#fff" : "#f0f0f0",
-                    color: isActive ? "#2c3e50" : "#666",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "10px 14px",
-                    fontSize: "13px",
-                    fontWeight: isActive ? 600 : 500,
-                    borderBottom: isActive
-                      ? "3px solid #2c3e50"
-                      : "3px solid transparent",
-                    borderTopLeftRadius: 6,
-                    borderTopRightRadius: 6,
-                  }}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
+            {[{ id: "AgentOverview", label: "Agent Overview" }, { id: "UserFeedback", label: "User Feedback" }].map(
+              (tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setPage(1);
+                    }}
+                    style={{
+                      backgroundColor: isActive ? "#fff" : "#f0f0f0",
+                      color: isActive ? "#2c3e50" : "#666",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "10px 14px",
+                      fontSize: "13px",
+                      fontWeight: isActive ? 600 : 500,
+                      borderBottom: isActive ? "3px solid #2c3e50" : "3px solid transparent",
+                      borderTopLeftRadius: 6,
+                      borderTopRightRadius: 6,
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              }
+            )}
           </div>
 
-          {/* Table Section (Agent + Feedback use same component) */}
+          {/* Table */}
           <div
             style={{
               background: "#fff",
@@ -603,15 +609,16 @@ export default function Dashboard() {
               openFilter={openFilter}
               toggleFilter={toggleFilter}
               handleCheckboxChange={handleCheckboxChange}
-              uniqueValues={(key) => getUniqueValues(activeData, key)}
               clearFilter={clearFilter}
               hasActiveFilter={hasActiveFilter}
-              applyFilter={() => setOpenFilter(null)}
+              getUniqueValues={getUniqueValues}
+              theme={theme}
             />
-
-            {totalPages > 1 && (
-              <Pagination page={page} setPage={setPage} totalPages={totalPages} />
-            )}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         </main>
       </div>

@@ -3,7 +3,8 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import { useApi } from "../../API/Api.js";
 import { useNavigate } from "react-router-dom";
-import DataTable, { Pagination } from "../../Utils/Table.jsx";
+import DataTable from "../../Utils/Table.jsx"; // your table component
+import SearchBar from "../../Utils/SearchBar.jsx"; // shared search bar used on other pages
 
 export default function AgentDetails() {
   const { fetchData } = useApi();
@@ -22,7 +23,7 @@ export default function AgentDetails() {
 
   const filterRef = useRef(null);
 
-  // ✅ Fetch data
+  // Fetch data
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -40,6 +41,7 @@ export default function AgentDetails() {
           Locality: item.Locality,
           PropertyTypes: item.PropertyTypes,
           RefferedBy: item.RefferedBy,
+          __raw: item, // keep original payload for details
         }));
         if (!cancelled) {
           setData(mapped);
@@ -58,11 +60,11 @@ export default function AgentDetails() {
     };
   }, [fetchData]);
 
-  // ✅ Filter + Search Logic
+  // Apply filters + search
   useEffect(() => {
-    let result = [...data];
+    let result = Array.isArray(data) ? [...data] : [];
 
-    // Apply filters
+    // column filters
     Object.keys(filters).forEach((key) => {
       const selected = filters[key];
       if (selected && selected.length > 0 && !selected.includes("All")) {
@@ -70,24 +72,27 @@ export default function AgentDetails() {
       }
     });
 
-    // Apply search
-    if (searchValue) {
-      const lower = searchValue.toLowerCase();
+    // search across multiple columns
+    if (searchValue && searchValue.trim()) {
+      const q = searchValue.trim().toLowerCase();
       result = result.filter(
         (r) =>
-          r.Name?.toLowerCase().includes(lower) ||
-          r.Locality?.toLowerCase().includes(lower) ||
-          r.Role?.toLowerCase().includes(lower) ||
-          r.PropertyTypes?.toLowerCase().includes(lower) ||
-          r.RefferedBy?.toLowerCase().includes(lower)
+          (r.Name && r.Name.toLowerCase().includes(q)) ||
+          (r.Locality && r.Locality.toLowerCase().includes(q)) ||
+          (r.Role && r.Role.toLowerCase().includes(q)) ||
+          (r.PropertyTypes && r.PropertyTypes.toLowerCase().includes(q)) ||
+          (r.RefferedBy && r.RefferedBy.toLowerCase().includes(q)) ||
+          (r.MobileNumber && String(r.MobileNumber).toLowerCase().includes(q)) ||
+          (r.EMail && r.EMail.toLowerCase().includes(q))
       );
     }
 
     setFilteredData(result);
+    // reset to first page on filter/search change
     setPage(1);
-  }, [filters, searchValue, data]);
+  }, [data, filters, searchValue]);
 
-  // ✅ Columns (no filter in S.No)
+  // Columns
   const columns = [
     { key: "S_No", label: "S.No", noFilter: true },
     { key: "Name", label: "Name" },
@@ -101,45 +106,37 @@ export default function AgentDetails() {
 
   const mainKeys = columns.map((c) => c.key);
 
-  // ✅ Pagination logic
+  // Paginated dataset (table can also accept this if it expects pre-paginated rows)
   const paginatedData = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
   }, [filteredData, page]);
 
-  // ✅ Filter toggle logic
-  const toggleFilter = (key) => {
-    if (openFilter === key) setOpenFilter(null);
-    else setOpenFilter(key);
-  };
-
-  // ✅ Filter checkbox logic
+  // Filter helpers
+  const toggleFilter = (key) => setOpenFilter((prev) => (prev === key ? null : key));
   const handleCheckboxChange = (key, value) =>
     setFilters((prev) => {
       const current = prev[key] || [];
       if (value === "All") return { ...prev, [key]: ["All"] };
-      const updated = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current.filter((v) => v !== "All"), value];
+      const updated = current.includes(value) ? current.filter((v) => v !== value) : [...current.filter((v) => v !== "All"), value];
       return { ...prev, [key]: updated };
     });
 
-  // ✅ Clear and Apply filter
   const clearFilter = (key) => {
-    setFilters((prev) => ({ ...prev, [key]: [] }));
-    setFilteredData(data);
+    setFilters((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
     setOpenFilter(null);
   };
 
-  const applyFilter = () => {
-    setOpenFilter(null);
-  };
+  const applyFilter = () => setOpenFilter(null);
 
-  // ✅ Unique values for filters
-  const uniqueValues = (key) =>
-    Array.from(new Set(data.map((d) => d[key]).filter(Boolean)));
+  // Unique values for filters (derived from currently filtered dataset so options stay relevant)
+  const uniqueValues = (key) => Array.from(new Set(filteredData.map((d) => d[key]).filter(Boolean)));
 
-  // ✅ Handle outside click to close filters
+  // Close filter when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
       if (filterRef.current && !filterRef.current.contains(e.target)) {
@@ -150,223 +147,156 @@ export default function AgentDetails() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
-
+  // Spinner
   const Spinner = () => (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "60vh",
-      }}
-    >
-      <div
-        style={{
-          width: 45,
-          height: 45,
-          border: "5px solid #ccc",
-          borderTop: "5px solid #252a2fff",
-          borderRadius: "50%",
-          animation: "spin 1s linear infinite",
-        }}
-      />
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg);}
-          to { transform: rotate(360deg);}
-        }
-      `}</style>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "40vh" }}>
+      <div style={{ width: 40, height: 40, border: "5px solid #e6e6e6", borderTop: "5px solid #111", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+      <style>{`@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }`}</style>
     </div>
   );
 
+  // Extra details from original raw object
   const extraDetails = selectedRow
-    ? Object.entries(selectedRow).filter(
-        ([key]) => !mainKeys.includes(key) && selectedRow[key] !== null
-      )
+    ? Object.entries(selectedRow.__raw || {})
+        .filter(([key]) => !mainKeys.includes(key) && selectedRow.__raw[key] !== null && selectedRow.__raw[key] !== "")
+        .slice(0, 50)
     : [];
 
   return (
     <div className="dashboard-container" style={{ display: "flex" }}>
       <Sidebar />
       <div style={{ flex: 1, padding: 20 }}>
-        {/* ✅ Back Button */}
-        <button
-          onClick={() => navigate(-1)} // go back properly
-          style={{
-            background: "#fff",
-            border: "1px solid #e8e0e0ff",
-            borderRadius: 8,
-            padding: "6px 14px",
-            cursor: "pointer",
-            fontSize: "0.9rem",
-            color: "#121212",
-            //transition: "transform 0.2s, box-shadow 0.2s",
-           // marginBottom: 10,
-          }}
-        >
-          Back
-        </button>
+        {/* Back button + header row with SearchBar */}
+        {/* Back Button */}
+<button
+  onClick={() => navigate(-1)}
+  style={{
+    background: "#fff",
+    border: "1px solid #e8e0e0",
+    borderRadius: 8,
+    padding: "6px 14px",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    color: "#121212",
+  }}
+>
+  Back
+</button>
 
-        <main className="main-content" style={{ flex: 1, padding: 24 }}>
-          {/* Header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 10,
-            }}
-          >
-            <h2 style={{ margin: 0 }}>CRM Data</h2>
-            <div
-              style={{
-                fontWeight: "bold",
-                fontSize: "1.1rem",
-                color: "#d4af37",
-              }}
-            >
-              Kiran Reddy Pallaki
-            </div>
+{/* Heading + Search */}
+<div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 12,   // added space below Back button
+    marginBottom: 12,
+  }}
+>
+  <h2 style={{ margin: 0 }}>CRM Data</h2>
+
+  <div style={{ width: 320 }}>
+    <SearchBar
+      value={searchValue}
+      onChange={setSearchValue}
+      onSubmit={() => setPage(1)}
+      placeholder="Search agents, locality, email..."
+    />
+  </div>
+</div>
+ 
+
+        <main style={{ flex: 1 }}>
+          <div ref={filterRef} style={{ borderRadius: 8, overflow: "hidden" }}>
+            {loading ? (
+              <Spinner />
+            ) : error ? (
+              <div style={{ color: "red" }}>{error}</div>
+            ) : (
+              <>
+                {/* Pass page, setPage, rowsPerPage so DataTable can control paging (and render pagination once) */}
+                <DataTable
+                  columns={columns}
+                  data={data}
+                  paginatedData={paginatedData}
+                  openFilter={openFilter}
+                  toggleFilter={toggleFilter}
+                  filters={filters}
+                  handleCheckboxChange={handleCheckboxChange}
+                  searchValue={searchValue}
+                  setSearchValue={setSearchValue}
+                  uniqueValues={uniqueValues}
+                  clearFilter={clearFilter}
+                  applyFilter={applyFilter}
+                  onRowClick={(row) => setSelectedRow(row)}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  setPage={setPage}
+                  totalCount={filteredData.length}
+                />
+                {/* NOTE: No duplicate/inline Pagination rendered here — DataTable should render pagination itself once */}
+              </>
+            )}
           </div>
 
-          {/* Table Section */}
-          {loading ? (
-            <Spinner />
-          ) : error ? (
-            <p style={{ color: "red" }}>{error}</p>
-          ) : (
+          {/* Right-side details panel (no full overlay; compact, scrolls internally if necessary) */}
+          {selectedRow && (
             <div
               style={{
-                borderRadius: 8,
-                overflow: "hidden",
+                position: "fixed",
+                right: 18,
+                top: 90,
+                width: 380,
+                maxHeight: "78vh",
                 background: "#fff",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                borderRadius: 10,
+                padding: 18,
+                zIndex: 2000,
+                overflowY: "auto",
               }}
-              ref={filterRef}
             >
-              <DataTable
-                columns={columns}
-                data={data}
-                paginatedData={paginatedData}
-                openFilter={openFilter}
-                toggleFilter={toggleFilter}
-                filters={filters}
-                handleCheckboxChange={handleCheckboxChange}
-                searchValue={searchValue}
-                setSearchValue={setSearchValue}
-                uniqueValues={uniqueValues}
-                clearFilter={clearFilter}
-                applyFilter={applyFilter}
-                onRowClick={setSelectedRow}
-              />
-
-              <Pagination page={page} setPage={setPage} totalPages={totalPages} />
-            </div>
-          )}
-
-          {/* Slide Panel */}
-          {selectedRow && (
-            <>
-              <div
-                onClick={() => setSelectedRow(null)}
-                style={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  background: "rgba(0,0,0,0.4)",
-                  zIndex: 998,
-                }}
-              />
-              <div
-                style={{
-                  position: "fixed",
-                  top: 0,
-                  right: 0,
-                  width: "420px",
-                  height: "100%",
-                  background: "#fff",
-                  zIndex: 999,
-                  padding: 20,
-                  overflowY: "auto",
-                  boxShadow: "-2px 0 12px rgba(0,0,0,0.15)",
-                  transform: "translateX(0)",
-                  animation: "slideIn 0.3s ease-out",
-                }}
-              >
-                <style>{`
-                  @keyframes slideIn {
-                    from { transform: translateX(100%);}
-                    to { transform: translateX(0);}
-                  }
-                `}</style>
-
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <h3 style={{ margin: "0 0 6px 0" }}>{selectedRow.Name ?? "Agent Details"}</h3>
+                  <div style={{ color: "#666", fontSize: 13 }}>Details for selected agent</div>
+                </div>
                 <button
                   onClick={() => setSelectedRow(null)}
-                  style={{
-                    float: "right",
-                    fontSize: 24,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                  aria-label="Close"
+                  title="Close"
+                  style={{ background: "transparent", border: "none", fontSize: 18, cursor: "pointer", color: "#777" }}
                 >
                   ×
                 </button>
-
-                <h3 style={{ marginTop: 0, marginBottom: 12 }}>
-                  {selectedRow.Name ?? "Agent Details"}
-                </h3>
-
-                <div style={{ marginBottom: 12 }}>
-                  <div><strong>Name:</strong> {selectedRow.Name ?? "-"}</div>
-                  <div><strong>Mobile:</strong> {selectedRow.MobileNumber ?? "-"}</div>
-                  <div><strong>Email:</strong> {selectedRow.EMail ?? "-"}</div>
-                  <div><strong>Locality:</strong> {selectedRow.Locality ?? "-"}</div>
-                  <div><strong>Partner:</strong> {selectedRow.Role ?? "-"}</div>
-                  <div><strong>Property Type:</strong> {selectedRow.PropertyTypes ?? "-"}</div>
-                  <div><strong>Referred By:</strong> {selectedRow.RefferedBy ?? "-"}</div>
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <h4 style={{ marginBottom: 8 }}>More details</h4>
-                  {extraDetails.length === 0 ? (
-                    <p style={{ color: "#666" }}>No additional details available.</p>
-                  ) : (
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                      <tbody>
-                        {extraDetails.map(([key, val]) => (
-                          <tr key={key}>
-                            <td
-                              style={{
-                                fontWeight: 600,
-                                padding: "6px 8px",
-                                borderBottom: "1px solid #eee",
-                                textTransform: "capitalize",
-                                width: "40%",
-                              }}
-                            >
-                              {key}
-                            </td>
-                            <td
-                              style={{
-                                padding: "6px 8px",
-                                borderBottom: "1px solid #eee",
-                                width: "60%",
-                              }}
-                            >
-                              {String(val ?? "-")}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
               </div>
-            </>
+
+              <div style={{ marginTop: 12, lineHeight: 1.6 }}>
+                <div><strong>Mobile:</strong> {selectedRow.MobileNumber || "-"}</div>
+                <div><strong>Email:</strong> {selectedRow.EMail || "-"}</div>
+                <div><strong>Partner:</strong> {selectedRow.Role || "-"}</div>
+                <div><strong>Locality:</strong> {selectedRow.Locality || "-"}</div>
+                <div><strong>Property Types:</strong> {selectedRow.PropertyTypes || "-"}</div>
+                <div><strong>Referred By:</strong> {selectedRow.RefferedBy || "-"}</div>
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <h4 style={{ margin: "8px 0 10px 0" }}>More details</h4>
+                {extraDetails.length === 0 ? (
+                  <div style={{ color: "#666", fontSize: 13 }}>No extra details available.</div>
+                ) : (
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <tbody>
+                      {extraDetails.map(([k, v]) => (
+                        <tr key={k}>
+                          <td style={{ width: "45%", padding: "6px 8px", fontWeight: 600, borderBottom: "1px solid #f2f2f2" }}>{k}</td>
+                          <td style={{ padding: "6px 8px", borderBottom: "1px solid #f2f2f2" }}>{String(v)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
           )}
         </main>
       </div>

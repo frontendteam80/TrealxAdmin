@@ -517,8 +517,8 @@ function ApprovalControls({ currentRow, saveLocal }) {
       )}
 
       <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={onSave} style={{ background: "#007bff", color: "#fff", border: "none", padding: "8px 12px", borderRadius: 6, cursor: "pointer" }}>Save Note</button>
-        <button onClick={() => { setStatus(""); setReason(""); }} style={{ background: "#fff", color: "#333", border: "1px solid #ddd", padding: "8px 12px", borderRadius: 6 }}>Reset</button>
+        <button onClick={onSave} style={{ background: "#007bff", color: "#fff", border: "none", padding: "8px 12px", borderRadius: 6, cursor: "pointer" }}>Save</button>
+        {/* <button onClick={() => { setStatus(""); setReason(""); }} style={{ background: "#fff", color: "#333", border: "1px solid #ddd", padding: "8px 12px", borderRadius: 6 }}>Reset</button> */}
       </div>
     </div>
   );
