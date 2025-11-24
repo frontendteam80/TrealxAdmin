@@ -1,4 +1,4 @@
-// src/API/Api.js
+ // src/API/Api.js
 import { useCallback } from "react";
 import { useAuth } from "../auth/AuthContext";
 
@@ -7,7 +7,7 @@ const API_URL = "https://imsdev.akrais.com:8444/AKRARealityLTAPI/api/data";
 export function useApi() {
   const { bearerToken, refreshBearerToken, logout } = useAuth();
 
-  // low-level request helper
+  // Low-level reusable API request
   const apiRequest = useCallback(
     async (requestType, extraBody = {}, attemptRefresh = true) => {
       if (!bearerToken) {
@@ -26,12 +26,11 @@ export function useApi() {
 
         const raw = await res.text();
 
+        // Handle expired token
         if (res.status === 401 || res.status === 403) {
-          // try refresh once
           if (attemptRefresh) {
             const refreshed = await refreshBearerToken();
             if (refreshed) {
-              // retry with new token (one more attempt)
               return apiRequest(requestType, extraBody, false);
             } else {
               logout();
@@ -56,7 +55,7 @@ export function useApi() {
     [bearerToken, refreshBearerToken, logout]
   );
 
-  // convenience wrapper for pages
+  // Wrapper for read-type requests
   const fetchData = useCallback(
     async (requestType, extraBody = {}) => {
       return apiRequest(requestType, extraBody);
@@ -64,5 +63,13 @@ export function useApi() {
     [apiRequest]
   );
 
-  return { fetchData };
+  // Wrapper for update/create-type requests
+  const postData = useCallback(
+    async (requestType, extraBody = {}) => {
+      return apiRequest(requestType, extraBody);
+    },
+    [apiRequest]
+  );
+
+  return { fetchData, postData };
 }

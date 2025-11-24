@@ -312,7 +312,6 @@ export default function ProjectsDetails() {
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h2 style={{ margin: 0, fontWeight: 600, fontSize: "1.05rem" }}>Listing Data</h2>
-          <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#d4af37" }}>Kiran Reddy Pallaki</div>
         </div>
 
         {/* Tabs + Global Search */}

@@ -28,6 +28,12 @@ import ProjectManagement from "./pages/ProjectManagement/ProjectsDetails.jsx";
 // import SettingsPage from "./components/Profile/SettingsPage.jsx";
 // import UserRoleManager from "./components/Profile/UserRoleManager.jsx";
 
+import FlaggedListings from "./pages/FlaggedListings/FlaggedListings.jsx";
+import LeadManagement from "./pages/Lead/LeadManagement.jsx";
+import DealsManagement from "./pages/Deals/DealsManagement.jsx";
+import ExpiredListings from "./pages/ExpiredListings/ExpiredListings.jsx";
+
+import PowerBI from "./components/PowerBI.jsx";
 
 function App() {
   const { bearerToken, loading } = useAuth();
@@ -42,6 +48,7 @@ function App() {
           path="/login"
           element={bearerToken ? <Navigate to="/" replace /> : <Login />}
         />
+
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/updates" element={<ProtectedRoute><Updates /></ProtectedRoute>} />
         <Route path="/buyers" element={<ProtectedRoute><Buyers /></ProtectedRoute>} />
@@ -56,7 +63,9 @@ function App() {
         <Route path="/orderimages" element={<ProtectedRoute><Orderimages/></ProtectedRoute>} />
         <Route path="/CRMData" element={<ProtectedRoute><CRMDATA/></ProtectedRoute>} />
         <Route path="/ProjectsDetails" element={<ProtectedRoute><ProjectDetails/></ProtectedRoute>} />
+
         <Route path="*" element={<Navigate to={bearerToken ? "/" : "/login"} replace />} />
+
         <Route path="/activelistings" element={<ProtectedRoute><ActiveListings/></ProtectedRoute>} />
         <Route path="/totallistings" element={<ProtectedRoute><TotalListings/></ProtectedRoute>} />
         <Route path="/approval" element={<ProtectedRoute><Approval/></ProtectedRoute>} />
@@ -65,6 +74,15 @@ function App() {
         {/* <Route path="/profile" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>} />
          <Route path="/settings" element={<ProtectedRoute><SettingsPage/></ProtectedRoute>} />*/}
       </Routes> 
+        <Route path="/FlaggedListings" element={<ProtectedRoute><FlaggedListings/></ProtectedRoute>}/>
+        <Route path="/LeadManagement" element={<ProtectedRoute><LeadManagement/></ProtectedRoute>}/>
+        <Route path="/DealsManagement" element={<ProtectedRoute><DealsManagement/></ProtectedRoute>}/>
+        <Route path="/ExpiredListings" element={<ProtectedRoute><ExpiredListings/></ProtectedRoute>}/>
+
+        {/* ✅ New Power BI Dashboard Route */}
+        <Route path="/powerbi-dashboard" element={<ProtectedRoute><PowerBI /></ProtectedRoute>} />
+
+      </Routes>
     </ThemeProvider>
   );
 }

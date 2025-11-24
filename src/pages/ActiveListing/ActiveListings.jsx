@@ -5,15 +5,15 @@ import { useNavigate } from "react-router-dom";
 import { useApi } from "../../API/Api.js";
 import Table from "../../Utils/Table.jsx";
 import SearchBar from "../../Utils/SearchBar.jsx";
-import BackButton from "../../Utils/Backbutton.jsx"; // ensure file name matches in your repo
+import BackButton from "../../Utils/Backbutton.jsx";
 import { Eye, X } from "lucide-react";
 
 export default function ActiveListings() {
   const { fetchData } = useApi();
   const navigate = useNavigate();
 
-  const [data, setData] = useState([]); // full dataset from API (cleaned)
-  const [filteredData, setFilteredData] = useState([]); // after parent-level filters & search
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [filters, setFilters] = useState({});
   const [openFilter, setOpenFilter] = useState(null);
   const [searchValue, setSearchValue] = useState("");
@@ -30,7 +30,6 @@ export default function ActiveListings() {
         setLoading(true);
         const response = await fetchData("ActiveListingDataInfo");
         const arr = Array.isArray(response) ? response : response?.data || [];
-        // remove heavy fields
         const cleanedData = arr.map(
           ({
             PropertyLatitude,
@@ -61,11 +60,10 @@ export default function ActiveListings() {
     };
   }, [fetchData]);
 
-  // Filtering + global search (parent applies filters -> filteredData)
+  // Filtering + search
   useEffect(() => {
     let result = [...data];
 
-    // apply column filters first
     Object.keys(filters).forEach((key) => {
       const selected = filters[key];
       if (selected && selected.length > 0) {
@@ -73,7 +71,6 @@ export default function ActiveListings() {
       }
     });
 
-    // then global search across all fields
     if (searchValue && searchValue.trim()) {
       const lower = searchValue.toLowerCase();
       result = result.filter((row) =>
@@ -85,8 +82,6 @@ export default function ActiveListings() {
     setPage(1);
   }, [filters, data, searchValue]);
 
-  // IMPORTANT: compute unique values based on the *currently filtered dataset* (filteredData)
-  // so filter dropdowns for other columns are constrained to the active filters.
   const getUniqueValues = (key) =>
     Array.from(new Set(filteredData.map((item) => item[key]).filter(Boolean)));
 
@@ -154,7 +149,6 @@ export default function ActiveListings() {
     },
   ];
 
-  // paginated data for table rendering
   const paginatedData = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
@@ -170,20 +164,47 @@ export default function ActiveListings() {
 
   const hasActiveFilter = (key) => Array.isArray(filters[key]) && filters[key].length > 0;
 
-  // total pages (Table will use totalCount prop)
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
+  // Simple spinner JSX
+  const Spinner = () => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: 200,
+      }}
+    >
+      <div className="loader" />
+      <style>
+        {`
+          .loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #0a0b0bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg);}
+            100% { transform: rotate(360deg);}
+          }
+        `}
+      </style>
+    </div>
+  );
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar />
 
-      <main style={{ flex: 1, padding: 20, marginLeft: "180px", boxSizing: "border-box" }}>
-        {/* Back button above heading (text-only) */}
+      <main style={{ flex: 1, padding: 20, marginLeft: "180px" }}>
         <div style={{ marginBottom: 10 }}>
           <BackButton onClick={() => navigate("/dashboard")} label="Back" />
         </div>
 
-        {/* Heading and Search on same row */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <h2 style={{ margin: 0, color: "#222", fontSize: "1.05rem", fontWeight: 600 }}>Active Listings</h2>
 
@@ -198,29 +219,30 @@ export default function ActiveListings() {
         </div>
 
         <div style={{ borderRadius: 8, background: "#fff", padding: 10 }}>
-          {/* Pass the filteredData as `data` so the Table's dropdowns are constrained to current filters */}
-          <Table
-            columns={columns}
-            data={filteredData} // <- uses filtered data to compute dropdown options
-            paginatedData={paginatedData}
-            filters={filters}
-            openFilter={openFilter}
-            toggleFilter={toggleFilter}
-            handleCheckboxChange={handleCheckboxChange}
-            uniqueValues={getUniqueValues} // this now uses filteredData internally
-            hasActiveFilter={hasActiveFilter}
-            page={page}
-            setPage={setPage}
-            rowsPerPage={rowsPerPage}
-            totalCount={filteredData.length}
-            clearFilter={(colKey) => setFilters((prev) => ({ ...prev, [colKey]: [] }))}
-            applyFilter={() => {}}
-            onRowClick={(row) => setSelectedRow(row)}
-          />
-          {/* Table renders its own Pagination internally — don't render another one here */}
+          {loading ? (
+            <Spinner />
+          ) : (
+            <Table
+              columns={columns}
+              data={filteredData}
+              paginatedData={paginatedData}
+              filters={filters}
+              openFilter={openFilter}
+              toggleFilter={toggleFilter}
+              handleCheckboxChange={handleCheckboxChange}
+              uniqueValues={getUniqueValues}
+              hasActiveFilter={hasActiveFilter}
+              page={page}
+              setPage={setPage}
+              rowsPerPage={rowsPerPage}
+              totalCount={filteredData.length}
+              clearFilter={(colKey) => setFilters((prev) => ({ ...prev, [colKey]: [] }))}
+              applyFilter={() => {}}
+              onRowClick={(row) => setSelectedRow(row)}
+            />
+          )}
         </div>
 
-        {/* Right-side details drawer */}
         {selectedRow && (
           <div
             style={{
