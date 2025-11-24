@@ -9,7 +9,7 @@ export default function formatAmount(val) {
     unit = " Cr";
   } else if (num >= 100000) {
     value = (num / 100000).toFixed(2);
-    unit = " Lac";
+    unit = " L";
   } else if (num >= 1000) {
     value = (num / 1000).toFixed(2);
     unit = " K";

@@ -404,6 +404,8 @@ export default function AgentDetails() {
   };
 
   return (
+    <div className="dashboard-container" style={{ display: "flex",height: "100vh",
+        overflow: "hidden", }}>
     <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
       <style>{`
         .crm-table-wrap { width: 100%; }

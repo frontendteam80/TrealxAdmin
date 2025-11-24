@@ -3,16 +3,18 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import Navbar from "../../components/Navbar.jsx";
 import StatsCard from "../../components/StatsCard.jsx";
+import ProfileIcon from "../../components/Profile/profileIcon.jsx"; // your theme toggle / small icon
+// import ProfileMenu from "../../components/Profile/ProfileMenu.jsx"; // full profile dropdown menu
+
 import {
   MdPendingActions,
   MdPriceChange,
   MdListAlt,
-  MdLogout,
   MdImage,
   MdBusiness,
   MdClose,
 } from "react-icons/md";
-import { FiSun, FiMoon } from "react-icons/fi";
+
 import { useApi } from "../../API/Api.js";
 import { useAuth } from "../../auth/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
@@ -21,13 +23,12 @@ import "../Dashboard/Dashboard.scss";
 
 export default function Dashboard() {
   const [theme, setTheme] = useState(() =>
-    localStorage.getItem("theme") || "dark"
+    localStorage.getItem("theme") || "light"
   );
   const [activeTab, setActiveTab] = useState("AgentOverview");
   const [stats, setStats] = useState({});
   const [agentData, setAgentData] = useState([]);
   const [feedbackData, setFeedbackData] = useState([]);
-  const [showSignOutPopup, setShowSignOutPopup] = useState(false);
   const popupRef = useRef(null);
   const { fetchData } = useApi();
   const { user, logout } = useAuth();
@@ -73,7 +74,7 @@ export default function Dashboard() {
           fetchData("UserFeedback"),
         ]);
 
-        const data = dashboardSummary?.[0] || {};
+        const data = Array.isArray(dashboardSummary) ? dashboardSummary[0] || {} : {};
         setStats({
           activeListings: Number(data.ActiveListing || 0).toLocaleString(),
           newListings: Number(data.PropertyAddedThisWeek || 0).toLocaleString(),
@@ -120,10 +121,6 @@ export default function Dashboard() {
   }, []);
 
   const toggleTheme = () => setTheme((p) => (p === "dark" ? "light" : "dark"));
-  const handleSignOut = () => {
-    logout();
-    navigate("/login");
-  };
   const handleCardClick = (route, state = {}) => navigate(route, { state });
 
   // Listing options
@@ -291,19 +288,49 @@ export default function Dashboard() {
         <main style={{ flex: 1, padding: "20px 30px" }}>
           <Navbar />
 
-          {/* Theme + Logout */}
+          {/* Profile Icon + Profile Menu: top-right */}
           <div
             style={{
               position: "fixed",
-              marginLeft: "240px",
               top: 20,
               right: 25,
               zIndex: 9999,
               display: "flex",
               alignItems: "center",
-              gap: "15px",
+              gap: "12px",
             }}
           >
+            {/* existing theme toggle/simple profile icon */}
+             {/* <ProfileIcon currentTheme={theme} onToggleTheme={toggleTheme} />  */}
+
+            {/* full profile menu (User & Role, Property Management, Platform Settings) */}
+            <ProfileIcon
+              user={user || {}}
+              cureentTheme={theme}
+              onToggleTheme={toggleTheme}
+              onNavigate={(path, state) => {
+                // Normalize navigation signature: allow (path) or (path, state)
+                if (state && typeof state === "object" && state.hasOwnProperty("state")) {
+                  navigate(path, state);
+                } else {
+                  navigate(path, { state });
+                }
+              }}
+              onOpenSection={(id) => {
+                // Called when a specific section item is clicked
+                // You can replace this with modal toggles or analytics
+                console.log("Profile menu open section:", id);
+              }}
+              onSignOut={() => {
+                // call your existing logout from auth context then route to login
+                try {
+                  logout();
+                } catch (e) {
+                  console.warn("Logout failed:", e);
+                }
+                navigate("/login");
+              }}
+            />
             <button
               onClick={toggleTheme}
               style={{

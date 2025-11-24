@@ -1,49 +1,48 @@
 
 import React from "react";
-import { Search } from "lucide-react"; // npm install lucide-react
+import { Search } from "lucide-react";
 
-const SearchBar = ({ value, onChange, onSubmit,pageLabel }) => (
+const SearchBar = ({ value, onChange, onSubmit }) => (
   <form
     onSubmit={(e) => {
       e.preventDefault();
       onSubmit?.(e);
     }}
-    style={{ position: "relative", width: "100%",  }} // max width as in image
+    style={{
+      position: "relative",
+      width: "320px", // Match your image or parent width
+      // margin: "0 auto",
+    }}
   >
-    {/* Input */}
     <input
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={`Search ${pageLabel || "..."}`}
+      placeholder="Search..."
       style={{
-        padding: "8px 38px", // enough for icon, matches image spacing
-        // paddingRight: "12px",
-        // height: "38px",
-        // width: "150px",
-        border: "1.5px solid #222", // slightly darker border as per image
+        width: "100%",
+        height: "38px",
+        paddingLeft: "34px",
+        paddingRight: "10px",
+        background: "rgb(247, 250, 253)",
+        border: "1px solid #ccc",
         borderRadius: "8px",
         fontSize: "16px",
-        color: "#212121",
-        background:" rgb(247, 250, 253)",
+        color: "#333",
         outline: "none",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-        transition: "border-color 0.2s",
+        boxSizing: "border-box",
+        transition: "border-color 0.15s",
       }}
-      className="searchbar-input" // optional: for further CSS targeting
     />
-
-    {/* Icon */}
     <Search
-      size={19}
+      size={20}
       style={{
         position: "absolute",
-        left: "12px",
+        left: "10px",
         top: "50%",
         transform: "translateY(-50%)",
-        color: "#636363",
+        color: "#939393",
         pointerEvents: "none",
-        opacity: 0.85,
       }}
     />
   </form>

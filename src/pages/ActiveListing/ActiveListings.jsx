@@ -283,5 +283,6 @@ export default function ActiveListings() {
         )}
       </main>
     </div>
+    </div>
   );
 }

@@ -24,6 +24,10 @@ import ActiveListings from "./pages/ActiveListing/ActiveListings.jsx";
 import Approval from "./pages/Approval/Approval.jsx";
 import NewListings from "./pages/NewListing/NewListing.jsx";
 import ProjectManagement from "./pages/ProjectManagement/ProjectsDetails.jsx";
+// import ProfilePage from "./components/Profile/ProfilePage.jsx";
+// import SettingsPage from "./components/Profile/SettingsPage.jsx";
+// import UserRoleManager from "./components/Profile/UserRoleManager.jsx";
+
 import FlaggedListings from "./pages/FlaggedListings/FlaggedListings.jsx";
 import LeadManagement from "./pages/Lead/LeadManagement.jsx";
 import DealsManagement from "./pages/Deals/DealsManagement.jsx";
@@ -67,6 +71,9 @@ function App() {
         <Route path="/approval" element={<ProtectedRoute><Approval/></ProtectedRoute>} />
         <Route path="/newlistings" element={<ProtectedRoute><NewListings/></ProtectedRoute>} />
         <Route path="/projectmanagement" element={<ProtectedRoute><ProjectManagement/></ProtectedRoute>} />
+        {/* <Route path="/profile" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>} />
+         <Route path="/settings" element={<ProtectedRoute><SettingsPage/></ProtectedRoute>} />*/}
+      </Routes> 
         <Route path="/FlaggedListings" element={<ProtectedRoute><FlaggedListings/></ProtectedRoute>}/>
         <Route path="/LeadManagement" element={<ProtectedRoute><LeadManagement/></ProtectedRoute>}/>
         <Route path="/DealsManagement" element={<ProtectedRoute><DealsManagement/></ProtectedRoute>}/>
