@@ -3,10 +3,16 @@ import React, { useEffect, useRef, useState } from "react";
 import "./Table.scss";
 
 /* ---------- Small filled funnel SVG ---------- */
-function FilledFunnel({ active = false, size = 16 }) {
+function FilledFunnel({ active = false, size = 14 }) {
   const fill = active ? "#2563eb" : "#9ca3af";
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden
+      style={{ display: "inline-block", verticalAlign: "middle" }}
+    >
       <path
         d="M3 5.5C3 4.6716 3.6716 4 4.5 4H19.5C20.3284 4 21 4.6716 21 5.5C21 5.9886 20.7548 6.4439 20.3466 6.7399L13 11.9V16.5C13 16.7761 12.7761 17 12.5 17H11.5C11.2239 17 11 16.7761 11 16.5V11.9L3.6534 6.7399C3.2452 6.4439 3 5.9886 3 5.5Z"
         fill={fill}
@@ -17,7 +23,7 @@ function FilledFunnel({ active = false, size = 16 }) {
   );
 }
 
-/* ---------- Pagination component (Trealx-like) ---------- */
+/* ---------- Pagination component ---------- (unchanged) */
 function Pagination({ page, setPage, totalPages = 0 }) {
   if (!totalPages || totalPages <= 1) return null;
 
@@ -124,8 +130,8 @@ function Pagination({ page, setPage, totalPages = 0 }) {
 function injectHelpers() {
   if (document.getElementById("tutils-styles")) return;
   const css = `
-    .tutils-td { padding: 8px 10px !important; font-size: 13px; vertical-align: middle; }
-    .tutils-th { padding: 10px 12px !important; font-size: 13px; vertical-align: middle; }
+    .tutils-td { padding: 6px 10px !important; font-size: 13px; vertical-align: middle; }
+    .tutils-th { padding: 8px 12px !important; font-size: 13px; vertical-align: middle; }
     .tutils-options-scroll { max-height: 160px; overflow-y: auto; padding-right: 6px; }
     .tutils-options-scroll::-webkit-scrollbar { width: 8px; }
     .tutils-options-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 6px; }
@@ -157,11 +163,11 @@ function isNumericLike(value) {
 
 /* ---------- Main Table component ---------- */
 export default function Table({
-  // new: accept `data` which should be the parent-side filtered dataset (preferred source for dropdown options)
   data = [],
   columns = [],
   paginatedData = [],
   filters = {},
+  setFilters,
   openFilter,
   toggleFilter = () => {},
   handleCheckboxChange = () => {},
@@ -233,18 +239,15 @@ export default function Table({
 
   // IMPORTANT: use 'data' (parent filtered dataset) as the source for unique values when present.
   const resolveUnique = (colKey) => {
-    // if parent gave a custom uniqueValues() function, use it first (keeps backward compatibility)
     if (typeof uniqueValues === "function") {
       const out = uniqueValues(colKey);
       if (Array.isArray(out) && out.length) return out;
     }
 
-    // prefer `data` (which should already be filtered by parent) otherwise fallback to paginatedData
     const source = Array.isArray(data) && data.length ? data : (paginatedData || []);
     const list = source.map((r) => (r ? r[colKey] : undefined)).filter((v) => v !== undefined && v !== null && String(v).trim() !== "");
     const uniq = Array.from(new Set(list));
 
-    // numeric-aware sorting
     const numeric = uniq.every((u) => !isNaN(Number(String(u).toString().replace(/[,₹\sCrcr]/g, ""))));
     if (numeric) {
       return uniq
@@ -272,7 +275,11 @@ export default function Table({
   const clearTempAll = (colKey) => setTempFilters((prev) => ({ ...prev, [colKey]: [] }));
 
   const cancelFor = (colKey) => {
-    setTempFilters((prev) => { const copy = { ...prev }; delete copy[colKey]; return copy; });
+    setTempFilters((prev) => {
+      const copy = { ...prev };
+      delete copy[colKey];
+      return copy;
+    });
     toggleFilter(null);
     setSearchTerm("");
     setDropdownPos(null);
@@ -280,28 +287,64 @@ export default function Table({
 
   const applyFor = (colKey) => {
     const final = tempFilters[colKey] !== undefined ? tempFilters[colKey] : (Array.isArray(filters[colKey]) ? filters[colKey] : []);
-    const existing = Array.isArray(filters[colKey]) ? filters[colKey] : [];
-    // call parent's handler for differences
-    final.forEach((v) => { if (!existing.includes(v)) handleCheckboxChange(colKey, v); });
-    existing.forEach((v) => { if (!final.includes(v)) handleCheckboxChange(colKey, v); });
-    if (typeof applyFilter === "function") applyFilter();
-    setTempFilters((prev) => { const copy = { ...prev }; delete copy[colKey]; return copy; });
+
+    if (typeof setFilters === "function") {
+      const copy = { ...filters };
+      if (!final || (Array.isArray(final) && final.length === 0)) {
+        delete copy[colKey];
+      } else {
+        copy[colKey] = Array.isArray(final) ? final : [final];
+      }
+      setFilters(copy);
+    } else {
+      const existing = Array.isArray(filters[colKey]) ? filters[colKey] : [];
+      final.forEach((v) => {
+        if (!existing.includes(v)) handleCheckboxChange(colKey, v);
+      });
+      existing.forEach((v) => {
+        if (!final.includes(v)) handleCheckboxChange(colKey, v);
+      });
+      if (typeof applyFilter === "function") applyFilter();
+    }
+
+    // FIX: use colKey when clearing temp.
+    setTempFilters((prev) => {
+      const copy = { ...prev };
+      delete copy[colKey];
+      return copy;
+    });
     toggleFilter(null);
     setSearchTerm("");
     setDropdownPos(null);
   };
 
   const clearAllParent = (colKey) => {
-    if (typeof clearFilter === "function") clearFilter(colKey);
-    else (filters[colKey] || []).slice().forEach((v) => handleCheckboxChange(colKey, v));
-    setTempFilters((prev) => { const copy = { ...prev }; delete copy[colKey]; return copy; });
+    if (typeof setFilters === "function") {
+      const copy = { ...filters };
+      delete copy[colKey];
+      setFilters(copy);
+    } else {
+      if (typeof clearFilter === "function") {
+        clearFilter(colKey);
+      } else {
+        (filters[colKey] || []).slice().forEach((v) => handleCheckboxChange(colKey, v));
+      }
+    }
+    setTempFilters((prev) => {
+      const copy = { ...prev };
+      delete copy[colKey];
+      return copy;
+    });
   };
 
   const isActive = (colKey) => Array.isArray(filters[colKey]) && filters[colKey].length > 0;
 
   const computeFixedPos = (colKey, dropdownWidth = 200) => {
     const th = thRefs.current[colKey];
-    if (!th) { setDropdownPos(null); return; }
+    if (!th) {
+      setDropdownPos(null);
+      return;
+    }
     const r = th.getBoundingClientRect();
     let left = r.left + r.width / 2 - dropdownWidth / 2;
     left = Math.min(Math.max(left, 8), window.innerWidth - dropdownWidth - 8);
@@ -332,11 +375,25 @@ export default function Table({
   /* ---------- UI ---------- */
   return (
     <div ref={containerRef} style={{ background: "#fff", borderRadius: 8, padding: 8, boxShadow: "0 6px 18px rgba(15,23,42,0.04)" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial" }}>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+          tableLayout: "auto", // keep auto, avoid forced truncation
+        }}
+      >
         <thead>
-          <tr style={{ background: "#fafbfd", height: 44 }}>
+          <tr style={{ background: "#fafbfd", height: 40 }}>
             {columns.map((col) => {
-              const isPrice = priceKeys.has(col.key) || (col.label && String(col.label).toLowerCase().includes("price"));
+              const isSerial = ["S_No", "serialNo", "serial"].includes(col.key) || String(col.label || "").toLowerCase().includes("s.no");
+              const isAction = col.key === "action" || String(col.label || "").toLowerCase().includes("action");
+
+              // give small consistent width for serial & action columns to prevent layout jump
+              const thMinWidth = isSerial || isAction ? 64 : undefined;
+              // reserve small space for icon only when not a small column
+              const reservedForIcon = isSerial || isAction ? 20 : 28;
+
               return (
                 <th
                   key={col.key}
@@ -345,35 +402,63 @@ export default function Table({
                   style={{
                     borderBottom: "1px solid #eef2f6",
                     fontWeight: 600,
-                    textAlign: isPrice ? "center" : "left",
+                    textAlign: "center", // header centered
                     position: "relative",
-                    padding: "10px 12px",
+                    padding: "8px 8px",
                     whiteSpace: "nowrap",
+                    minWidth: thMinWidth,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: isPrice ? "center" : "flex-start" }}>
-                    <span style={{ display: "inline-block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 220 }}>{col.label}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "center", flexWrap: "nowrap" }}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: isSerial || isAction ? "100%" : `calc(100% - ${reservedForIcon}px)`,
+                        flex: "1 1 auto",
+                        textAlign: "center",
+                        paddingRight: isSerial || isAction ? 0 : 2,
+                      }}
+                    >
+                      {col.label}
+                    </span>
 
                     {col.canFilter !== false && shouldShowFilter(col.label) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           if (openFilter === col.key) {
-                            setTempFilters((p) => { const c = { ...p }; delete c[col.key]; return c; });
+                            setTempFilters((p) => {
+                              const c = { ...p };
+                              delete c[col.key];
+                              return c;
+                            });
                             toggleFilter(null);
                             setSearchTerm("");
                             setDropdownPos(null);
                           } else {
-                            // initialize temp from parent filters
                             initTempFromParent(col.key);
                             toggleFilter(col.key);
                             setTimeout(() => computeFixedPos(col.key, 240), 0);
                           }
                         }}
-                        style={{ background: "transparent", border: "none", padding: 6, cursor: "pointer" }}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          padding: 4,          // reduced padding (icon closer)
+                          marginLeft: 2,
+                          cursor: "pointer",
+                          flex: "0 0 auto",
+                          alignSelf: "center",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
                         aria-label={`Filter ${col.label}`}
                       >
-                        <FilledFunnel active={isActive(col.key)} />
+                        <FilledFunnel active={isActive(col.key)} size={14} />
                       </button>
                     )}
                   </div>
@@ -437,19 +522,30 @@ export default function Table({
 
         <tbody>
           {(paginatedData || []).length === 0 ? (
-            <tr><td colSpan={columns.length} className="tutils-td" style={{ textAlign: "center", padding: 18, color: "#64748b" }}>No records found</td></tr>
+            <tr><td colSpan={columns.length} className="tutils-td" style={{ textAlign: "center", padding: 18, color: "#64748b" }}>Loading...</td></tr>
           ) : (
             (paginatedData || []).map((row, rIdx) => {
               const globalIndex = startIndex + rIdx;
               return (
-                <tr key={rIdx} style={{ height: 44, background: rIdx % 2 === 0 ? "#fff" : "#fbfdff", borderBottom: "1px solid #f1f5f9", cursor: onRowClick ? "pointer" : "default" }} onClick={onRowClick ? () => onRowClick(row) : undefined}>
+                <tr key={rIdx} style={{ height: 40, background: rIdx % 2 === 0 ? "#fff" : "#fbfdff", borderBottom: "1px solid #f1f5f9", cursor: onRowClick ? "pointer" : "default" }} onClick={onRowClick ? () => onRowClick(row) : undefined}>
                   {columns.map((col, cIdx) => {
-                    const isPrice = priceKeys.has(col.key) || (col.label && String(col.label).toLowerCase().includes("price"));
-                    const cellValue = (col.key === "serialNo" || col.key === "serial" || String(col.label || "").toLowerCase().includes("s.no")) ? (globalIndex + 1) : renderCellContent(col, row, rIdx);
-                    const align = isPrice ? "center" : (isNumericLike(cellValue) ? "center" : "left");
-
+                    const isSerial = ["S_No", "serialNo", "serial"].includes(col.key) || String(col.label || "").toLowerCase().includes("s.no");
+                    const cellValue = isSerial ? globalIndex + 1 : renderCellContent(col, row, rIdx);
+                    // Force center alignment everywhere
                     return (
-                      <td key={cIdx} className="tutils-td" style={{ textAlign: align, paddingLeft: 12, paddingRight: align === "center" ? 12 : 12, verticalAlign: "middle", maxWidth: col.maxWidth || undefined, whiteSpace: col.wrap === false ? "nowrap" : "normal" }}>
+                      <td
+                        key={cIdx}
+                        className="tutils-td"
+                        style={{
+                          textAlign: "center",            // BODY centered
+                          paddingLeft: 12,
+                          paddingRight: 12,
+                          verticalAlign: "middle",
+                          minWidth: isSerial || col.key === "action" ? 64 : undefined,
+                          maxWidth: col.maxWidth || undefined,
+                          whiteSpace: col.wrap === false ? "nowrap" : "normal",
+                        }}
+                      >
                         {cellValue}
                       </td>
                     );

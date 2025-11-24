@@ -1,6 +1,8 @@
- import React, { useEffect, useMemo, useRef, useState, useContext } from "react";
+ // src/pages/FlaggedListings/FlaggedListings.jsx
+import React, { useEffect, useMemo, useRef, useState, useContext } from "react";
 import Sidebar from "../../components/Sidebar.jsx";
 import BackButton from "../../Utils/Backbutton.jsx";
+import SearchBar from "../../Utils/SearchBar.jsx";
 import Table, { Pagination } from "../../Utils/Table.jsx";
 import { Eye } from "lucide-react";
 import { useApi } from "../../API/Api.js";
@@ -123,6 +125,9 @@ function FlaggedListings() {
   const rowsPerPage = 10;
   const [loading, setLoading] = useState(true);
 
+  // search state (NEW)
+  const [searchValue, setSearchValue] = useState("");
+
   // slide panel id
   const [openRowId, setOpenRowId] = useState(null);
 
@@ -168,16 +173,30 @@ function FlaggedListings() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [openRowId]);
 
-  // filter application
+  // filter + search application
   useEffect(() => {
     let result = [...data];
+
+    // apply column filters
     Object.keys(filters).forEach((k) => {
       const vals = filters[k];
       if (vals?.length) result = result.filter((r) => vals.includes(r[k]));
     });
+
+    // apply search (case-insensitive) across relevant fields
+    if (searchValue && searchValue.trim()) {
+      const q = searchValue.toLowerCase();
+      result = result.filter((r) =>
+        (r.PropertyID && String(r.PropertyID).toLowerCase().includes(q)) ||
+        (r.PropertyName && String(r.PropertyName).toLowerCase().includes(q)) ||
+        (r.ReportIssuedBy && String(r.ReportIssuedBy).toLowerCase().includes(q)) ||
+        (r.FlagType && String(r.FlagType).toLowerCase().includes(q))
+      );
+    }
+
     setFilteredData(result);
     setPage(1);
-  }, [filters, data]);
+  }, [filters, data, searchValue]);
 
   // get unique values for filters:
   // when a column's filter is open, show values from full dataset (so user can see all options),
@@ -324,7 +343,28 @@ function FlaggedListings() {
           <BackButton onClick={() => window.history.back()} label="Back" />
         </div>
 
-        <h2 style={{ fontSize: "1.1rem", marginBottom: 12, color: "#111" }}>Flagged Listings</h2>
+        {/* Header with title (left) and search (right) */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12
+          }}>
+            <div>
+              <h2 style={{ fontSize: "1.1rem", margin: 0, color: "#111" }}>Flagged Listings</h2>
+              <div style={{ color: "#666", fontSize: 13, marginTop: 6 }}></div>
+            </div>
+
+            <div style={{ minWidth: 280, maxWidth: 420 }}>
+              <SearchBar
+                value={searchValue}
+                onChange={setSearchValue}
+                placeholder="Search by ID, name, reporter or flag..."
+              />
+            </div>
+          </div>
+        </div>
 
         <div style={{ borderRadius: 10, padding: 0 }}>
           {loading ? (
@@ -336,6 +376,7 @@ function FlaggedListings() {
                 <Table
                   columns={columns}
                   paginatedData={paginatedData}
+                  data={filteredData}
                   filters={filters}
                   openFilter={openFilter}
                   toggleFilter={toggleFilter}
@@ -350,7 +391,7 @@ function FlaggedListings() {
                   applyFilter={() => setOpenFilter(null)}
                 />
 
-                {/* Pagination only on right (no left 'showing' text) */}
+                {/* Pagination only on right */}
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
                   <Pagination page={page} setPage={setPage} totalPages={Math.ceil(filteredData.length / rowsPerPage)} />
                 </div>

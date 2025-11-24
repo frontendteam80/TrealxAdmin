@@ -160,6 +160,12 @@ export default function Dashboard() {
       route: "/ProjectsDetails",
       state: { defaultTab: "PROJECTS", fromDashboard: true },
     },
+    {
+      id:"expired",
+      label: "Expired Listings",
+      desc: "ExpiredListings",
+      route: "/ExpiredListings",
+    }
   ];
 
   const openListingRoute = (opt) => {

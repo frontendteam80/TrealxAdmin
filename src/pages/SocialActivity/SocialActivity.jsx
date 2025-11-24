@@ -349,7 +349,7 @@ export default function SocialActivity() {
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
             <h2 style={{ margin: 0, fontWeight: 600,fontSize:"1.05rem"}}>Social Activity</h2>
-            <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#d4af37" }}>Kiran Reddy Pallaki</div>
+
           </div>
  
           <div style={{ marginBottom: 16, gap: "2px", display: "flex" }}>

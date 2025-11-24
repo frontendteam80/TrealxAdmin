@@ -27,6 +27,7 @@ import ProjectManagement from "./pages/ProjectManagement/ProjectsDetails.jsx";
 import FlaggedListings from "./pages/FlaggedListings/FlaggedListings.jsx";
 import LeadManagement from "./pages/Lead/LeadManagement.jsx";
 import DealsManagement from "./pages/Deals/DealsManagement.jsx";
+import ExpiredListings from "./pages/ExpiredListings/ExpiredListings.jsx";
 
 import PowerBI from "./components/PowerBI.jsx";
 
@@ -69,6 +70,7 @@ function App() {
         <Route path="/FlaggedListings" element={<ProtectedRoute><FlaggedListings/></ProtectedRoute>}/>
         <Route path="/LeadManagement" element={<ProtectedRoute><LeadManagement/></ProtectedRoute>}/>
         <Route path="/DealsManagement" element={<ProtectedRoute><DealsManagement/></ProtectedRoute>}/>
+        <Route path="/ExpiredListings" element={<ProtectedRoute><ExpiredListings/></ProtectedRoute>}/>
 
         {/* ✅ New Power BI Dashboard Route */}
         <Route path="/powerbi-dashboard" element={<ProtectedRoute><PowerBI /></ProtectedRoute>} />

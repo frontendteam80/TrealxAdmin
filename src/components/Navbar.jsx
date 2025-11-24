@@ -4,7 +4,7 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <h2 className="dashboard-title">Dashboard</h2>
-      <div className="profile">PrasannaKukkadapu</div>
+      <div className="profile"></div>
     </header>
   );
 }
